@@ -1,4 +1,4 @@
-/* UZK demo flows: native screens (multilingual) that complete the user journeys of the Figma prototype.
+/* Digital Uzbekistan demo flows: native screens (multilingual) that complete the user journeys of the Figma prototype.
    Nothing here talks to real services: every "payment", "appointment" or "appeal" is a demo. */
 'use strict';
 let LANG = 'ru';
@@ -11,12 +11,12 @@ const I = {
     sum: 'сум', pay: 'Оплатить', paying: 'Проводим оплату…', paid: 'Оплачено', recipient: 'Получатель', amount: 'Сумма', method: 'Способ оплаты', date: 'Дата и время', txn: 'Транзакция',
     cashback: 'Начислено {n} баллов кешбэка', points: 'Баллы кешбэка', pointsBal: 'доступно {n}', receipt: 'Чек отправлен в «Мои документы»', share: 'Поделиться чеком', shared: 'Чек скопирован',
     chooseAmount: 'Выберите сумму', commission: 'Комиссия 0 сум', checkout: 'Оплата',
-    p_qr: 'Оплата по QR', p_qr_to: 'Супермаркет «Baraka», Юнусабад', p_fine: 'Оплата штрафа', p_fine_to: 'Штраф: превышение скорости, 3 июня 2026', p_util: 'Оплата ЖКХ', p_util_to: 'Электричество, вода, интернет',
+    p_qr: 'Оплата по QR', p_qr_to: 'Супермаркет «Baraka», Юнусабад', p_fine: 'Оплата штрафа', p_fine_to: 'Штраф: превышение скорости, 12 ноября 2026', p_util: 'Оплата ЖКХ', p_util_to: 'Электричество, вода, интернет',
     p_utilp: 'Оплата баллами', p_utilp_to: 'Электричество · лицевой номер 0399718', p_light: 'Оплата электричества', p_light_to: 'Электричество · лицевой номер 0399718', p_transit: 'Пополнение транспортной карты', p_transit_to: 'Цифровая карта •• 2847',
     p_tourist: 'Пополнение Tashkent Tourist Card', p_tourist_to: 'Tourist Card •• 5678', p_ticket: 'Билет на поезд', p_ticket_to: 'Afrosiyob · Ташкент → Самарканд', p_ipo: 'Покупка акций', p_donate: 'Пожертвование', p_event: 'Билет на мероприятие', p_event_to: 'Tashkent Book Fest · Uzexpocentre',
     ok_transit: 'Баланс карты пополнен', ok_ipo: 'Заявка на покупку акций принята', ok_donate: 'Спасибо за помощь!',
-    welcome_t: 'Все городские услуги Ташкента — в одном приложении', welcome_s: 'Госуслуги, платежи, транспорт, здоровье и AI-помощник', lang: 'Язык', oneid: 'Войти через OneID', myid: 'Войти через MyID (Face ID)',
-    oneid_t: 'Вход через OneID', oneid_req: 'UZK запрашивает доступ к данным:', oneid_items: 'ФИО и фото|ПИНФЛ|Номер телефона|Адрес прописки', allow: 'Разрешить', checking: 'Проверяем данные…',
+    welcome_t: 'Все госуслуги и городские сервисы Узбекистана — в одном приложении', welcome_s: 'Госуслуги, платежи, транспорт, здоровье и AI-помощник', lang: 'Язык', oneid: 'Войти через OneID', myid: 'Войти через MyID (Face ID)',
+    oneid_t: 'Вход через OneID', oneid_req: 'Digital Uzbekistan запрашивает доступ к данным:', oneid_items: 'ФИО и фото|ПИНФЛ|Номер телефона|Адрес прописки', allow: 'Разрешить', checking: 'Проверяем данные…',
     myid_t: 'Вход через MyID', myid_s: 'Посмотрите в камеру', myid_ok: 'Личность подтверждена', logout_q: 'Выйти из аккаунта?', logout: 'Выйти',
     doc_t: 'Запись к врачу', spec: 'Выберите специалиста', s_ther: 'Терапевт', s_ped: 'Педиатр', s_dent: 'Стоматолог', s_card: 'Кардиолог', s_oph: 'Офтальмолог', s_neu: 'Невролог', near: 'ближайшее время: {t}',
     clinic: 'Поликлиника №5, ул. Бабура, 12', chooseDate: 'Дата', chooseTime: 'Время', book: 'Записаться', booked: 'Вы записаны к врачу', doctorName: 'Доктор Исламова М.А.', cancel_q: 'Отменить запись к врачу?', cancelled: 'Запись отменена',
@@ -32,7 +32,7 @@ const I = {
     prog_apply: 'Подать заявку', prog_ok: 'Заявка принята', prog_s: 'Менеджер свяжется с вами в течение 2 рабочих дней',
     diary_t: 'Электронный дневник', kinder_ok: 'Заявление в детский сад подано', soon: 'Раздел появится в полной версии', receipts_t: 'Квитанции', chat_t: 'Чат махалли «Бабур»',
     chat1: 'Ассаламу алайкум! Завтра субботник в 9:00 у гузара.', chat2: 'Отлично, приду с детьми 👍', chat3: 'Голосование за шлагбаум до пятницы — не забудьте!', msg: 'Сообщение…',
-    ai_t: 'AI Агент', typing: 'печатает…', ai_light_q: 'Оплатить за свет', ai_light_a: 'Задолженность за электричество — 24 500 сум. Из-за жары +42°C запаса хватит примерно на 36 часов. Оплатить сейчас?',
+    ai_t: 'AI Агент', typing: 'печатает…', ai_light_q: 'Оплатить за свет', ai_light_a: 'Задолженность за электричество — 24 500 сум. Из-за холодов и отопления запаса хватит примерно на 36 часов. Оплатить сейчас?',
     ai_metro_q: 'Купить билет на метро', ai_metro_a: 'Пополню вашу транспортную карту на 20 000 сум — это 11 поездок на метро. Подтвердить?', ai_doc_q: 'Записаться к врачу', ai_doc_a: 'Ближайшее свободное время у терапевта — завтра в 10:00, Поликлиника №5. Записать вас?',
     ai_pay: 'Оплатить 24 500 сум', ai_top: 'Пополнить на 20 000 сум', ai_book: 'Да, записать', listening: 'Слушаю…', fine_found: 'Найден 1 неоплаченный штраф', data_oneid: 'Данные получены из OneID', settings_saved: 'Настройки сохранены',
   },
@@ -41,12 +41,12 @@ const I = {
     sum: "so'm", pay: "To'lash", paying: "To'lov amalga oshirilmoqda…", paid: "To'landi", recipient: 'Qabul qiluvchi', amount: 'Summa', method: "To'lov usuli", date: 'Sana va vaqt', txn: 'Tranzaksiya',
     cashback: '{n} keshbek bali hisoblandi', points: 'Keshbek ballari', pointsBal: '{n} mavjud', receipt: "Chek «Hujjatlarim»ga yuborildi", share: 'Chekni ulashish', shared: 'Chek nusxalandi',
     chooseAmount: 'Summani tanlang', commission: "Komissiya 0 so'm", checkout: "To'lov",
-    p_qr: "QR orqali to'lov", p_qr_to: '«Baraka» supermarketi, Yunusobod', p_fine: "Jarima to'lovi", p_fine_to: 'Jarima: tezlikni oshirish, 3-iyun 2026', p_util: "Kommunal to'lov", p_util_to: 'Elektr, suv, internet',
+    p_qr: "QR orqali to'lov", p_qr_to: '«Baraka» supermarketi, Yunusobod', p_fine: "Jarima to'lovi", p_fine_to: 'Jarima: tezlikni oshirish, 12-noyabr 2026', p_util: "Kommunal to'lov", p_util_to: 'Elektr, suv, internet',
     p_utilp: "Ballar bilan to'lov", p_utilp_to: 'Elektr · shaxsiy raqam 0399718', p_light: "Elektr uchun to'lov", p_light_to: 'Elektr · shaxsiy raqam 0399718', p_transit: "Transport kartasini to'ldirish", p_transit_to: 'Raqamli karta •• 2847',
     p_tourist: "Tashkent Tourist Card to'ldirish", p_tourist_to: 'Tourist Card •• 5678', p_ticket: 'Poyezd chiptasi', p_ticket_to: 'Afrosiyob · Toshkent → Samarqand', p_ipo: 'Aksiya xaridi', p_donate: 'Xayriya', p_event: 'Tadbirga chipta', p_event_to: 'Tashkent Book Fest · Uzexpocentre',
     ok_transit: "Karta balansi to'ldirildi", ok_ipo: 'Aksiya xarid qilish arizasi qabul qilindi', ok_donate: 'Yordamingiz uchun rahmat!',
-    welcome_t: 'Toshkentning barcha shahar xizmatlari — bitta ilovada', welcome_s: "Davlat xizmatlari, to'lovlar, transport, sog'liq va AI yordamchi", lang: 'Til', oneid: 'OneID orqali kirish', myid: 'MyID orqali kirish (Face ID)',
-    oneid_t: 'OneID orqali kirish', oneid_req: "UZK quyidagi ma'lumotlarga ruxsat so'raydi:", oneid_items: 'F.I.Sh. va rasm|JShShIR|Telefon raqami|Ro\'yxatdagi manzil', allow: 'Ruxsat berish', checking: "Ma'lumotlar tekshirilmoqda…",
+    welcome_t: "O'zbekistonning barcha davlat va shahar xizmatlari — bitta ilovada", welcome_s: "Davlat xizmatlari, to'lovlar, transport, sog'liq va AI yordamchi", lang: 'Til', oneid: 'OneID orqali kirish', myid: 'MyID orqali kirish (Face ID)',
+    oneid_t: 'OneID orqali kirish', oneid_req: "Digital Uzbekistan quyidagi ma'lumotlarga ruxsat so'raydi:", oneid_items: 'F.I.Sh. va rasm|JShShIR|Telefon raqami|Ro\'yxatdagi manzil', allow: 'Ruxsat berish', checking: "Ma'lumotlar tekshirilmoqda…",
     myid_t: 'MyID orqali kirish', myid_s: 'Kameraga qarang', myid_ok: 'Shaxs tasdiqlandi', logout_q: 'Akkauntdan chiqasizmi?', logout: 'Chiqish',
     doc_t: 'Shifokor qabuli', spec: 'Mutaxassisni tanlang', s_ther: 'Terapevt', s_ped: 'Pediatr', s_dent: 'Stomatolog', s_card: 'Kardiolog', s_oph: 'Oftalmolog', s_neu: 'Nevrolog', near: 'eng yaqin vaqt: {t}',
     clinic: "5-son poliklinika, Bobur ko'chasi, 12", chooseDate: 'Sana', chooseTime: 'Vaqt', book: 'Yozilish', booked: 'Siz shifokor qabuliga yozildingiz', doctorName: 'Shifokor Islomova M.A.', cancel_q: 'Shifokor qabulini bekor qilasizmi?', cancelled: 'Qabul bekor qilindi',
@@ -62,7 +62,7 @@ const I = {
     prog_apply: 'Ariza topshirish', prog_ok: 'Ariza qabul qilindi', prog_s: "Menejer 2 ish kuni ichida siz bilan bog'lanadi",
     diary_t: 'Elektron kundalik', kinder_ok: "Bog'chaga ariza topshirildi", soon: "Bo'lim to'liq versiyada paydo bo'ladi", receipts_t: 'Kvitansiyalar', chat_t: '«Bobur» mahallasi chati',
     chat1: "Assalomu alaykum! Ertaga soat 9:00 da guzarda hashar.", chat2: 'Zo\'r, bolalar bilan kelaman 👍', chat3: "Shlagbaum uchun ovoz berish jumagacha — unutmang!", msg: 'Xabar…',
-    ai_t: 'AI Agent', typing: 'yozmoqda…', ai_light_q: "Elektr uchun to'lash", ai_light_a: "Elektr qarzdorligi — 24 500 so'm. +42°C issiq tufayli zaxira taxminan 36 soatga yetadi. Hozir to'laysizmi?",
+    ai_t: 'AI Agent', typing: 'yozmoqda…', ai_light_q: "Elektr uchun to'lash", ai_light_a: "Elektr qarzdorligi — 24 500 so'm. Sovuq va isitish tufayli zaxira taxminan 36 soatga yetadi. Hozir to'laysizmi?",
     ai_metro_q: 'Metro chiptasini olish', ai_metro_a: "Transport kartangizni 20 000 so'mga to'ldiraman — bu metroda 11 ta safar. Tasdiqlaysizmi?", ai_doc_q: 'Shifokor qabuliga yozilish', ai_doc_a: "Terapevtda eng yaqin bo'sh vaqt — ertaga soat 10:00, 5-son poliklinika. Yozib qo'yaymi?",
     ai_pay: "24 500 so'm to'lash", ai_top: "20 000 so'mga to'ldirish", ai_book: "Ha, yozib qo'ying", listening: 'Tinglayapman…', fine_found: '1 ta to\'lanmagan jarima topildi', data_oneid: "Ma'lumotlar OneID dan olingan", settings_saved: 'Sozlamalar saqlandi',
   },
@@ -71,12 +71,12 @@ const I = {
     sum: 'UZS', pay: 'Pay', paying: 'Processing payment…', paid: 'Paid', recipient: 'Recipient', amount: 'Amount', method: 'Payment method', date: 'Date & time', txn: 'Transaction',
     cashback: '{n} cashback points credited', points: 'Cashback points', pointsBal: '{n} available', receipt: 'Receipt saved to “My documents”', share: 'Share receipt', shared: 'Receipt copied',
     chooseAmount: 'Choose amount', commission: 'Fee 0 UZS', checkout: 'Payment',
-    p_qr: 'QR payment', p_qr_to: '“Baraka” supermarket, Yunusabad', p_fine: 'Fine payment', p_fine_to: 'Fine: speeding, June 3, 2026', p_util: 'Utility payment', p_util_to: 'Electricity, water, internet',
+    p_qr: 'QR payment', p_qr_to: '“Baraka” supermarket, Yunusabad', p_fine: 'Fine payment', p_fine_to: 'Fine: speeding, Nov 12, 2026', p_util: 'Utility payment', p_util_to: 'Electricity, water, internet',
     p_utilp: 'Pay with points', p_utilp_to: 'Electricity · account 0399718', p_light: 'Electricity payment', p_light_to: 'Electricity · account 0399718', p_transit: 'Transit card top-up', p_transit_to: 'Digital card •• 2847',
     p_tourist: 'Tashkent Tourist Card top-up', p_tourist_to: 'Tourist Card •• 5678', p_ticket: 'Train ticket', p_ticket_to: 'Afrosiyob · Tashkent → Samarkand', p_ipo: 'Share purchase', p_donate: 'Donation', p_event: 'Event ticket', p_event_to: 'Tashkent Book Fest · Uzexpocentre',
     ok_transit: 'Card balance topped up', ok_ipo: 'Share purchase order accepted', ok_donate: 'Thank you for your help!',
-    welcome_t: 'All Tashkent city services in one app', welcome_s: 'Public services, payments, transport, health and an AI assistant', lang: 'Language', oneid: 'Sign in with OneID', myid: 'Sign in with MyID (Face ID)',
-    oneid_t: 'Sign in with OneID', oneid_req: 'UZK requests access to:', oneid_items: 'Full name and photo|PINFL|Phone number|Registered address', allow: 'Allow', checking: 'Verifying your data…',
+    welcome_t: 'All public and city services of Uzbekistan in one app', welcome_s: 'Public services, payments, transport, health and an AI assistant', lang: 'Language', oneid: 'Sign in with OneID', myid: 'Sign in with MyID (Face ID)',
+    oneid_t: 'Sign in with OneID', oneid_req: 'Digital Uzbekistan requests access to:', oneid_items: 'Full name and photo|PINFL|Phone number|Registered address', allow: 'Allow', checking: 'Verifying your data…',
     myid_t: 'Sign in with MyID', myid_s: 'Look at the camera', myid_ok: 'Identity verified', logout_q: 'Log out of your account?', logout: 'Log out',
     doc_t: 'Doctor appointment', spec: 'Choose a specialist', s_ther: 'General practitioner', s_ped: 'Pediatrician', s_dent: 'Dentist', s_card: 'Cardiologist', s_oph: 'Ophthalmologist', s_neu: 'Neurologist', near: 'next available: {t}',
     clinic: 'Clinic No. 5, 12 Babur St.', chooseDate: 'Date', chooseTime: 'Time', book: 'Book', booked: 'Your appointment is booked', doctorName: 'Dr. Islamova M.A.', cancel_q: 'Cancel the doctor appointment?', cancelled: 'Appointment cancelled',
@@ -92,7 +92,7 @@ const I = {
     prog_apply: 'Apply', prog_ok: 'Application accepted', prog_s: 'A manager will contact you within 2 working days',
     diary_t: 'E-diary', kinder_ok: 'Kindergarten application submitted', soon: 'This section will be available in the full version', receipts_t: 'Receipts', chat_t: '“Babur” mahalla chat',
     chat1: 'Assalomu alaykum! Community clean-up tomorrow at 9:00 by the guzar.', chat2: "Great, I'll come with the kids 👍", chat3: "Barrier gate vote closes Friday — don't forget!", msg: 'Message…',
-    ai_t: 'AI Agent', typing: 'typing…', ai_light_q: 'Pay for electricity', ai_light_a: 'Your electricity balance is 24,500 UZS due. With the +42°C heat it will last about 36 hours. Pay now?',
+    ai_t: 'AI Agent', typing: 'typing…', ai_light_q: 'Pay for electricity', ai_light_a: 'Your electricity balance is 24,500 UZS due. With cold nights and heating it will last about 36 hours. Pay now?',
     ai_metro_q: 'Buy a metro ticket', ai_metro_a: "I'll top up your transit card with 20,000 UZS — that's 11 metro rides. Confirm?", ai_doc_q: 'Book a doctor', ai_doc_a: 'The next free slot with a GP is tomorrow at 10:00, Clinic No. 5. Shall I book it?',
     ai_pay: 'Pay 24,500 UZS', ai_top: 'Top up 20,000 UZS', ai_book: 'Yes, book it', listening: 'Listening…', fine_found: '1 unpaid fine found', data_oneid: 'Data received from OneID', settings_saved: 'Settings saved',
   },
@@ -101,12 +101,12 @@ const I = {
     sum: '苏姆', pay: '支付', paying: '正在支付…', paid: '支付成功', recipient: '收款方', amount: '金额', method: '支付方式', date: '日期时间', txn: '交易号',
     cashback: '已返还 {n} 积分', points: '返现积分', pointsBal: '可用 {n}', receipt: '收据已保存至“我的证件”', share: '分享收据', shared: '收据已复制',
     chooseAmount: '选择金额', commission: '手续费 0 苏姆', checkout: '支付',
-    p_qr: '扫码支付', p_qr_to: '“Baraka”超市，尤努斯阿巴德', p_fine: '缴纳罚款', p_fine_to: '罚款：超速，2026年6月3日', p_util: '缴纳水电费', p_util_to: '电费、水费、网费',
+    p_qr: '扫码支付', p_qr_to: '“Baraka”超市，尤努斯阿巴德', p_fine: '缴纳罚款', p_fine_to: '罚款：超速，2026年11月12日', p_util: '缴纳水电费', p_util_to: '电费、水费、网费',
     p_utilp: '积分支付', p_utilp_to: '电费 · 户号 0399718', p_light: '缴纳电费', p_light_to: '电费 · 户号 0399718', p_transit: '交通卡充值', p_transit_to: '数字卡 •• 2847',
     p_tourist: 'Tashkent Tourist Card 充值', p_tourist_to: 'Tourist Card •• 5678', p_ticket: '火车票', p_ticket_to: 'Afrosiyob · 塔什干 → 撒马尔罕', p_ipo: '认购股票', p_donate: '捐款', p_event: '活动门票', p_event_to: 'Tashkent Book Fest · Uzexpocentre',
     ok_transit: '交通卡充值成功', ok_ipo: '股票认购申请已受理', ok_donate: '感谢您的帮助！',
-    welcome_t: '塔什干全部城市服务，一个应用搞定', welcome_s: '政务服务、支付、交通、医疗与 AI 助手', lang: '语言', oneid: '使用 OneID 登录', myid: '使用 MyID 登录（面容识别）',
-    oneid_t: '使用 OneID 登录', oneid_req: 'UZK 请求访问以下信息：', oneid_items: '姓名和照片|PINFL|手机号码|户籍地址', allow: '允许', checking: '正在核验信息…',
+    welcome_t: '乌兹别克斯坦全部政务与城市服务，一个应用搞定', welcome_s: '政务服务、支付、交通、医疗与 AI 助手', lang: '语言', oneid: '使用 OneID 登录', myid: '使用 MyID 登录（面容识别）',
+    oneid_t: '使用 OneID 登录', oneid_req: 'Digital Uzbekistan 请求访问以下信息：', oneid_items: '姓名和照片|PINFL|手机号码|户籍地址', allow: '允许', checking: '正在核验信息…',
     myid_t: '使用 MyID 登录', myid_s: '请看向摄像头', myid_ok: '身份验证成功', logout_q: '确定退出登录吗？', logout: '退出',
     doc_t: '预约医生', spec: '选择科室', s_ther: '全科医生', s_ped: '儿科', s_dent: '牙科', s_card: '心内科', s_oph: '眼科', s_neu: '神经科', near: '最近可约：{t}',
     clinic: '第5诊所，巴布尔街12号', chooseDate: '日期', chooseTime: '时间', book: '预约', booked: '预约成功', doctorName: '伊斯拉莫娃医生', cancel_q: '确定取消预约吗？', cancelled: '预约已取消',
@@ -122,7 +122,7 @@ const I = {
     prog_apply: '提交申请', prog_ok: '申请已受理', prog_s: '客户经理将在2个工作日内联系您',
     diary_t: '电子成绩册', kinder_ok: '幼儿园报名已提交', soon: '该功能将在完整版本中上线', receipts_t: '账单', chat_t: '“巴布尔”社区群聊',
     chat1: '大家好！明天9:00在街区广场集体大扫除。', chat2: '好的，我带孩子一起来 👍', chat3: '道闸投票周五截止，别忘了！', msg: '消息…',
-    ai_t: 'AI 助手', typing: '正在输入…', ai_light_q: '缴纳电费', ai_light_a: '您的电费欠费 24,500 苏姆。受+42°C高温影响，余额约可用36小时。现在缴费吗？',
+    ai_t: 'AI 助手', typing: '正在输入…', ai_light_q: '缴纳电费', ai_light_a: '您的电费欠费 24,500 苏姆。天气转冷、取暖用电增加，余额约可用36小时。现在缴费吗？',
     ai_metro_q: '购买地铁票', ai_metro_a: '为您的交通卡充值 20,000 苏姆，可乘坐地铁11次。确认吗？', ai_doc_q: '预约医生', ai_doc_a: '全科医生最近的空闲时间是明天10:00，第5诊所。为您预约吗？',
     ai_pay: '支付 24,500 苏姆', ai_top: '充值 20,000 苏姆', ai_book: '好的，预约', listening: '正在聆听…', fine_found: '发现1笔未缴罚款', data_oneid: '信息来自 OneID', settings_saved: '设置已保存',
   },
@@ -184,7 +184,7 @@ function rnd(n) { let s = ''; for (let i = 0; i < n; i++) s += Math.floor(Math.r
 // ---------- screens ----------
 const HS = {};
 HS.welcome = () => `<div class="h-welcome">
-  <div class="h-wtop"><img src="icon-192.png" alt="" class="h-wlogo"><div class="h-wt">${esc(t('welcome_t'))}</div><div class="h-ws">${esc(t('welcome_s'))}</div></div>
+  <div class="h-wtop"><img src="icon-192.png" alt="" class="h-wlogo"><div class="h-wname">Digital Uzbekistan</div><div class="h-wt">${esc(t('welcome_t'))}</div><div class="h-ws">${esc(t('welcome_s'))}</div></div>
   <div class="h-wlangs">${Object.keys(LANGS).map(l => `<button class="h-chip ${l === LANG ? 'on' : ''}" data-act="lang:${l}">${LANGS[l]}</button>`).join('')}</div>
   <div class="h-wbtns">${btn(t('oneid'), 'go:h:oneid', 'white')}${btn(t('myid'), 'go:h:myid', 'ghost')}</div>
   <div class="h-demo light">${esc(t('demo'))}</div></div>`;
@@ -242,7 +242,7 @@ HS.slots = (p) => {
     <div class="h-sec">${esc(t('chooseTime'))}</div><div class="h-grid">${times.map(tm => `<button class="h-chip ${tm === st ? 'on' : ''} ${busy.has(tm) ? 'off' : ''}" data-act="${busy.has(tm) ? '' : 'slottime:' + tm}">${tm}</button>`).join('')}</div>
     ${btn(t('book'), 'go:h:done?doctor:' + sd + ':' + st, 'primary')}${demoNote()}</div>`;
 };
-HS.medbook = () => `${hdr(t('med_t'))}<div class="h-body"><div class="h-card np">${[['med1', '12.05.2026'], ['med2', '28.04.2026'], ['med3', '02.03.2026'], ['med4', '15.11.2025']].map(([k, d]) => row(`<span class="h-ico g">${IC.doc}</span>`, t(k), d + ' · ' + t('rx'), 'toast:soon')).join('')}</div>${demoNote()}</div>`;
+HS.medbook = () => `${hdr(t('med_t'))}<div class="h-body"><div class="h-card np">${[['med1', '10.11.2026'], ['med2', '28.10.2026'], ['med3', '02.09.2026'], ['med4', '15.05.2026']].map(([k, d]) => row(`<span class="h-ico g">${IC.doc}</span>`, t(k), d + ' · ' + t('rx'), 'toast:soon')).join('')}</div>${demoNote()}</div>`;
 
 HS.done = (p) => {
   const [kind, a1, a2] = String(p).split(':');
@@ -337,7 +337,7 @@ function runAction(a) {
     case 'langsheet': langSheet(); break;
     case 'login': render('h:loading'); setTimeout(doLogin, 600); break;
     case 'logout': sheet(t('logout_q'), '', [[t('logout'), () => { try { localStorage.removeItem('uzk-auth'); } catch (e) {} history.replaceState({ id: 'h:welcome', depth: 0 }, '', location.pathname); render('h:welcome'); }], [t('cancel'), null]]); break;
-    case 'toast': toast(t(arg)); break;
+    case 'toast': { const [k, m] = arg.split(':'); toast(t(k, { m })); break; }
     case 'call': sheet(t('call_q', { n: arg }), t('call_demo'), [[t('call'), () => toast(t('calling', { n: arg }))], [t('cancel'), null]]); break;
     case 'cancelappt': sheet(t('cancel_q'), '', [[t('confirm'), () => toast(t('cancelled'))], [t('cancel'), null]]); break;
     case 'amt': { window.__payAmt = { key: currentP, v: +arg.split(':').pop() }; render(current, currentP); break; }
@@ -352,6 +352,7 @@ function runAction(a) {
     case 'bt': window.__bt = arg; render(current, currentP); break;
     case 'guests': window.__guests = Math.max(1, Math.min(12, (window.__guests || 2) + +arg)); render(current, currentP); break;
     case 'qty': window.__qty = Math.max(5, (window.__qty || 10) + +arg); render(current, currentP); break;
+    default: if (XACT[cmd]) XACT[cmd](arg);
   }
 }
 
@@ -362,6 +363,194 @@ function renderH(id, p) {
   const el = document.createElement('div'); el.className = 'hscreen ' + 'hs-' + name; el.style.zoom = U; el.style.height = (VH) + 'px';
   el.innerHTML = f(p);
   app.appendChild(el);
+  if (name !== 'welcome' && !el.querySelector('.h-hdr')) document.documentElement.style.background = document.body.style.background = '#F9FAFB';
   el.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b || !b.dataset.act) return; e.preventDefault(); runAction(b.dataset.act); });
   if (f.mount) f.mount(el, p);
 }
+
+// ======================= Digital Uzbekistan additions =======================
+const XI = {
+  ru: { city_t: 'Выберите город', city_s: 'Поиск города', city_geo: 'Определить моё местоположение', city_geo_ok: 'Ваш город: {c}', city_geo_no: 'Нет доступа к геолокации — выберите город из списка', city_none: 'Ничего не найдено',
+    wd: 'Вс|Пн|Вт|Ср|Чт|Пт|Сб', mo: 'января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря',
+    realty: 'Подать объявление|Вторичный рынок|Новостройки|Земельные участки', r_type: 'Тип объекта', r_types: 'Квартира|Дом|Участок|Коммерция', r_rooms: 'Комнат', r_area: 'Площадь, м²', r_price: 'Цена, сум', r_addr: 'Адрес', r_addr_ph: 'Район, улица', r_photo: 'Фото: 5 загружено (демо)', r_publish: 'Опубликовать', r_view: 'Записаться на просмотр', r_ok: 'Объявление опубликовано', r_ok_s: 'Пройдёт модерацию в течение 1 часа', v_ok: 'Вы записаны на просмотр', v_ok_s: 'Риелтор свяжется с вами', r_room: '{n}-комн. квартира', r_floor: 'этаж {n}', r_complex: 'ЖК', r_ready: 'сдача {q}', r_land: 'Участок {n} соток', r_from: 'от',
+    map_t: 'Карта', route: 'Маршрут', route_ok: 'Маршрут построен: {m} мин', detour: 'Объезд', detour_ok: 'Объезд построен: +{m} мин', map_cafe: 'Заведения рядом', map_mosque: 'Мечети рядом', map_roads: 'Ремонтные работы',
+    notif_t: 'Уведомления', n1: 'Платежи и счета', n2: 'Госуслуги и заявки', n3: 'Новости города', n4: 'Подсказки AI-агента', n5: 'Экстренные оповещения', save: 'Сохранить', settings_saved: 'Настройки сохранены',
+    faq_cats: 'Общие вопросы|Водителю|Административные|Городские сервисы|Туризм|Инвестиции',
+    fq1: 'Как оплатить услугу?', fa1: 'Выберите услугу, нажмите «Оплатить» и подтвердите оплату картой Uzcard, Humo или через Payme / Click.',
+    fq2: 'Безопасны ли мои данные?', fa2: 'Вход выполняется через OneID или MyID, данные передаются в зашифрованном виде.',
+    fq3: 'Где мои заявки и чеки?', fa3: 'В разделе «Профиль» → «Услуги», чеки — в «Мои документы».',
+    fq4: 'Как связаться с поддержкой?', fa4: 'Напишите в форму на экране «Помощь» или позвоните на номер 1000.',
+    addcard_t: 'Новая транспортная карта', c_num: 'Номер карты', c_name: 'Название карты', c_name_ph: 'Например, «Для ребёнка»', add: 'Добавить', card_ok: 'Карта добавлена', card_ok_s: 'Можно пополнять и оплачивать проезд',
+    addcar_t: 'Добавить автомобиль', car_plate: 'Госномер', car_brand: 'Марка и модель', car_brand_ph: 'Например, Chevrolet Cobalt', car_color: 'Цвет', car_colors: 'Белый|Чёрный|Серый|Синий', car_ok: 'Автомобиль добавлен', car_ok_s: 'Теперь можно оплачивать парковку и проверять штрафы',
+    q_m0: 'Нужен ли нашей махалле шлагбаум?', q_m1: 'Выбор цвета для фасада гузара', c1: 'Бежевый', c2: 'Светло-жёлтый', c3: 'Белый', required: 'Заполните обязательные поля' },
+  uz: { city_t: 'Shaharni tanlang', city_s: 'Shaharni qidirish', city_geo: 'Joylashuvimni aniqlash', city_geo_ok: 'Shahringiz: {c}', city_geo_no: "Geolokatsiyaga ruxsat yo'q — ro'yxatdan tanlang", city_none: 'Hech narsa topilmadi',
+    wd: 'Ya|Du|Se|Ch|Pa|Ju|Sh', mo: 'yanvar|fevral|mart|aprel|may|iyun|iyul|avgust|sentabr|oktabr|noyabr|dekabr',
+    realty: "E'lon berish|Ikkilamchi bozor|Yangi binolar|Yer uchastkalari", r_type: 'Obyekt turi', r_types: 'Kvartira|Uy|Uchastka|Tijorat', r_rooms: 'Xonalar', r_area: 'Maydon, m²', r_price: "Narx, so'm", r_addr: 'Manzil', r_addr_ph: "Tuman, ko'cha", r_photo: 'Rasm: 5 ta yuklandi (demo)', r_publish: "E'lon qilish", r_view: "Ko'rishga yozilish", r_ok: "E'lon joylandi", r_ok_s: '1 soat ichida moderatsiyadan o\'tadi', v_ok: "Ko'rishga yozildingiz", v_ok_s: "Rieltor siz bilan bog'lanadi", r_room: '{n} xonali kvartira', r_floor: '{n}-qavat', r_complex: 'TJM', r_ready: 'topshirish {q}', r_land: '{n} sotix uchastka', r_from: 'dan',
+    map_t: 'Xarita', route: "Yo'nalish", route_ok: "Yo'nalish tuzildi: {m} daq", detour: 'Aylanib o\'tish', detour_ok: "Aylanma yo'l: +{m} daq", map_cafe: 'Yaqin atrofdagi joylar', map_mosque: 'Yaqin masjidlar', map_roads: "Ta'mirlash ishlari",
+    notif_t: 'Bildirishnomalar', n1: "To'lovlar va hisoblar", n2: 'Davlat xizmatlari va arizalar', n3: 'Shahar yangiliklari', n4: 'AI agent maslahatlari', n5: 'Favqulodda ogohlantirishlar', save: 'Saqlash', settings_saved: 'Sozlamalar saqlandi',
+    faq_cats: "Umumiy savollar|Haydovchilarga|Ma'muriy|Shahar xizmatlari|Turizm|Investitsiyalar",
+    fq1: "Xizmat uchun qanday to'lash mumkin?", fa1: "Xizmatni tanlang, «To'lash»ni bosing va Uzcard, Humo yoki Payme / Click orqali tasdiqlang.",
+    fq2: "Ma'lumotlarim xavfsizmi?", fa2: "Kirish OneID yoki MyID orqali amalga oshiriladi, ma'lumotlar shifrlangan holda uzatiladi.",
+    fq3: 'Arizalarim va cheklarim qayerda?', fa3: '«Profil» → «Xizmatlar» bo\'limida, cheklar — «Mening hujjatlarim»da.',
+    fq4: "Qo'llab-quvvatlash bilan qanday bog'lanish mumkin?", fa4: '«Yordam» ekranidagi shaklga yozing yoki 1000 raqamiga qo\'ng\'iroq qiling.',
+    addcard_t: 'Yangi transport kartasi', c_num: 'Karta raqami', c_name: 'Karta nomi', c_name_ph: 'Masalan, «Bola uchun»', add: "Qo'shish", card_ok: "Karta qo'shildi", card_ok_s: "To'ldirish va yo'l haqini to'lash mumkin",
+    addcar_t: "Avtomobil qo'shish", car_plate: 'Davlat raqami', car_brand: 'Marka va model', car_brand_ph: 'Masalan, Chevrolet Cobalt', car_color: 'Rangi', car_colors: 'Oq|Qora|Kulrang|Ko\'k', car_ok: "Avtomobil qo'shildi", car_ok_s: "Endi to'xtash joyi uchun to'lash va jarimalarni tekshirish mumkin",
+    q_m0: 'Mahallamizga shlagbaum kerakmi?', q_m1: 'Guzar fasadi uchun rang tanlash', c1: 'Bej', c2: 'Och sariq', c3: 'Oq', required: "Majburiy maydonlarni to'ldiring" },
+  en: { city_t: 'Choose a city', city_s: 'Search city', city_geo: 'Use my location', city_geo_ok: 'Your city: {c}', city_geo_no: 'No location access — pick a city from the list', city_none: 'Nothing found',
+    wd: 'Sun|Mon|Tue|Wed|Thu|Fri|Sat', mo: 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec',
+    realty: 'Post a listing|Resale market|New buildings|Land plots', r_type: 'Property type', r_types: 'Apartment|House|Land|Commercial', r_rooms: 'Rooms', r_area: 'Area, m²', r_price: 'Price, UZS', r_addr: 'Address', r_addr_ph: 'District, street', r_photo: 'Photos: 5 uploaded (demo)', r_publish: 'Publish', r_view: 'Book a viewing', r_ok: 'Listing published', r_ok_s: 'Moderation takes up to 1 hour', v_ok: 'Viewing booked', v_ok_s: 'The agent will contact you', r_room: '{n}-room apartment', r_floor: 'floor {n}', r_complex: 'Residential complex', r_ready: 'ready {q}', r_land: '{n} ares plot', r_from: 'from',
+    map_t: 'Map', route: 'Route', route_ok: 'Route ready: {m} min', detour: 'Detour', detour_ok: 'Detour ready: +{m} min', map_cafe: 'Places nearby', map_mosque: 'Mosques nearby', map_roads: 'Roadworks',
+    notif_t: 'Notifications', n1: 'Payments and bills', n2: 'Public services and requests', n3: 'City news', n4: 'AI agent tips', n5: 'Emergency alerts', save: 'Save', settings_saved: 'Settings saved',
+    faq_cats: 'General questions|For drivers|Administrative|City services|Tourism|Investments',
+    fq1: 'How do I pay for a service?', fa1: 'Choose a service, tap “Pay” and confirm with Uzcard, Humo, Payme or Click.',
+    fq2: 'Is my data safe?', fa2: 'You sign in with OneID or MyID and your data is transmitted encrypted.',
+    fq3: 'Where are my requests and receipts?', fa3: 'In Profile → Services; receipts are in My documents.',
+    fq4: 'How do I contact support?', fa4: 'Use the form on the Help screen or call 1000.',
+    addcard_t: 'New transit card', c_num: 'Card number', c_name: 'Card name', c_name_ph: 'E.g. “For my child”', add: 'Add', card_ok: 'Card added', card_ok_s: 'You can now top it up and pay fares',
+    addcar_t: 'Add a car', car_plate: 'License plate', car_brand: 'Make and model', car_brand_ph: 'E.g. Chevrolet Cobalt', car_color: 'Color', car_colors: 'White|Black|Grey|Blue', car_ok: 'Car added', car_ok_s: 'You can now pay for parking and check fines',
+    q_m0: 'Does our mahalla need a barrier gate?', q_m1: 'Choosing a color for the guzar facade', c1: 'Beige', c2: 'Light yellow', c3: 'White', required: 'Please fill in the required fields' },
+  zh: { city_t: '选择城市', city_s: '搜索城市', city_geo: '使用我的位置', city_geo_ok: '您的城市：{c}', city_geo_no: '无法获取位置，请从列表中选择', city_none: '未找到结果',
+    wd: '周日|周一|周二|周三|周四|周五|周六', mo: '1|2|3|4|5|6|7|8|9|10|11|12',
+    realty: '发布房源|二手房市场|新楼盘|土地', r_type: '房产类型', r_types: '公寓|住宅|土地|商铺', r_rooms: '房间数', r_area: '面积，平方米', r_price: '价格，苏姆', r_addr: '地址', r_addr_ph: '区、街道', r_photo: '照片：已上传5张（演示）', r_publish: '发布', r_view: '预约看房', r_ok: '房源已发布', r_ok_s: '将在1小时内完成审核', v_ok: '已预约看房', v_ok_s: '经纪人将与您联系', r_room: '{n}室公寓', r_floor: '{n}层', r_complex: '住宅小区', r_ready: '交付 {q}', r_land: '{n}公亩地块', r_from: '起',
+    map_t: '地图', route: '路线', route_ok: '路线已生成：{m}分钟', detour: '绕行', detour_ok: '绕行路线：+{m}分钟', map_cafe: '附近场所', map_mosque: '附近清真寺', map_roads: '道路施工',
+    notif_t: '通知', n1: '支付与账单', n2: '政务服务与申请', n3: '城市新闻', n4: 'AI 助手提示', n5: '紧急警报', save: '保存', settings_saved: '设置已保存',
+    faq_cats: '常见问题|驾驶员|行政事务|城市服务|旅游|投资',
+    fq1: '如何支付服务费用？', fa1: '选择服务，点击“支付”，并通过 Uzcard、Humo、Payme 或 Click 确认。',
+    fq2: '我的数据安全吗？', fa2: '通过 OneID 或 MyID 登录，数据加密传输。',
+    fq3: '我的申请和收据在哪里？', fa3: '在“我的”→“服务”中查看，收据位于“我的证件”。',
+    fq4: '如何联系客服？', fa4: '在“帮助”页面填写表单，或拨打 1000。',
+    addcard_t: '新增交通卡', c_num: '卡号', c_name: '卡片名称', c_name_ph: '例如“孩子用”', add: '添加', card_ok: '交通卡已添加', card_ok_s: '现在可以充值并支付车费',
+    addcar_t: '添加车辆', car_plate: '车牌号', car_brand: '品牌和型号', car_brand_ph: '例如 Chevrolet Cobalt', car_color: '颜色', car_colors: '白色|黑色|灰色|蓝色', car_ok: '车辆已添加', car_ok_s: '现在可以支付停车费并查询罚款',
+    q_m0: '我们的社区需要安装道闸吗？', q_m1: '选择古扎尔外立面的颜色', c1: '米色', c2: '浅黄色', c3: '白色', required: '请填写必填项' },
+};
+for (const l in XI) Object.assign(I[l], XI[l]);
+
+// ---------- cities of Uzbekistan ----------
+const REGIONS = {
+  ru: ['г. Ташкент', 'Ташкентская область', 'Андижанская область', 'Бухарская область', 'Джизакская область', 'Кашкадарьинская область', 'Навоийская область', 'Наманганская область', 'Самаркандская область', 'Сырдарьинская область', 'Сурхандарьинская область', 'Ферганская область', 'Хорезмская область', 'Республика Каракалпакстан'],
+  uz: ['Toshkent shahri', 'Toshkent viloyati', 'Andijon viloyati', 'Buxoro viloyati', 'Jizzax viloyati', 'Qashqadaryo viloyati', 'Navoiy viloyati', 'Namangan viloyati', 'Samarqand viloyati', 'Sirdaryo viloyati', 'Surxondaryo viloyati', "Farg'ona viloyati", 'Xorazm viloyati', "Qoraqalpog'iston Respublikasi"],
+  en: ['Tashkent City', 'Tashkent Region', 'Andijan Region', 'Bukhara Region', 'Jizzakh Region', 'Kashkadarya Region', 'Navoi Region', 'Namangan Region', 'Samarkand Region', 'Syrdarya Region', 'Surkhandarya Region', 'Fergana Region', 'Khorezm Region', 'Republic of Karakalpakstan'],
+  zh: ['塔什干市', '塔什干州', '安集延州', '布哈拉州', '吉扎克州', '卡什卡达里亚州', '纳沃伊州', '纳曼干州', '撒马尔罕州', '锡尔河州', '苏尔汉河州', '费尔干纳州', '花拉子模州', '卡拉卡尔帕克斯坦共和国'],
+};
+// [ru, uz, en, zh, region, lat, lon, typical November temperature]
+const CITIES = [
+  ['Ташкент', 'Toshkent', 'Tashkent', '塔什干', 0, 41.31, 69.28, 12], ['Нурафшан', 'Nurafshon', 'Nurafshon', '努拉夫尚', 1, 41.04, 69.36, 11],
+  ['Чирчик', 'Chirchiq', 'Chirchiq', '奇尔奇克', 1, 41.47, 69.58, 10], ['Алмалык', 'Olmaliq', 'Almalyk', '阿尔马雷克', 1, 40.85, 69.6, 11],
+  ['Ангрен', 'Angren', 'Angren', '安格连', 1, 41.02, 70.14, 9], ['Бекабад', 'Bekobod', 'Bekabad', 'Bekabad', 1, 40.22, 69.27, 12],
+  ['Янгиюль', "Yangiyo'l", 'Yangiyul', 'Yangiyul', 1, 41.11, 69.05, 12], ['Андижан', 'Andijon', 'Andijan', '安集延', 2, 40.78, 72.34, 11],
+  ['Асака', 'Asaka', 'Asaka', 'Asaka', 2, 40.64, 72.24, 11], ['Ханабад', 'Xonobod', 'Khanabad', 'Khanabad', 2, 40.8, 73.0, 10],
+  ['Бухара', 'Buxoro', 'Bukhara', '布哈拉', 3, 39.77, 64.42, 13], ['Каган', 'Kogon', 'Kagan', 'Kagan', 3, 39.72, 64.55, 13],
+  ['Гиждуван', "G'ijduvon", 'Gijduvan', 'Gijduvan', 3, 40.1, 64.68, 12], ['Джизак', 'Jizzax', 'Jizzakh', '吉扎克', 4, 40.12, 67.84, 12],
+  ['Карши', 'Qarshi', 'Karshi', '卡尔希', 5, 38.86, 65.79, 14], ['Шахрисабз', 'Shahrisabz', 'Shahrisabz', '沙赫里萨布兹', 5, 39.06, 66.83, 13],
+  ['Китаб', 'Kitob', 'Kitab', 'Kitab', 5, 39.12, 66.88, 13], ['Навои', 'Navoiy', 'Navoi', '纳沃伊', 6, 40.1, 65.38, 12],
+  ['Зарафшан', 'Zarafshon', 'Zarafshan', '扎拉夫尚', 6, 41.57, 64.2, 9], ['Учкудук', 'Uchquduq', 'Uchkuduk', 'Uchkuduk', 6, 42.15, 63.55, 8],
+  ['Наманган', 'Namangan', 'Namangan', '纳曼干', 7, 41.0, 71.67, 11], ['Чуст', 'Chust', 'Chust', 'Chust', 7, 41.0, 71.24, 11],
+  ['Касансай', 'Kosonsoy', 'Kasansay', 'Kasansay', 7, 41.25, 71.55, 10], ['Самарканд', 'Samarqand', 'Samarkand', '撒马尔罕', 8, 39.65, 66.96, 12],
+  ['Каттакурган', "Kattaqo'rg'on", 'Kattakurgan', 'Kattakurgan', 8, 39.9, 66.26, 12], ['Ургут', 'Urgut', 'Urgut', 'Urgut', 8, 39.4, 67.24, 11],
+  ['Гулистан', 'Guliston', 'Gulistan', '古利斯坦', 9, 40.49, 68.78, 12], ['Янгиер', 'Yangiyer', 'Yangiyer', 'Yangiyer', 9, 40.27, 68.82, 12],
+  ['Ширин', 'Shirin', 'Shirin', 'Shirin', 9, 40.22, 69.13, 12], ['Термез', 'Termiz', 'Termez', '铁尔梅兹', 10, 37.22, 67.28, 17],
+  ['Денау', 'Denov', 'Denau', 'Denau', 10, 38.27, 67.9, 15], ['Шерабад', 'Sherobod', 'Sherabad', 'Sherabad', 10, 37.67, 67.0, 16],
+  ['Фергана', "Farg'ona", 'Fergana', '费尔干纳', 11, 40.38, 71.79, 11], ['Коканд', "Qo'qon", 'Kokand', '浩罕', 11, 40.53, 70.94, 11],
+  ['Маргилан', "Marg'ilon", 'Margilan', '马尔吉兰', 11, 40.47, 71.72, 11], ['Кувасай', 'Quvasoy', 'Kuvasay', 'Kuvasay', 11, 40.3, 71.98, 10],
+  ['Риштан', 'Rishton', 'Rishtan', 'Rishtan', 11, 40.36, 71.28, 11], ['Ургенч', 'Urganch', 'Urgench', '乌尔根奇', 12, 41.55, 60.63, 9],
+  ['Хива', 'Xiva', 'Khiva', '希瓦', 12, 41.38, 60.36, 9], ['Ханка', 'Xonqa', 'Khanka', 'Khanka', 12, 41.47, 60.78, 9],
+  ['Нукус', 'Nukus', 'Nukus', '努库斯', 13, 42.46, 59.6, 7], ['Ходжейли', "Xo'jayli", 'Khodjeyli', 'Khodjeyli', 13, 42.4, 59.45, 7],
+  ['Турткуль', "To'rtko'l", 'Turtkul', 'Turtkul', 13, 41.55, 61.0, 8], ['Беруни', 'Beruniy', 'Beruniy', 'Beruniy', 13, 41.69, 60.75, 8],
+  ['Кунград', "Qo'ng'irot", 'Kungrad', 'Kungrad', 13, 43.05, 58.84, 6], ['Муйнак', "Mo'ynoq", 'Muynak', '穆伊纳克', 13, 43.77, 59.03, 5],
+  ['Чимбай', 'Chimboy', 'Chimbay', 'Chimbay', 13, 42.94, 59.78, 6],
+];
+const LI = { ru: 0, uz: 1, en: 2, zh: 3 };
+function cityIdx() { let i = 0; try { i = +(localStorage.getItem('uzk-city') || 0); } catch (e) {} return CITIES[i] ? i : 0; }
+function setCity(i) { try { localStorage.setItem('uzk-city', String(i)); } catch (e) {} }
+function cityName(i = cityIdx()) { return CITIES[i][LI[LANG]]; }
+const PIN = (s, c = '#fff') => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>`;
+function cityHTML(icon, chev) { return `${PIN(icon)}<span>${esc(cityName())}</span><svg viewBox="0 0 24 24" width="${chev}" height="${chev}" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`; }
+function fmtDay(d) { const mo = t('mo').split('|')[d.getMonth()];
+  return LANG === 'zh' ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : LANG === 'en' ? `${mo} ${d.getDate()}, ${d.getFullYear()}` : LANG === 'uz' ? `${d.getDate()}-${mo} ${d.getFullYear()}` : `${d.getDate()} ${mo} ${d.getFullYear()}`; }
+function liveText(k) {
+  const d = new Date(), p = n => String(n).padStart(2, '0'), tm = `${p(d.getHours())}:${p(d.getMinutes())}`, wd = t('wd').split('|')[d.getDay()];
+  if (k === 'temp') { const v = CITIES[cityIdx()][7]; return (v > 0 ? '+' : '') + v + '°C'; }
+  if (k === 'mdate') return fmtDay(d);
+  return LANG === 'zh' ? `${fmtDay(d)} ${wd} ${tm}` : `${wd}, ${fmtDay(d)}, ${tm}`;
+}
+HS.city = () => { const cur = cityIdx(); return `${hdr(t('city_t'))}<div class="h-body">
+  <input class="h-search" id="citySearch" type="search" placeholder="${esc(t('city_s'))}" autocomplete="off">
+  <div class="h-card np" style="margin-top:14px">${row(`<span class="h-ico">${PIN(22, '#7C5426')}</span>`, t('city_geo'), '', 'geo', '')}</div>
+  <div class="h-card np" id="cityList">${CITIES.map((c, i) => `<button class="h-row h-cityrow ${i === cur ? 'on' : ''}" data-act="setcity:${i}" data-q="${esc((c[0] + ' ' + c[1] + ' ' + c[2] + ' ' + c[3]).toLowerCase())}"><span class="h-ico">${PIN(20, '#143C20')}</span><span class="h-rt"><b>${esc(c[LI[LANG]])}</b><i>${esc((REGIONS[LANG] || REGIONS.ru)[c[4]])}</i></span>${i === cur ? '<b style="color:#1F7A3A;font-size:20px">✓</b>' : ''}</button>`).join('')}</div>
+  <div class="h-muted" id="cityNone" style="display:none;text-align:center">${esc(t('city_none'))}</div></div>`; };
+HS.city.mount = el => { const inp = el.querySelector('#citySearch'); inp.addEventListener('input', () => { const q = inp.value.trim().toLowerCase(); let n = 0; el.querySelectorAll('.h-cityrow').forEach(r => { const ok = !q || r.dataset.q.includes(q); r.style.display = ok ? '' : 'none'; if (ok) n++; }); el.querySelector('#cityNone').style.display = n ? 'none' : 'block'; }); };
+
+// ---------- real estate ----------
+const DIST = { ru: ['Юнусабад', 'Мирзо-Улугбек', 'Чиланзар', 'Яккасарай', 'Мирабад', 'Сергели'], x: ['Yunusobod', "Mirzo Ulug'bek", 'Chilonzor', 'Yakkasaroy', 'Mirobod', 'Sergeli'] };
+function dist(i) { return (LANG === 'ru' ? DIST.ru : DIST.x)[i]; }
+HS.realty = (p) => {
+  const k = +p || 0, ttl = t('realty').split('|')[k];
+  if (k === 0) { const ty = window.__rtype || 0; return `${hdr(ttl)}<div class="h-body">
+    <div class="h-sec">${esc(t('r_type'))}</div><div class="h-chips">${t('r_types').split('|').map((x, i) => `<button class="h-chip ${i === ty ? 'on' : ''}" data-act="rtype:${i}">${esc(x)}</button>`).join('')}</div>
+    <div class="h-card" style="margin-top:12px">${field('r_rooms', '2', 'numeric')}${field('r_area', '58', 'numeric')}${field('r_price', '980 000 000', 'numeric')}${field('r_addr', t('r_addr_ph'), 'text', 'req')}
+    <div class="h-muted small">📷 ${esc(t('r_photo'))}</div></div>
+    ${btn(t('r_publish'), 'submit:realty', 'primary')}${demoNote()}</div>`; }
+  const items = k === 1 ? [[t('r_room', { n: 2 }) + ', 58 м²', dist(0) + ' · ' + t('r_floor', { n: '4/9' }), 980e6], [t('r_room', { n: 3 }) + ', 76 м²', dist(1) + ' · ' + t('r_floor', { n: '6/9' }), 1350e6], [t('r_room', { n: 1 }) + ', 38 м²', dist(2) + ' · ' + t('r_floor', { n: '2/4' }), 620e6]]
+    : k === 2 ? [[t('r_complex') + ' «Tashkent City Park»', dist(4) + ' · ' + t('r_ready', { q: 'IV-2027' }), 1100e6, 1], [t('r_complex') + ' «Mirabad Avenue»', dist(4) + ' · ' + t('r_ready', { q: 'II-2027' }), 890e6, 1], [t('r_complex') + ' «Yangi Hayot»', dist(5) + ' · ' + t('r_ready', { q: 'I-2027' }), 540e6, 1]]
+    : [[t('r_land', { n: 6 }), 'Qibray', 450e6], [t('r_land', { n: 10 }), "Zangiota", 720e6], [t('r_land', { n: 15 }), 'Parkent', 380e6]];
+  return `${hdr(ttl)}<div class="h-body">${items.map(([a, b, pr, from], i) => `<div class="h-card"><div class="h-lst"><span class="h-ico g">${IC.doc}</span><span class="h-rt"><b>${esc(a)}</b><i>${esc(b)}</i><div class="h-price">${from ? esc(t('r_from')) + ' ' : ''}${esc(money(pr))}</div></span></div>${btn(t('r_view'), 'go:h:done?view:' + k + i, 'primary sm')}</div>`).join('')}${demoNote()}</div>`;
+};
+function field(k, ph, type = 'text', req = '') { return `<label class="h-field"><span>${esc(t(k))}</span><input ${type === 'numeric' ? 'inputmode="numeric"' : ''} placeholder="${esc(ph)}" data-req="${req}"></label>`; }
+
+// ---------- map ----------
+HS.map = (p) => { const k = p || 'cafe';
+  const L = k === 'cafe' ? RESTS.map((n, i) => [n, ['1.2', '0.5', '2.1', '3.5'][i] + ' km', [14, 6, 25, 9][i]]) : k === 'mosque' ? [['Minor masjidi', '1.4 km', 17], ['Hazrati Imom masjidi', '3.2 km', 12], ["Shayx Zaynuddin masjidi", '2.6 km', 9]] : [["Mustaqillik shoh ko'chasi", '1.2–1.8 km', 7], ["Bobur ko'chasi", 'Navoiy', 5], ['Amir Temur shoh ko\'chasi', 'Kosmonavtlar', 4]];
+  const act = k === 'roads' ? 'detour' : 'route';
+  return `${hdr(t('map_t'))}<div class="h-body"><img class="h-map" src="img/map-${k}.webp" alt=""><div class="h-sec">${esc(t('map_' + k))}</div><div class="h-card np">
+  ${L.map(([n, d, m]) => `<div class="h-row"><span class="h-ico">${PIN(22, '#7C5426')}</span><span class="h-rt"><b>${esc(n)}</b><i>${esc(d)}</i></span><button class="h-chip" style="height:38px" data-act="toast:${act}_ok:${m}">${esc(t(act))}</button></div>`).join('')}</div>${demoNote()}</div>`; };
+
+// ---------- notifications / FAQ / add card / add car ----------
+HS.notif = () => { const st = window.__notif || { n1: 1, n2: 1, n3: 0, n4: 1, n5: 1 }; window.__notif = st;
+  return `${hdr(t('notif_t'))}<div class="h-body"><div class="h-card np">${['n1', 'n2', 'n3', 'n4', 'n5'].map(k => `<button class="h-row ${st[k] ? 'on' : ''}" data-act="tog:${k}"><span class="h-rt"><b>${esc(t(k))}</b></span><span class="h-tog"></span></button>`).join('')}</div>
+  ${btn(t('save'), 'saveback', 'primary')}${demoNote()}</div>`; };
+HS.faq = (p) => `${hdr(t('faq_cats').split('|')[+p || 0])}<div class="h-body"><div class="h-card np">${[1, 2, 3, 4].map(i => `<details class="h-faq" ${i === 1 ? 'open' : ''}><summary>${esc(t('fq' + i))}</summary><p>${esc(t('fa' + i))}</p></details>`).join('')}</div>${demoNote()}</div>`;
+HS.addcard = () => `${hdr(t('addcard_t'))}<div class="h-body"><div class="h-card">${field('c_num', '8600 •••• •••• ••••', 'numeric', 'req')}${field('c_name', t('c_name_ph'))}</div>${btn(t('add'), 'submit:card', 'primary')}${demoNote()}</div>`;
+HS.addcar = () => { const c = window.__carColor || 0; return `${hdr(t('addcar_t'))}<div class="h-body"><div class="h-card">${field('car_plate', '01 A 123 BC', 'text', 'req')}${field('car_brand', t('car_brand_ph'))}
+  <div class="h-field"><span>${esc(t('car_color'))}</span></div><div class="h-chips" style="margin-top:-6px">${t('car_colors').split('|').map((x, i) => `<button class="h-chip ${i === c ? 'on' : ''}" data-act="carcolor:${i}">${esc(x)}</button>`).join('')}</div></div>
+  ${btn(t('add'), 'submit:car', 'primary')}${demoNote()}</div>`; };
+
+// ---------- polls (city + mahalla) ----------
+HS.poll = (p) => {
+  const mah = { m0: [[t('p_yes'), 72], [t('p_no'), 28]], m1: [[t('c1'), 45], [t('c2'), 35], [t('c3'), 20]] }[p];
+  const q = mah ? t('q_' + p) : t('q' + (p || 1)); const voted = window.__voted && window.__voted[p];
+  const res = mah || [[t('p_yes'), 68], [t('p_no'), 24], [t('p_abs'), 8]];
+  return `${hdr(t('poll_t'))}<div class="h-body"><div class="h-card"><div class="h-strong big">${esc(q)}</div>
+    ${voted ? res.map(([n, v]) => `<div class="h-bar"><span>${esc(n)}</span><b>${v}%</b><i style="width:${v}%"></i></div>`).join('') + `<div class="h-okline">✓ ${esc(t('thanks'))}</div>`
+    : res.map(([n], i) => `<button class="h-radio ${(window.__pollSel || 0) === i ? 'on' : ''}" data-act="pollsel:${i}"><span class="h-rt"><b>${esc(n)}</b></span><span class="h-dot"></span></button>`).join('')}</div>
+    ${voted ? btn(t('done'), 'back', 'primary') : btn(t('vote'), 'vote:' + p, 'primary')}${demoNote()}</div>`;
+};
+
+// done screens for the new flows
+const _done = HS.done;
+HS.done = (p) => {
+  const [kind, a1] = String(p).split(':');
+  const extra = { realty: [t('r_ok'), t('r_ok_s'), [[t('num'), '№ ' + rnd(7)], [t('date'), nowStr()]]], view: [t('v_ok'), t('v_ok_s'), [[t('date'), fmtDay(new Date(Date.now() + 864e5)) + ', 11:00'], [t('num'), '№ ' + rnd(6)]]],
+    card: [t('card_ok'), t('card_ok_s'), [[t('c_num'), '8600 •••• •••• ' + rnd(4)], [t('date'), nowStr()]]], car: [t('car_ok'), t('car_ok_s'), [[t('car_plate'), window.__plate || '01 A 123 BC'], [t('date'), nowStr()]]] }[kind];
+  if (!extra) return _done(p);
+  return `<div class="h-body h-center h-pt"><div class="h-okc">${IC.check}</div><div class="h-big">${esc(extra[0])}</div><div class="h-muted">${esc(extra[1])}</div>
+    <div class="h-card h-kv">${extra[2].map(([k, v]) => kv(k, v)).join('')}</div>${btn(t('done'), 'finish', 'primary')}${demoNote()}</div>`;
+};
+
+const XACT = {
+  setcity: (i) => { setCity(+i); goBack(); },
+  geo: () => {
+    const pick = (la, lo) => { let b = 0, bd = 1e9; CITIES.forEach((c, i) => { const d = (c[5] - la) ** 2 + (c[6] - lo) ** 2; if (d < bd) { bd = d; b = i; } }); setCity(b); toast(t('city_geo_ok', { c: cityName(b) })); setTimeout(goBack, 700); };
+    if (!navigator.geolocation) return toast(t('city_geo_no'));
+    navigator.geolocation.getCurrentPosition(p => pick(p.coords.latitude, p.coords.longitude), () => toast(t('city_geo_no')), { timeout: 8000, maximumAge: 600000 });
+  },
+  rtype: (i) => { window.__rtype = +i; render(current, currentP); },
+  carcolor: (i) => { window.__carColor = +i; const v = [...document.querySelectorAll('.hscreen input')].map(x => x.value); render(current, currentP); document.querySelectorAll('.hscreen input').forEach((x, j) => { x.value = v[j] || ''; }); },
+  tog: (k) => { window.__notif[k] = window.__notif[k] ? 0 : 1; render(current, currentP); },
+  saveback: () => { toast(t('settings_saved')); setTimeout(goBack, 500); },
+  submit: (kind) => {
+    const req = [...document.querySelectorAll('.hscreen input[data-req="req"]')];
+    if (req.some(x => !x.value.trim())) { req.forEach(x => { if (!x.value.trim()) x.style.borderColor = '#DC2626'; }); return toast(t('required')); }
+    if (kind === 'car') window.__plate = req[0].value.trim().toUpperCase();
+    go('h:done', kind);
+  },
+};
