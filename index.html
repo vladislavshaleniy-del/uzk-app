@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>UZK</title>
-<meta name="theme-color" content="#144220">
+<meta name="theme-color" content="#143E20">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,9 +15,10 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
   @font-face { font-family: 'InterLang'; src: url('inter-sub.woff') format('woff'); font-weight: 400; font-display: block; }
-  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0b0b0b; overscroll-behavior: none; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #143E20; overscroll-behavior: none; }
   body { position: fixed; top: 0; left: 0; right: 0; bottom: 0; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; font-family: Inter, -apple-system, system-ui, sans-serif; }
   #app { position: fixed; top: 0; bottom: 0; overflow: hidden; background: #fff; contain: strict; }
+  #safeProbe { position: fixed; top: 0; left: 0; width: 1px; height: env(safe-area-inset-top, 0px); visibility: hidden; pointer-events: none; }
   #app * { touch-action: pan-x pan-y; }
   #app img { display: block; position: absolute; left: 0; top: 0; pointer-events: none; -webkit-user-drag: none; }
   .root, .scroller { position: absolute; overflow: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -50,6 +51,7 @@
 </style>
 </head>
 <body>
+<div id="safeProbe"></div>
 <div id="app"></div>
 <div id="splash"><img src="icon-192.png" alt=""></div>
 <div id="install"><img class="ic" src="icon-192.png" alt=""><h1>UZK</h1><p class="sub">Установите приложение на телефон —<br>оно будет открываться с иконки, на весь экран</p><div id="installBody"></div><button class="skip" id="installSkip">Продолжить в браузере</button></div>
@@ -64,19 +66,27 @@ const app = document.getElementById('app');
 
 // Real screen size: #app is pinned to the viewport with top:0/bottom:0, so its own box is the truth
 // (window.innerHeight is unreliable in iOS home-screen apps right after launch / return from background).
-let lastW = 0, lastH = 0;
+let lastW = 0, lastH = 0, lastS = -1;
+const probe = document.getElementById('safeProbe');
 function screenSize() {
-  const iw = document.documentElement.clientWidth || window.innerWidth;
-  const ih = app.getBoundingClientRect().height || document.documentElement.clientHeight || window.innerHeight;
-  return [iw, ih];
+  const r = document.body.getBoundingClientRect();
+  const iw = r.width || document.documentElement.clientWidth || window.innerWidth;
+  const ih = r.height || document.documentElement.clientHeight || window.innerHeight;
+  const st = probe ? probe.getBoundingClientRect().height : 0;
+  return [iw, ih, st];
 }
+// The design reserves its top 48 units for the status bar. On iPhones where the real status bar
+// (plus the iOS blur under it) is taller than that, the whole app is moved down so buttons
+// never sit under the status bar; the strip above is filled with the header green.
 function layout() {
-  const [iw, ih] = screenSize();
+  const [iw, ih, st] = screenSize();
   let w = iw;
   if (iw > 600) w = Math.min(iw, Math.round(ih * 430 / 932));
-  U = w / 430; VH = ih / U;
-  app.style.width = w + 'px'; app.style.left = Math.round((iw - w) / 2) + 'px';
-  lastW = iw; lastH = ih;
+  U = w / 430;
+  const top = Math.max(0, Math.round(st + 4 - 48 * U));
+  VH = (ih - top) / U;
+  app.style.width = w + 'px'; app.style.left = Math.round((iw - w) / 2) + 'px'; app.style.top = top + 'px';
+  lastW = iw; lastH = ih; lastS = st;
 }
 const P = v => (v * U) + 'px';
 function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) e.className = cls; if (parent) parent.appendChild(e); return e; }
@@ -151,8 +161,8 @@ window.addEventListener('popstate', e => render((e.state && e.state.id) || START
 // Re-layout only when the screen size really changed, keeping scroll positions (no jump to top).
 function relayout() {
   window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0;
-  const [iw, ih] = screenSize();
-  if (Math.abs(iw - lastW) < 2 && Math.abs(ih - lastH) < 2) return;
+  const [iw, ih, st] = screenSize();
+  if (Math.abs(iw - lastW) < 2 && Math.abs(ih - lastH) < 2 && Math.abs(st - lastS) < 1) return;
   const oldU = U;
   const pos = [...app.querySelectorAll('.root, .scroller')].map(s => [s.scrollLeft, s.scrollTop]);
   layout(); render(current);
