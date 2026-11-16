@@ -15,9 +15,10 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
   @font-face { font-family: 'InterLang'; src: url('inter-sub.woff') format('woff'); font-weight: 400; font-display: block; }
-  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0b0b0b; overscroll-behavior: none; }
-  body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; font-family: Inter, -apple-system, system-ui, sans-serif; }
-  #app { position: fixed; top: 0; overflow: hidden; background: #fff; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0b0b0b; overscroll-behavior: none; }
+  body { position: fixed; top: 0; left: 0; right: 0; bottom: 0; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; font-family: Inter, -apple-system, system-ui, sans-serif; }
+  #app { position: fixed; top: 0; bottom: 0; overflow: hidden; background: #fff; contain: strict; }
+  #app * { touch-action: pan-x pan-y; }
   #app img { display: block; position: absolute; left: 0; top: 0; pointer-events: none; -webkit-user-drag: none; }
   .root, .scroller { position: absolute; overflow: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .root::-webkit-scrollbar, .scroller::-webkit-scrollbar { display: none; }
@@ -34,7 +35,7 @@
   .lang .hot:active { background: rgba(255, 255, 255, .12); }
   #splash { position: fixed; inset: 0; background: #144220; display: flex; align-items: center; justify-content: center; z-index: 10; transition: opacity .25s; }
   #splash img { width: 96px; height: 96px; border-radius: 22px; }
-  #install { position: fixed; inset: 0; z-index: 20; background: linear-gradient(180deg, #1a5028 0%, #10361a 100%); color: #fff; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px calc(32px + env(safe-area-inset-bottom)); box-sizing: border-box; text-align: center; font-family: -apple-system, system-ui, Inter, sans-serif; -webkit-user-select: none; user-select: none; }
+  #install { position: fixed; inset: 0; z-index: 20; background: linear-gradient(180deg, #1a5028 0%, #10361a 100%); color: #fff; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px calc(32px + env(safe-area-inset-bottom)); box-sizing: border-box; text-align: center; font-family: -apple-system, system-ui, Inter, sans-serif; -webkit-user-select: none; user-select: none; overflow-y: auto; overscroll-behavior: contain; padding-top: calc(32px + env(safe-area-inset-top)); }
   #install.show { display: flex; }
   #install .ic { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
   #install h1 { font-size: 26px; margin: 20px 0 6px; font-weight: 700; }
@@ -61,18 +62,27 @@ let current = null;
 let U = 1, VH = 932;
 const app = document.getElementById('app');
 
+// Real screen size: #app is pinned to the viewport with top:0/bottom:0, so its own box is the truth
+// (window.innerHeight is unreliable in iOS home-screen apps right after launch / return from background).
+let lastW = 0, lastH = 0;
+function screenSize() {
+  const iw = document.documentElement.clientWidth || window.innerWidth;
+  const ih = app.getBoundingClientRect().height || document.documentElement.clientHeight || window.innerHeight;
+  return [iw, ih];
+}
 function layout() {
-  const iw = window.innerWidth, ih = window.innerHeight;
+  const [iw, ih] = screenSize();
   let w = iw;
   if (iw > 600) w = Math.min(iw, Math.round(ih * 430 / 932));
   U = w / 430; VH = ih / U;
-  app.style.width = w + 'px'; app.style.height = ih + 'px'; app.style.left = Math.round((iw - w) / 2) + 'px';
+  app.style.width = w + 'px'; app.style.left = Math.round((iw - w) / 2) + 'px';
+  lastW = iw; lastH = ih;
 }
 const P = v => (v * U) + 'px';
 function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) e.className = cls; if (parent) parent.appendChild(e); return e; }
 function box(e, x, y, w, h) { e.style.left = P(x); e.style.top = P(y); if (w != null) e.style.width = P(w); if (h != null) e.style.height = P(h); }
 function img(parent, key) { const m = DATA.imgs[key]; if (!m) return; const i = el('img', null, parent); i.src = 'img/' + m.f; i.alt = ''; i.draggable = false; i.style.width = P(m.w / 2); i.style.height = P(m.h / 2); }
-function hot(parent, x, y, w, h, fn) { const b = el('button', 'hot', parent); box(b, x, y, w, h); b.setAttribute('aria-label', 'tap'); b.addEventListener('click', e => { e.stopPropagation(); fn(); }); return b; }
+function hot(parent, x, y, w, h, fn) { const b = el('div', 'hot', parent); box(b, x, y, w, h); b.setAttribute('role', 'button'); b.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); fn(); }); return b; }
 
 const CHEV_DOWN = '<path d="M5 7.5L10 12.5L15 7.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
 const CHEV_UP = '<path d="M5 12.5L10 7.5L15 12.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
@@ -137,7 +147,40 @@ function render(id) {
 function go(id) { if (!DATA.screens[id]) return; const d = (history.state && history.state.depth) || 0; history.pushState({ id, depth: d + 1 }, '', '#' + id.replace(':', '-')); render(id); }
 function goBack() { if (history.state && history.state.depth > 0) history.back(); else if (current !== START) go(START); }
 window.addEventListener('popstate', e => render((e.state && e.state.id) || START));
-window.addEventListener('resize', () => { const id = current; layout(); render(id); });
+
+// Re-layout only when the screen size really changed, keeping scroll positions (no jump to top).
+function relayout() {
+  window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0;
+  const [iw, ih] = screenSize();
+  if (Math.abs(iw - lastW) < 2 && Math.abs(ih - lastH) < 2) return;
+  const oldU = U;
+  const pos = [...app.querySelectorAll('.root, .scroller')].map(s => [s.scrollLeft, s.scrollTop]);
+  layout(); render(current);
+  const k = U / oldU;
+  [...app.querySelectorAll('.root, .scroller')].forEach((s, i) => { if (pos[i]) { s.scrollLeft = pos[i][0] * k; s.scrollTop = pos[i][1] * k; } });
+}
+let rlT = 0;
+const scheduleRelayout = () => { clearTimeout(rlT); rlT = setTimeout(relayout, 60); };
+window.addEventListener('resize', scheduleRelayout);
+window.addEventListener('orientationchange', () => setTimeout(relayout, 250));
+window.addEventListener('pageshow', () => setTimeout(relayout, 50));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { setTimeout(relayout, 50); setTimeout(relayout, 400); } });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleRelayout);
+// The page itself must never move: block pinch-zoom and rubber-banding outside real scroll areas.
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('gesturechange', e => e.preventDefault());
+document.addEventListener('touchmove', e => {
+  if (e.touches && e.touches.length > 1) { e.preventDefault(); return; }
+  let n = e.target;
+  while (n && n !== document.body && n !== document.documentElement) {
+    if (n.nodeType === 1 && (n.classList.contains('vs') || n.classList.contains('hs') || n.id === 'install')) {
+      if (n.scrollHeight > n.clientHeight + 1 || n.scrollWidth > n.clientWidth + 1) return;
+    }
+    n = n.parentNode;
+  }
+  e.preventDefault();
+}, { passive: false });
+window.addEventListener('scroll', () => { if (window.scrollY || window.scrollX) window.scrollTo(0, 0); });
 
 layout();
 const fromHash = location.hash ? location.hash.slice(1).replace('-', ':') : null;
