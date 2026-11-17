@@ -554,3 +554,148 @@ const XACT = {
     go('h:done', kind);
   },
 };
+
+// ======================= «ИИ ассистент»: floating button + chat on every screen =======================
+const AI_URL = 'https://www.ast-group.uz/api/assistant';
+const AIX = {
+  ru: { as_t: 'ИИ ассистент', as_s: 'Отвечу на любой вопрос', as_hi: 'Здравствуйте, Алишер! Я ИИ ассистент Digital Uzbekistan. Спросите о чём угодно — госуслуги, платежи, транспорт, здоровье или любой другой вопрос.', as_ph: 'Напишите вопрос…', as_err: 'Не удалось получить ответ. Проверьте интернет и попробуйте ещё раз.', as_retry: 'Повторить', as_new: 'Новый диалог',
+    as_q: 'Как оформить загранпаспорт?|Сколько стоит проезд в метро?|Какие документы нужны для детского сада?|Что посмотреть в городе {c}?' },
+  uz: { as_t: 'AI yordamchi', as_s: 'Har qanday savolga javob beraman', as_hi: "Assalomu alaykum, Alisher! Men Digital Uzbekistan AI yordamchisiman. Istalgan savolni bering — davlat xizmatlari, to'lovlar, transport, sog'liq va boshqalar.", as_ph: 'Savolingizni yozing…', as_err: "Javob olinmadi. Internetni tekshirib, qayta urinib ko'ring.", as_retry: 'Qayta urinish', as_new: 'Yangi suhbat',
+    as_q: 'Xorijga chiqish pasportini qanday olish mumkin?|Metroda yo\'l haqi qancha?|Bog\'cha uchun qanday hujjatlar kerak?|{c}da nimalarni ko\'rish mumkin?' },
+  en: { as_t: 'AI assistant', as_s: 'Ask me anything', as_hi: 'Hello, Alisher! I am the Digital Uzbekistan AI assistant. Ask me anything — public services, payments, transport, health or any other question.', as_ph: 'Type your question…', as_err: 'Could not get an answer. Check your connection and try again.', as_retry: 'Retry', as_new: 'New chat',
+    as_q: 'How do I get an international passport?|How much is a metro ride?|What documents are needed for kindergarten?|What to see in {c}?' },
+  zh: { as_t: 'AI 助手', as_s: '有问必答', as_hi: '您好，Alisher！我是 Digital Uzbekistan 的 AI 助手。任何问题都可以问我：政务服务、支付、交通、医疗等。', as_ph: '输入您的问题…', as_err: '未能获取回答，请检查网络后重试。', as_retry: '重试', as_new: '新对话',
+    as_q: '如何办理出国护照？|地铁票价是多少？|上幼儿园需要哪些材料？|{c}有什么值得参观的？' },
+};
+for (const l in AIX) Object.assign(I[l], AIX[l]);
+// [[go:code]] → screen + button label
+const AI_GO = {
+  pay_light: ['h:pay?light', 'Оплатить свет', "Elektr uchun to'lash", 'Pay electricity', '缴纳电费'],
+  pay_util: ['h:pay?util', 'Коммунальные платежи', "Kommunal to'lovlar", 'Utility payments', '水电燃气缴费'],
+  transit: ['h:pay?transit', 'Пополнить транспортную карту', "Transport kartasini to'ldirish", 'Top up transit card', '交通卡充值'],
+  fines: ['1:2649', 'Штрафы', 'Jarimalar', 'Fines', '罚款'], parking: ['1:4858', 'Парковка', 'Avtoturargoh', 'Parking', '停车'],
+  ev: ['1:2468', 'Зарядка электромобилей', 'Elektromobil quvvatlash', 'EV charging', '电动车充电'],
+  doctor: ['h:doctor', 'Запись к врачу', 'Shifokor qabuli', 'Book a doctor', '预约医生'], health: ['1:5032', 'Здоровье', "Sog'liq", 'Health', '医疗健康'],
+  docs: ['1:19', 'Мои документы', 'Mening hujjatlarim', 'My documents', '我的证件'], queue: ['h:queue', 'Электронная очередь', 'Elektron navbat', 'E-queue', '电子排队'],
+  gov: ['1:2573', 'Госуслуги', 'Davlat xizmatlari', 'Public services', '政务服务'], appeal: ['1:4597', 'Обращение к хокиму', 'Hokimga murojaat', 'Appeal to the Hokim', '向市长反映'],
+  sos: ['1:4475', 'Тревожная кнопка', 'Xavf tugmasi', 'Panic button', '紧急按钮'], polls: ['1:4702', 'Опросы', "So'rovnomalar", 'Polls', '投票'],
+  mahalla: ['1:996', 'Цифровая махалля', 'Raqamli mahalla', 'Digital Mahalla', '数字社区'], family: ['1:3042', 'Семья и образование', "Oila va ta'lim", 'Family and education', '家庭与教育'],
+  tickets: ['h:tickets', 'Билеты', 'Chiptalar', 'Tickets', '车票'], cafes: ['1:729', 'Кафе и рестораны', 'Kafe va restoranlar', 'Cafes and restaurants', '餐厅'],
+  sights: ['1:3249', 'Достопримечательности', 'Diqqatga sazovor joylar', 'Sights', '名胜古迹'], tourist: ['1:3757', 'Туристическая карта', 'Turistik karta', 'Tourist card', '旅游卡'],
+  fairs: ['1:5424', 'Ярмарки и события', 'Yarmarka va tadbirlar', 'Fairs and events', '展会与活动'], realty: ['1:235', 'Недвижимость', "Ko'chmas mulk", 'Real estate', '房产'],
+  ipo: ['1:332', 'Покупка акций IPO', 'IPO aksiyalari', 'Buy IPO shares', '购买 IPO 股票'], business: ['1:523', 'Для бизнеса', 'Biznes uchun', 'For business', '企业服务'],
+  volunteer: ['1:4356', 'Волонтёрство', 'Volontyorlik', 'Volunteering', '志愿服务'], cashback: ['1:448', 'Национальный кешбэк', 'Milliy keshbek', 'National cashback', '国家返现'],
+  roads: ['1:3863', 'Дороги и ремонт', "Yo'llar va ta'mirlash", 'Roads and repairs', '道路与维修'], clean: ['1:4063', 'Чистый город', 'Toza shahar', 'Clean city', '清洁城市'],
+  mosques: ['1:3529', 'Карта мечетей', 'Masjidlar xaritasi', 'Mosque map', '清真寺地图'], marketplace: ['1:5149', 'Маркетплейс', 'Marketpleys', 'Marketplace', '商城'],
+  home: ['1:5285', 'Электронный дом', 'Elektron uy', 'E-home', '智慧家庭'],
+};
+const SPARK = s => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none"><path d="M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z" fill="#fff"/><path d="M18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" fill="#fff" opacity=".85"/></svg>`;
+let AIS = { msgs: [], busy: false };
+try { AIS.msgs = JSON.parse(localStorage.getItem('uzk-ai') || '[]'); } catch (e) {}
+const aiSave = () => { try { localStorage.setItem('uzk-ai', JSON.stringify(AIS.msgs.slice(-30))); } catch (e) {} };
+const AI_HIDE = new Set(['h:welcome', 'h:oneid', 'h:myid', 'h:loading', 'h:paying', 'h:ai', '1:2221']);
+
+function screenTitle() {
+  if (!current) return '';
+  if (current.startsWith('h:')) { const h = document.querySelector('.hscreen .h-title'); return h ? h.textContent : current.slice(2); }
+  return (DATA.screens[current] && DATA.screens[current].name) || current;
+}
+function aiFmt(s) {
+  const go = []; s = String(s).replace(/\s*\[\[\s*(?:go\s*:\s*)?([a-z_]+)\s*\]\]/gi, (m, k) => { if (AI_GO[k] && !go.includes(k)) go.push(k); return ''; }).trim();
+  let h = esc(s).replace(/^\s*[-*•]\s+/gm, '• ').replace(/\n/g, '<br>');
+  if (go.length) h += `<div class="ai-go">${go.map(k => `<button data-go="${k}">${esc(AI_GO[k][LI[LANG] + 1])} →</button>`).join('')}</div>`;
+  return h;
+}
+function aiRender() {
+  const box = document.getElementById('aiMsgs'); if (!box) return;
+  const hi = `<div class="ai-b l">${esc(t('as_hi'))}</div>`;
+  const chips = AIS.msgs.length ? '' : `<div class="ai-chips">${t('as_q', { c: cityName() }).split('|').map(q => `<button data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`;
+  box.innerHTML = hi + chips + AIS.msgs.map(m => m.role === 'user' ? `<div class="ai-b r">${esc(m.content)}</div>` : m.role === 'error' ? `<div class="ai-b l err">${esc(t('as_err'))}<button data-retry="1">${esc(t('as_retry'))}</button></div>` : `<div class="ai-b l">${aiFmt(m.content)}</div>`).join('')
+    + (AIS.busy ? '<div class="ai-b l typing"><i></i><i></i><i></i></div>' : '');
+  box.scrollTop = box.scrollHeight;
+}
+async function aiAsk(q) {
+  if (AIS.busy) return;
+  if (q) AIS.msgs.push({ role: 'user', content: q.slice(0, 1500) });
+  AIS.msgs = AIS.msgs.filter(m => m.role !== 'error');
+  AIS.busy = true; aiRender(); aiSave();
+  let reply = '', ok = false;
+  try {
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 45000);
+    const r = await fetch(AI_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl.signal,
+      body: JSON.stringify({ messages: AIS.msgs.filter(m => m.role === 'user' || m.role === 'assistant').slice(-14), lang: LANG, city: cityName(), date: liveText('date'), screen: AIS.screen || '' }) });
+    clearTimeout(tm);
+    const j = await r.json().catch(() => ({})); reply = j.reply || ''; ok = !!j.ok && !!reply;
+    if (!ok && j.error) { reply = j.error; ok = true; }
+  } catch (e) {}
+  AIS.busy = false;
+  AIS.msgs.push(ok ? { role: 'assistant', content: reply } : { role: 'error', content: '' });
+  aiSave(); aiRender();
+}
+function aiOpen() {
+  if (document.getElementById('aiPanel')) return;
+  AIS.screen = screenTitle();
+  const p = document.createElement('div'); p.id = 'aiPanel';
+  p.innerHTML = `<div class="ai-hd"><span class="ai-av">${SPARK(22)}</span><span class="ai-tt"><b>${esc(t('as_t'))}</b><i>${esc(t('as_s'))}</i></span>
+    <button class="ai-ic" data-new="1" aria-label="${esc(t('as_new'))}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4"/></svg></button>
+    <button class="ai-ic" data-close="1" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="ai-msgs ai-scroll" id="aiMsgs"></div>
+    <form class="ai-in" id="aiForm"><textarea id="aiText" rows="1" placeholder="${esc(t('as_ph'))}" enterkeyhint="send"></textarea><button type="submit" aria-label="send"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>
+    <div class="ai-demo">${esc(t('demo'))}</div>`;
+  document.body.appendChild(p);
+  const fit = () => { const v = window.visualViewport;
+    p.style.top = (v ? v.offsetTop : 0) + 'px'; p.style.height = (v ? v.height : window.innerHeight) + 'px'; const b = document.getElementById('aiMsgs'); if (b) b.scrollTop = b.scrollHeight; };
+  fit(); p._fit = fit; if (window.visualViewport) { window.visualViewport.addEventListener('resize', fit); window.visualViewport.addEventListener('scroll', fit); }
+  requestAnimationFrame(() => p.classList.add('show'));
+  aiRender(); updateFab();
+  const ta = p.querySelector('#aiText');
+  ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 110) + 'px'; });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); p.querySelector('#aiForm').requestSubmit(); } });
+  p.querySelector('#aiForm').addEventListener('submit', e => { e.preventDefault(); const q = ta.value.trim(); if (!q) return; ta.value = ''; ta.style.height = 'auto'; aiAsk(q); });
+  p.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.close) aiClose();
+    else if (b.dataset.new) { AIS.msgs = []; aiSave(); aiRender(); }
+    else if (b.dataset.q) aiAsk(b.dataset.q);
+    else if (b.dataset.retry) aiAsk();
+    else if (b.dataset.go) { const to = AI_GO[b.dataset.go][0]; aiClose(); setTimeout(() => to.startsWith('h:') ? go(to.split('?')[0], to.split('?')[1]) : go(to), 120); }
+  });
+}
+function aiClose() {
+  const p = document.getElementById('aiPanel'); if (!p) return;
+  if (document.activeElement) document.activeElement.blur();
+  if (window.visualViewport && p._fit) { window.visualViewport.removeEventListener('resize', p._fit); window.visualViewport.removeEventListener('scroll', p._fit); }
+  p.classList.remove('show'); setTimeout(() => { p.remove(); updateFab(); }, 260);
+}
+
+// floating button: drag anywhere, snaps to the nearest side, tucks half-away when idle
+let fab = null, fabT = 0;
+function fabPos() { let s = null; try { s = JSON.parse(localStorage.getItem('uzk-fab') || 'null'); } catch (e) {} return s || { side: 'r', y: 0.62 }; }
+function fabPlace(tuck) {
+  const s = fabPos(), W = window.innerWidth, H = window.innerHeight, sz = 56;
+  const y = Math.max(110, Math.min(H - 170, s.y * H));
+  fab.style.top = y + 'px'; fab.style.left = (s.side === 'l' ? 10 : W - sz - 10) + 'px';
+  fab.classList.toggle('tuck', !!tuck); fab.classList.toggle('left', s.side === 'l');
+}
+function fabIdle() { clearTimeout(fabT); fabT = setTimeout(() => fab && !fab._drag && fabPlace(true), 3500); }
+function updateFab() {
+  if (!fab) {
+    fab = document.createElement('div'); fab.id = 'aiFab'; fab.setAttribute('role', 'button');
+    fab.innerHTML = `<span class="ai-fab-in">${SPARK(26)}</span><span class="ai-fab-tip"></span>`;
+    document.body.appendChild(fab);
+    let sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
+    fab.addEventListener('pointerdown', e => { fab.setPointerCapture(e.pointerId); sx = e.clientX; sy = e.clientY; const r = fab.getBoundingClientRect(); ox = r.left; oy = r.top; moved = false; fab._drag = true; fab.classList.remove('tuck'); fab.classList.add('drag'); clearTimeout(fabT); });
+    fab.addEventListener('pointermove', e => { if (!fab._drag) return; const dx = e.clientX - sx, dy = e.clientY - sy; if (!moved && Math.hypot(dx, dy) < 6) return; moved = true; fab.style.left = (ox + dx) + 'px'; fab.style.top = (oy + dy) + 'px'; });
+    const up = e => { if (!fab._drag) return; fab._drag = false; fab.classList.remove('drag');
+      if (moved) { const r = fab.getBoundingClientRect(); try { localStorage.setItem('uzk-fab', JSON.stringify({ side: r.left + r.width / 2 < window.innerWidth / 2 ? 'l' : 'r', y: r.top / window.innerHeight })); } catch (er) {} fabPlace(false); fabIdle(); }
+      else { fabPlace(false); aiOpen(); } };
+    fab.addEventListener('pointerup', up); fab.addEventListener('pointercancel', up);
+    window.addEventListener('resize', () => fab && fabPlace(fab.classList.contains('tuck')));
+    let seen = false; try { seen = localStorage.getItem('uzk-fab-tip') === '1'; } catch (e) {}
+    if (!seen) { fab.classList.add('tipon'); setTimeout(() => { fab.classList.remove('tipon'); try { localStorage.setItem('uzk-fab-tip', '1'); } catch (e) {} }, 4500); }
+  }
+  fab.querySelector('.ai-fab-tip').textContent = t('as_t');
+  const hide = AI_HIDE.has(current) || !!document.getElementById('aiPanel') || !current;
+  fab.style.display = hide ? 'none' : 'flex';
+  if (!hide && !fab._drag) { fabPlace(false); fabIdle(); }
+}
