@@ -1235,12 +1235,12 @@ function aiShortlist(q) {
 const AIC = () => (window.__aic = window.__aic || { msgs: [], busy: false });
 function aiSheetHTML() {
   const S = AIC();
-  const chips = ['plov', 'coffee', 'hookah', 'grill', 'terrace', 'near'].map(k => `<button class="ai-q" data-act="aiq:${k}">${esc(t('aq_' + k))}</button>`).join('');
-  const msgs = S.msgs.map(m => m.role === 'user' ? `<div class="ai-m me">${esc(m.text)}</div>` : `<div class="ai-m bot">${esc(m.text)}</div>${(m.picks || []).map(([id, why]) => { const p = (CAF_DATA[cafCity()] || []).find(x => x.id === id); if (!p) return ''; const d = caf().loc ? fmtDist(cafDistRaw(caf().loc, [p.la, p.lo])) : '';
-      return `<div class="ai-pick"><span class="cf-ic" style="background:${CAF_COL[cafPri(p)]}">${CAF_IC.replace(/\{s\}/g, 18)}</span><div class="ai-pt"><b>${esc(p.n)}</b><i>${esc([cafKind(p), cafCuis(p), d].filter(Boolean).join(' · '))}</i>${ohLabel(p)}${why ? `<p>${esc(why)}</p>` : ''}<div class="ai-pb"><button data-act="cfopen:${p.id}">${esc(t('ai_open'))}</button><button class="pr" data-act="cfroute:${p.id}">${esc(t('ai_route'))}</button></div></div></div>`; }).join('')}`).join('');
-  return `<div class="ai-hd"><span class="ai-av">${SPARK_S(18)}</span><b>${esc(t('ai_t'))}</b></div>
-    <div class="ai-m bot">${esc(t('ai_hi'))}</div><div class="ai-qs">${chips}</div>${msgs}${S.busy ? `<div class="ai-m bot typing">${esc(t('ai_think'))}</div>` : ''}
-    <form class="ai-in" onsubmit="return false"><input id="aiCafQ" placeholder="${esc(t('ai_ph'))}" autocomplete="off" enterkeyhint="send"><button type="submit" data-act="aisend" aria-label="send"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>`;
+  const chips = ['plov', 'coffee', 'hookah', 'grill', 'terrace', 'near'].map(k => `<button class="cg-q" data-act="aiq:${k}">${esc(t('aq_' + k))}</button>`).join('');
+  const msgs = S.msgs.map(m => m.role === 'user' ? `<div class="cg-m me">${esc(m.text)}</div>` : `<div class="cg-m bot">${esc(m.text)}</div>${(m.picks || []).map(([id, why]) => { const p = (CAF_DATA[cafCity()] || []).find(x => x.id === id); if (!p) return ''; const d = caf().loc ? fmtDist(cafDistRaw(caf().loc, [p.la, p.lo])) : '';
+      return `<div class="cg-pick"><span class="cf-ic" style="background:${CAF_COL[cafPri(p)]}">${CAF_IC.replace(/\{s\}/g, 18)}</span><div class="cg-pt"><b>${esc(p.n)}</b><i>${esc([cafKind(p), cafCuis(p), d].filter(Boolean).join(' · '))}</i>${ohLabel(p)}${why ? `<p>${esc(why)}</p>` : ''}<div class="cg-pb"><button data-act="cfopen:${p.id}">${esc(t('ai_open'))}</button><button class="pr" data-act="cfroute:${p.id}">${esc(t('ai_route'))}</button></div></div></div>`; }).join('')}`).join('');
+  return `<div class="cg-hd"><span class="cg-av">${SPARK_S(18)}</span><b>${esc(t('ai_t'))}</b></div>
+    <div class="cg-m bot">${esc(t('ai_hi'))}</div><div class="cg-qs">${chips}</div>${msgs}${S.busy ? `<div class="cg-m bot typing">${esc(t('ai_think'))}</div>` : ''}
+    <form class="cg-in" onsubmit="return false"><input id="aiCafQ" placeholder="${esc(t('ai_ph'))}" autocomplete="off" enterkeyhint="send"><button type="submit" data-act="aisend" aria-label="send"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>`;
 }
 function aiSheet() {
   const w = document.querySelector('.bs-wrap.bs-ai');
@@ -1286,8 +1286,8 @@ function aiTip(el) {
   setTimeout(() => {
     if (current !== 'h:cafes' || document.querySelector('.bs-wrap')) return;
     const app = document.getElementById('app');
-    const b = document.createElement('div'); b.className = 'ai-tip'; b.style.zoom = U; b.style.top = (CAF_MAP_TOP + cafMapH() - 128) + 'px';
-    b.innerHTML = `<span class="ai-av">${SPARK_S(16)}</span><div><b>${esc(t('ai_tip'))}</b><div class="ai-tq">${['plov', 'coffee', 'hookah', 'near'].map(k => `<button data-tq="${k}">${esc(t('aq_' + k))}</button>`).join('')}</div></div><button class="ai-tx" data-tq="x">${IC.close}</button>`;
+    const b = document.createElement('div'); b.className = 'cg-tip'; b.style.zoom = U; b.style.top = (CAF_MAP_TOP + cafMapH() - 128) + 'px';
+    b.innerHTML = `<span class="cg-av">${SPARK_S(16)}</span><div><b>${esc(t('ai_tip'))}</b><div class="cg-tq">${['plov', 'coffee', 'hookah', 'near'].map(k => `<button data-tq="${k}">${esc(t('aq_' + k))}</button>`).join('')}</div></div><button class="cg-tx" data-tq="x">${IC.close}</button>`;
     app.appendChild(b); requestAnimationFrame(() => b.classList.add('on'));
     const kill = () => { b.classList.remove('on'); setTimeout(() => b.remove(), 250); };
     b.addEventListener('click', e => { const x = e.target.closest('[data-tq]'); if (!x) return; e.preventDefault(); kill(); if (x.dataset.tq !== 'x') XACT.aiq(x.dataset.tq); });
