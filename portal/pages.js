@@ -146,7 +146,7 @@
       const box = $('#svcGrid'); if (!box) return;
       $('#svcT').textContent = s('svc_t'); $('#svcS').textContent = s('svc_s');
       box.innerHTML = ORDER.map(k => { const v = SV[k]; const sz = TILE[k] || ''; return `<a class="tile ${sz}" href="?s=${k}" data-sv="${k}" style="--g:${v.g}">
-        ${v.art ? `<img src="${ART(v.art)}" alt="" loading="lazy" decoding="async">` : `<div class="tile-ag">${AGENT_SVG(true)}</div>`}
+        ${v.art ? `<img src="${ART(v.art)}" alt="" loading="lazy" decoding="async">` : `<div class="tile-ag">${ROBOT('tile')}</div>`}
         <span class="tile-ic">${ic(v.ic)}</span><span class="tile-tx"><b>${esc(pick(v.t))}</b><i>${esc(pick(v.sub))}</i></span><span class="tile-go">${ic('arrow-up-right')}</span></a>`; }).join('');
     }
 
@@ -320,55 +320,133 @@
     }
     R.map = async () => ({ k: '', m: `<div class="pn wide hub-wrap">${hubHtml(true)}</div>`, after: () => hubInit($('#svMain .hub')) });
 
-    // ---------------- the digital assistant ----------------
-    function AGENT_SVG(mini) {
-      return `<svg class="agent-svg${mini ? ' mini' : ''}" viewBox="0 0 400 520" aria-hidden="true">
-<defs>
- <linearGradient id="skin${mini ? 'm' : ''}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6F8F6"/><stop offset=".55" stop-color="#D9E3DE"/><stop offset="1" stop-color="#AFC2B9"/></linearGradient>
- <radialGradient id="cheek${mini ? 'm' : ''}" cx=".5" cy=".55" r=".55"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
- <linearGradient id="suit${mini ? 'm' : ''}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A3330"/><stop offset="1" stop-color="#0B110E"/></linearGradient>
- <linearGradient id="hair${mini ? 'm' : ''}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2B3230"/><stop offset="1" stop-color="#0E1311"/></linearGradient>
- <linearGradient id="rim${mini ? 'm' : ''}" x1="0" y1="0" x2="1" y2="0"><stop offset=".6" stop-color="#5EEAD4" stop-opacity="0"/><stop offset="1" stop-color="#5EEAD4" stop-opacity=".28"/></linearGradient>
- <radialGradient id="iris${mini ? 'm' : ''}"><stop offset="0" stop-color="#CCFBF1"/><stop offset=".5" stop-color="#2DD4BF"/><stop offset="1" stop-color="#0F766E"/></radialGradient>
- <filter id="glow${mini ? 'm' : ''}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
- <clipPath id="face${mini ? 'm' : ''}"><path d="M200 92C255 92 282 135 282 190C282 240 262 282 230 302C218 310 210 314 200 314C190 314 182 310 170 302C138 282 118 240 118 190C118 135 145 92 200 92Z"/></clipPath>
+    // ---------------- the digital assistant: a robot in a suit with matrix code flowing over its glass face ----------------
+    const FACE = 'M200 118C246 118 268 146 268 190C268 236 250 272 224 290C214 297 207 300 200 300C193 300 186 297 176 290C150 272 132 236 132 190C132 146 154 118 200 118Z';
+    const MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='132 118 136 182' preserveAspectRatio='none'><path d='${FACE}' fill='#fff'/></svg>`)}")`;
+    let rid = 0;
+    function ROBOT(cls = '') {
+      const i = ++rid, g = n => `${n}${i}`;
+      return `<div class="robot ${cls}">
+<svg class="rb-back" viewBox="0 0 400 520" aria-hidden="true"><defs>
+ <linearGradient id="${g('sh')}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F7FAF8"/><stop offset=".35" stop-color="#D6E1DC"/><stop offset=".7" stop-color="#9FB3AA"/><stop offset="1" stop-color="#C9D6CF"/></linearGradient>
+ <linearGradient id="${g('mt')}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7E918A"/><stop offset=".5" stop-color="#E4EBE7"/><stop offset="1" stop-color="#76887F"/></linearGradient>
+ <linearGradient id="${g('su')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3532"/><stop offset="1" stop-color="#0A100D"/></linearGradient>
+ <radialGradient id="${g('hl')}" cx=".3" cy=".2" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
 </defs>
-<g class="ag-body">
- <path d="M14 520C22 432 66 392 150 362L200 520Z" fill="url(#suit${mini ? 'm' : ''})"/><path d="M386 520C378 432 334 392 250 362L200 520Z" fill="url(#suit${mini ? 'm' : ''})"/>
- <path d="M160 368L200 520L240 368L200 400Z" fill="#F4F7F5"/>
- <path d="M152 360L200 430L184 446L132 392Z" fill="#F7FAF8"/><path d="M248 360L200 430L216 446L268 392Z" fill="#E6ECE9"/>
- <path d="M150 362L184 474L150 440L118 398Z" fill="#313B37"/><path d="M250 362L216 474L250 440L282 398Z" fill="#26302C"/>
- <path d="M168 296L168 352C180 366 220 366 232 352L232 296Z" fill="url(#skin${mini ? 'm' : ''})"/>
- <path d="M168 334C186 346 214 346 232 334L232 352C220 366 180 366 168 352Z" fill="#9FB3AA" opacity=".55"/>
- <path d="M300 430L338 430L334 446L304 446Z" fill="#F2B45A" opacity=".85"/>
-</g>
-<g class="ag-head">
- <ellipse cx="117" cy="200" rx="11" ry="23" fill="#C9D6CF"/><ellipse cx="283" cy="200" rx="11" ry="23" fill="#BFD0C8"/>
- <path d="M200 92C255 92 282 135 282 190C282 240 262 282 230 302C218 310 210 314 200 314C190 314 182 310 170 302C138 282 118 240 118 190C118 135 145 92 200 92Z" fill="url(#skin${mini ? 'm' : ''})"/>
- <g clip-path="url(#face${mini ? 'm' : ''})"><rect x="110" y="80" width="180" height="240" fill="url(#rim${mini ? 'm' : ''})"/><ellipse cx="160" cy="240" rx="40" ry="26" fill="url(#cheek${mini ? 'm' : ''})"/><ellipse cx="240" cy="240" rx="40" ry="26" fill="url(#cheek${mini ? 'm' : ''})"/><rect class="ag-scan" x="110" y="80" width="180" height="6" fill="#5EEAD4" opacity=".14"/></g>
- <path d="M116 190C108 122 150 70 206 72C262 74 296 116 286 186C282 156 266 126 238 118C214 132 168 132 138 124C126 140 120 162 116 190Z" fill="url(#hair${mini ? 'm' : ''})"/>
- <path d="M150 96C176 84 214 82 244 92" stroke="#4B5652" stroke-width="3" fill="none" opacity=".6"/>
- <g class="ag-circ" stroke="#5EEAD4" stroke-width="1.6" fill="none" filter="url(#glow${mini ? 'm' : ''})" opacity=".85"><path d="M128 168L140 178L140 204L132 212"/><circle cx="132" cy="214" r="2.4" fill="#5EEAD4"/><path d="M272 168L260 178L260 204L268 212"/><circle cx="268" cy="214" r="2.4" fill="#5EEAD4"/></g>
- <path d="M143 178Q165 167 188 176" stroke="#2A302D" stroke-width="4.5" stroke-linecap="round" fill="none"/><path d="M212 176Q235 167 257 178" stroke="#2A302D" stroke-width="4.5" stroke-linecap="round" fill="none"/>
- <g class="ag-eyes"><path d="M145 197Q165 183 186 197Q165 208 145 197Z" fill="#F1F6F3"/><path d="M214 197Q235 183 255 197Q235 208 214 197Z" fill="#F1F6F3"/>
-  <circle cx="165" cy="196" r="7.5" fill="url(#iris${mini ? 'm' : ''})" filter="url(#glow${mini ? 'm' : ''})"/><circle cx="235" cy="196" r="7.5" fill="url(#iris${mini ? 'm' : ''})" filter="url(#glow${mini ? 'm' : ''})"/>
-  <circle cx="165" cy="196" r="3" fill="#06302B"/><circle cx="235" cy="196" r="3" fill="#06302B"/><circle cx="167.5" cy="193.5" r="1.6" fill="#fff"/><circle cx="237.5" cy="193.5" r="1.6" fill="#fff"/></g>
- <path d="M201 204Q197 234 191 246Q200 253 210 246" stroke="#7E948A" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".55"/>
- <path d="M178 272Q200 286 222 272" stroke="#A9827D" stroke-width="3.2" stroke-linecap="round" fill="none"/><path d="M184 270Q200 264 216 270" stroke="#B9948F" stroke-width="2" stroke-linecap="round" fill="none" opacity=".6"/>
-</g>
-</svg>`;
+ <path d="M10 520C18 432 64 392 150 364L200 520Z" fill="url(#${g('su')})"/><path d="M390 520C382 432 336 392 250 364L200 520Z" fill="url(#${g('su')})"/>
+ <path d="M160 368L200 520L240 368L200 404Z" fill="#F5F8F6"/>
+ <path d="M152 360L200 432L184 448L132 394Z" fill="#FBFDFC"/><path d="M248 360L200 432L216 448L268 394Z" fill="#E3EAE6"/>
+ <path d="M193 410L207 410L212 424L204 498L200 506L196 498L188 424Z" fill="#0E1512"/><path d="M193 410L207 410L204 420L196 420Z" fill="#1B2622"/>
+ <path d="M150 364L186 478L150 444L116 400Z" fill="#323D39"/><path d="M250 364L214 478L250 444L284 400Z" fill="#27312D"/>
+ <path d="M300 432L340 432L336 448L304 448Z" fill="#F2B45A" opacity=".9"/>
+ <rect x="176" y="300" width="48" height="66" rx="8" fill="url(#${g('mt')})"/><rect x="172" y="316" width="56" height="9" rx="4.5" fill="#5F716A"/><rect x="172" y="336" width="56" height="9" rx="4.5" fill="#5F716A"/>
+ <line x1="200" y1="78" x2="200" y2="54" stroke="#9FB3AA" stroke-width="4" stroke-linecap="round"/><circle class="rb-ant" cx="200" cy="50" r="6.5" fill="#5EEAD4"/>
+ <circle cx="102" cy="200" r="22" fill="url(#${g('mt')})"/><circle cx="298" cy="200" r="22" fill="url(#${g('mt')})"/><circle class="rb-ear" cx="102" cy="200" r="11" fill="#0B1F18" stroke="#5EEAD4" stroke-width="3"/><circle class="rb-ear" cx="298" cy="200" r="11" fill="#0B1F18" stroke="#5EEAD4" stroke-width="3"/>
+ <path d="M200 78C262 78 296 120 296 186C296 250 272 300 236 322C224 330 212 334 200 334C188 334 176 330 164 322C128 300 104 250 104 186C104 120 138 78 200 78Z" fill="url(#${g('sh')})"/>
+ <path d="M200 78C262 78 296 120 296 186C296 250 272 300 236 322C224 330 212 334 200 334C188 334 176 330 164 322C128 300 104 250 104 186C104 120 138 78 200 78Z" fill="url(#${g('hl')})" opacity=".6"/>
+ <path d="M140 108C160 92 240 92 260 108" stroke="#8FA39A" stroke-width="2" fill="none" opacity=".7"/><path d="M118 230C124 270 140 296 166 316" stroke="#8FA39A" stroke-width="1.6" fill="none" opacity=".5"/><path d="M282 230C276 270 260 296 234 316" stroke="#8FA39A" stroke-width="1.6" fill="none" opacity=".5"/>
+ <path d="${FACE}" fill="#03140D"/>
+</svg>
+<div class="rb-face" style="-webkit-mask-image:${MASK.replace(/"/g, '&quot;')};mask-image:${MASK.replace(/"/g, '&quot;')}"><canvas></canvas></div>
+<svg class="rb-front" viewBox="0 0 400 520" aria-hidden="true"><defs>
+ <linearGradient id="${g('gl')}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+ <filter id="${g('gw')}" x="-60%" y="-200%" width="220%" height="500%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+ <path d="${FACE}" fill="url(#${g('gl')})"/><path d="${FACE}" fill="none" stroke="#B9CBC3" stroke-width="3"/><path d="${FACE}" fill="none" stroke="#5EEAD4" stroke-width="1" opacity=".5" transform="translate(200 209) scale(.96) translate(-200 -209)"/>
+ <g class="rb-eyes" filter="url(#${g('gw')})"><rect x="152" y="184" width="34" height="11" rx="5.5" fill="#99F6E4"/><rect x="214" y="184" width="34" height="11" rx="5.5" fill="#99F6E4"/></g>
+ <g class="rb-mouth" filter="url(#${g('gw')})">${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(k => `<rect x="${174 + k * 6}" y="252" width="3.6" height="8" rx="1.8" fill="#5EEAD4" style="--k:${k}"/>`).join('')}</g>
+</svg></div>`;
     }
+    // falling code inside every robot face that is on screen
+    const robots = new Set();
+    const MGL = 'アイウエオカキクケコサシスセソタチツテト0123456789ABCDEF'.split('');
+    function robotsTick() {
+      robots.forEach(r => {
+        if (!r.vis) return; const { cv, ctx } = r; const w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+        const dpr = Math.min(2, devicePixelRatio || 1); if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); r.fs = Math.max(7, Math.round(w / 15)) * dpr; r.cols = Array(Math.ceil(cv.width / r.fs)).fill(0).map(() => Math.random() * cv.height / r.fs); }
+        ctx.fillStyle = 'rgba(3, 20, 13, .2)'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.font = `${r.fs}px monospace`;
+        r.cols.forEach((y, i) => { const hot = Math.random() > .93; ctx.fillStyle = hot ? '#E6FFFA' : `rgba(45, 212, 191, ${.45 + Math.random() * .4})`; ctx.fillText(MGL[(Math.random() * MGL.length) | 0], i * r.fs, y * r.fs); r.cols[i] = y * r.fs > cv.height && Math.random() > .95 ? 0 : y + (r.talk ? 1.6 : 1); });
+      });
+    }
+    if (!RM) { let last = 0; const loop = now => { requestAnimationFrame(loop); if (now - last > 70) { last = now; robotsTick(); } }; requestAnimationFrame(loop); }
+    const vio = new IntersectionObserver(es => es.forEach(e => { const r = [...robots].find(x => x.el === e.target); if (r) r.vis = e.isIntersecting; }));
+    function wireRobots(root = document) {
+      root.querySelectorAll('.robot').forEach(el => { if (el.dataset.w) return; el.dataset.w = 1; const cv = el.querySelector('canvas'); const r = { el, cv, ctx: cv.getContext('2d'), vis: false, talk: false }; robots.add(r); vio.observe(el);
+        if (RM) { requestAnimationFrame(() => { cv.width = cv.clientWidth; cv.height = cv.clientHeight; r.ctx.fillStyle = '#05261A'; r.ctx.fillRect(0, 0, cv.width, cv.height); }); } });
+    }
+    const setTalk = on => { robots.forEach(r => { r.talk = on; }); document.body.classList.toggle('rb-talking', on); };
+
+    // ---------------- voice: speak replies, listen with the microphone, soft sounds ----------------
+    let VOICE = true; try { VOICE = localStorage.getItem('mz-voice') !== '0'; } catch (e) {}
+    let actx = null;
+    const blip = (f1, f2, d = .12) => { if (!VOICE) return; try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), gn = actx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f1, actx.currentTime); o.frequency.exponentialRampToValueAtTime(f2, actx.currentTime + d); gn.gain.setValueAtTime(.0001, actx.currentTime); gn.gain.exponentialRampToValueAtTime(.06, actx.currentTime + .02); gn.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + d + .05); o.connect(gn).connect(actx.destination); o.start(); o.stop(actx.currentTime + d + .08); } catch (e) {} };
+    const LANGV = { ru: 'ru', uz: 'uz', en: 'en' };
+    const pickVoice = () => { if (!window.speechSynthesis) return null; const vs = speechSynthesis.getVoices(); const want = LANGV[L()] || 'ru'; const fit = l => vs.filter(v => (v.lang || '').toLowerCase().startsWith(l));
+      let c = fit(want); if (!c.length && want === 'uz') c = fit('ru'); if (!c.length) return null; return c.find(v => /natural|neural|online|google|premium|enhanced/i.test(v.name)) || c[0]; };
+    function speak(text) {
+      if (!VOICE || !window.speechSynthesis) return; const v = pickVoice(); if (!v) return;
+      speechSynthesis.cancel(); const clean = String(text).replace(/[•*#]/g, ' ').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim().slice(0, 900);
+      const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.lang = v.lang; u.rate = 1.02; u.pitch = .82;
+      u.onstart = () => setTalk(true); u.onend = u.onerror = () => setTalk(false); speechSynthesis.speak(u);
+    }
+    if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
+    const SRC = window.SpeechRecognition || window.webkitSpeechRecognition;
+    function listen(btn) {
+      if (!SRC) return; const rec = new SRC(); rec.lang = { ru: 'ru-RU', uz: 'uz-UZ', en: 'en-US' }[L()] || 'ru-RU'; rec.interimResults = true; rec.maxAlternatives = 1;
+      const inp = $('#aiIn'); btn.classList.add('rec'); blip(660, 990);
+      rec.onresult = e => { const r = e.results[e.results.length - 1]; inp.value = r[0].transcript; if (r.isFinal) { btn.classList.remove('rec'); MZ.ask(inp.value); } };
+      rec.onerror = rec.onend = () => btn.classList.remove('rec'); try { rec.start(); } catch (e) { btn.classList.remove('rec'); }
+    }
+    // the chat card gets a microphone, a sound switch and links into the portal's service pages
+    const GO2SV = { transport: 'transport', metro: 'transport', bus: 'transport', trains: 'transport', flights: 'transport', transit: 'transport', parking: 'transport', parking_map: 'transport', ev: 'transport', tickets: 'transport',
+      med: 'health', doctor: 'health', health: 'health', gov: 'gov', docs: 'gov', queue: 'gov', fines: 'gov', pay_util: 'gov', pay_light: 'gov', realty: 'gov', newbuild: 'gov', family: 'edu', mahalla: 'mahalla', polls: 'mahalla', appeal: 'mahalla', roads: 'mahalla', clean: 'mahalla',
+      mosques: 'faith', mosque_map: 'faith', cafes: 'leisure', news: 'leisure', fairs: 'leisure', sights: 'leisure', tourist: 'leisure', marketplace: 'market', sos: 'safety' };
+    function wireChat() {
+      const card = $('.ai-card'); if (!card || card.dataset.w) return; card.dataset.w = 1;
+      const form = $('#aiForm');
+      if (SRC) { const mic = document.createElement('button'); mic.type = 'button'; mic.className = 'btn btn-ghost ai-mic'; mic.setAttribute('aria-label', 'mic'); mic.innerHTML = ic('microphone'); mic.onclick = () => listen(mic); form.insertBefore(mic, form.querySelector('.btn-acc')); }
+      const top = card.querySelector('.ai-top'); const snd = document.createElement('button'); snd.type = 'button'; snd.className = 'ai-snd' + (VOICE ? ' on' : ''); snd.setAttribute('aria-label', 'sound');
+      const paint = () => { snd.innerHTML = `<i class="eq"><b></b><b></b><b></b></i><span>${esc(VOICE ? (L() === 'en' ? 'Voice on' : L() === 'uz' ? 'Ovoz yoqilgan' : 'Голос включён') : (L() === 'en' ? 'Voice off' : L() === 'uz' ? "Ovoz o'chirilgan" : 'Голос выключен'))}</span>`; snd.classList.toggle('on', VOICE); };
+      paint(); snd.onclick = () => { VOICE = !VOICE; try { localStorage.setItem('mz-voice', VOICE ? '1' : '0'); } catch (e) {} if (!VOICE && window.speechSynthesis) speechSynthesis.cancel(); paint(); };
+      top.appendChild(snd); document.addEventListener('mz:lang', paint);
+      form.addEventListener('submit', () => { blip(520, 780, .08); if (window.speechSynthesis) speechSynthesis.cancel(); });
+    }
+    document.addEventListener('mz:reply', e => { const { text, tags, el } = e.detail; blip(880, 1320, .1); speak(text);
+      const svs = [...new Set((tags || []).map(k => GO2SV[k]).filter(Boolean))].slice(0, 2);
+      if (svs.length && el) el.insertAdjacentHTML('beforeend', `<span class="msg-go">${svs.map(k => `<a href="?s=${k}" data-sv="${k}">${ic(SV[k].ic)}${esc(pick(SV[k].t))} →</a>`).join('')}</span>`); });
+
+    // big robot beside the chat (home section and the assistant page)
     function agentInit() {
-      const box = $('#agent'); if (!box || box.dataset.ok) return; box.dataset.ok = 1;
-      box.innerHTML = `<canvas class="ag-rain"></canvas><div class="ag-ring"></div>${AGENT_SVG(false)}<div class="ag-id"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i></div>`;
-      const cv = box.querySelector('.ag-rain'), ctx = cv.getContext('2d'); if (RM) return;
-      const G = 'アイウエオカキクケコサシスセソ0123456789MYUZCITY'.split(''); let cols = [], W = 0, H = 0, fs = 14, last = 0, vis = true;
+      const box = $('#agent'); if (!box) return;
+      box.innerHTML = `<canvas class="ag-rain"></canvas><div class="ag-ring"></div>${ROBOT('big')}<div class="ag-id"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i></div>`;
+      wireRobots(box); rain(box.querySelector('.ag-rain'), box);
+    }
+    function rain(cv, box) {
+      if (RM || !cv) return; const ctx = cv.getContext('2d'); let cols = [], W = 0, H = 0, fs = 14, last = 0, vis = true;
       const size = () => { W = cv.width = box.clientWidth; H = cv.height = box.clientHeight; cols = Array(Math.ceil(W / fs)).fill(0).map(() => Math.random() * H / fs); };
-      size(); addEventListener('resize', size);
-      new IntersectionObserver(([e]) => { vis = e.isIntersecting; }).observe(box);
-      const tick = now => { requestAnimationFrame(tick); if (!vis || now - last < 60) return; last = now; ctx.fillStyle = 'rgba(6, 22, 13, .18)'; ctx.fillRect(0, 0, W, H); ctx.font = fs + 'px monospace';
-        cols.forEach((y, i) => { ctx.fillStyle = Math.random() > .96 ? '#CCFBF1' : 'rgba(45, 212, 191, .55)'; ctx.fillText(G[(Math.random() * G.length) | 0], i * fs, y * fs); cols[i] = y * fs > H && Math.random() > .975 ? 0 : y + 1; }); };
+      size(); addEventListener('resize', size); new IntersectionObserver(([e]) => { vis = e.isIntersecting; }).observe(box);
+      const tick = now => { requestAnimationFrame(tick); if (!vis || now - last < 60) return; last = now; if (!W) size(); ctx.fillStyle = 'rgba(6, 22, 13, .18)'; ctx.fillRect(0, 0, W, H); ctx.font = fs + 'px monospace';
+        cols.forEach((y, i) => { ctx.fillStyle = Math.random() > .96 ? '#CCFBF1' : 'rgba(45, 212, 191, .5)'; ctx.fillText(MGL[(Math.random() * MGL.length) | 0], i * fs, y * fs); cols[i] = y * fs > H && Math.random() > .975 ? 0 : y + 1; }); };
       requestAnimationFrame(tick);
+    }
+
+    // floating robot on every screen: opens the same chat beside it
+    function dockInit() {
+      if ($('#dock')) return;
+      document.body.insertAdjacentHTML('beforeend', `<div class="dock" id="dock"><div class="dock-panel" id="dockPanel" hidden><button class="dock-x" aria-label="close">${ic('x')}</button><div class="dock-bot">${ROBOT('mid')}<div class="dock-name"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_status'))}</i></div></div><div class="dock-chat" id="dockChat"></div></div>
+        <button class="dock-btn" id="dockBtn" aria-label="assistant"><span class="dock-bub">${esc(L() === 'en' ? 'Ask me anything' : L() === 'uz' ? "Menga savol bering" : 'Спросите меня')}</span><span class="dock-av">${ROBOT('tiny')}</span></button></div>`);
+      wireRobots($('#dock'));
+      const btn = $('#dockBtn'), panel = $('#dockPanel'), host = $('#dockChat');
+      let greeted = false;
+      const open = () => { const card = $('.ai-card'); host.appendChild(card); panel.hidden = false; $('#dock').classList.add('open'); blip(440, 880, .16);
+        if (!greeted) { greeted = true; speak(L() === 'en' ? 'Hello! I am the MyUzCity digital assistant. How can I help?' : L() === 'uz' ? "Assalomu alaykum! Men MyUzCity raqamli yordamchisiman. Sizga qanday yordam bera olaman?" : 'Здравствуйте! Я цифровой ассистент MyUzCity. Чем могу помочь?'); }
+        setTimeout(() => $('#aiIn').focus(), 300); };
+      const close = () => { panel.hidden = true; $('#dock').classList.remove('open'); const ai = $('#ai'); const card = $('.ai-card'); if (ai && card && card.parentElement === host) ai.appendChild(card); };
+      btn.onclick = () => (panel.hidden ? open() : close()); panel.querySelector('.dock-x').onclick = close;
+      // hide while the big assistant is on screen
+      const ai = $('#ai'); if (ai) new IntersectionObserver(([e]) => { $('#dock').classList.toggle('away', e.isIntersecting && !ai.closest('#svView')); if (e.isIntersecting && !panel.hidden) close(); }, { threshold: .25 }).observe(ai);
+      document.addEventListener('mz:lang', () => { $('.dock-bub').textContent = L() === 'en' ? 'Ask me anything' : L() === 'uz' ? 'Menga savol bering' : 'Спросите меня'; $('.dock-name b').textContent = s('ag_name'); $('.dock-name i').textContent = s('ag_status'); });
+      window.MZdock = { close, open };
     }
 
     // ---------------- routing with smooth transitions ----------------
@@ -376,8 +454,9 @@
       if (!SV[k]) k = null;
       const go = async () => {
         maps.splice(0).forEach(m => { try { m.remove(); } catch (e) {} });
-        if (!k) { view.hidden = true; view.innerHTML = ''; home.hidden = false; document.body.classList.remove('on-sv'); cur = null; document.title = t('title'); return; }
+        if (!k) { $('#dock') && $('#dock').classList.remove('gone'); view.hidden = true; view.innerHTML = ''; home.hidden = false; document.body.classList.remove('on-sv'); cur = null; document.title = t('title'); return; }
         cur = k; home.hidden = true; view.hidden = false; document.body.classList.add('on-sv');
+        if (window.MZdock) MZdock.close(); $('#dock') && $('#dock').classList.toggle('gone', k === 'ai');
         if (k === 'ai') { view.innerHTML = `<div class="sv sv-ai" style="--g:${SV.ai.g}"><div class="sv-ai-in" id="aiHost"></div></div>`; $('#aiHost').appendChild($('#ai')); $('#ai').classList.add('in-page'); }
         else { view.innerHTML = shell(k); }
         document.title = `${pick(SV[k].t)} · MyUzCity`;
@@ -400,17 +479,17 @@
     document.addEventListener('click', e => {
       const a = e.target.closest('a[data-sv]'); if (a && !e.metaKey && !e.ctrlKey) { e.preventDefault(); openSv(a.dataset.sv, true, a.classList.contains('tile') ? a : null); return; }
       const h = e.target.closest('a[data-home]'); if (h) { e.preventDefault(); openSv(null, true).then(() => { const id = h.dataset.home; if (id) { const el = document.getElementById(id); el && el.scrollIntoView({ behavior: RM ? 'auto' : 'smooth' }); } }); return; }
-      const ask = e.target.closest('[data-ask]'); if (ask) { e.preventDefault(); const q = ask.dataset.ask; openSv('ai', true).then(() => MZ.ask(q)); return; }
+      const ask = e.target.closest('[data-ask]'); if (ask) { e.preventDefault(); const q = ask.dataset.ask; if (window.MZdock) { MZdock.open(); setTimeout(() => MZ.ask(q), 250); } else openSv('ai', true).then(() => MZ.ask(q)); return; }
       const sc = e.target.closest('a[data-scroll]'); if (sc) { e.preventDefault(); const el = document.querySelector(sc.getAttribute('href')); el && el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       const nav = e.target.closest('.nav a[href^="#"]'); if (nav && cur) { e.preventDefault(); const id = nav.getAttribute('href').slice(1); openSv(null, true).then(() => { const el = document.getElementById(id); el && el.scrollIntoView(); }); }
     });
     addEventListener('popstate', () => openSv(new URLSearchParams(location.search).get('s'), false));
-    document.addEventListener('mz:lang', () => { renderCatalog(); const a = $('#agent'); if (a) { a.dataset.ok = ''; agentInit(); } if (cur) { const k = cur; cur = null; openSv(k, false); } });
+    document.addEventListener('mz:lang', () => { renderCatalog(); wireRobots($('#svcGrid')); agentInit(); if (cur) { const k = cur; cur = null; openSv(k, false); } });
     document.addEventListener('mz:data', () => { if (cur === 'transport' && !$('#svMain .board')) fill('transport'); });
 
     // story steps and nav links point to the service pages
     $$('.go-app[data-sv]').forEach(a => { a.href = `?s=${a.dataset.sv}`; });
-    renderCatalog(); agentInit();
+    renderCatalog(); wireRobots($('#svcGrid')); agentInit(); wireChat(); dockInit();
     const hubHome = $('#hubHome'); if (hubHome) { hubHome.innerHTML = hubHtml(false); hubInit(hubHome.querySelector('.hub')); const hh = $('#hubT'); if (hh) { hh.textContent = s('hub_t'); $('#hubS').textContent = s('hub_s'); } }
     const s0 = new URLSearchParams(location.search).get('s'); if (s0) openSv(s0, false);
   }

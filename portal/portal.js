@@ -288,7 +288,7 @@
     const w = addMsg('a', ''); w.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
     const d = new Date(Date.now() + 5 * 3600e3);
     fetch(`${API}/api/assistant`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: msgs.slice(-8), lang: L, name: '—', city: L === 'en' ? 'Tashkent' : L === 'uz' ? 'Toshkent' : 'Ташкент', date: d.toISOString().slice(0, 16).replace('T', ' '), ctx: { cityIdx: 0 } }) })
-      .then(r => r.json()).then(j => { const a = (j && j.reply || '').replace(/\s*\[\[[^\]]*\]\]/g, '').replace(/\*\*/g, '').trim(); if (!a) throw 0; msgs.push({ role: 'assistant', content: a }); w.textContent = a; })
+      .then(r => r.json()).then(j => { const raw = (j && j.reply) || ''; const tags = [...raw.matchAll(/\[\[\s*(?:go\s*:\s*)?([a-z_]+)\s*\]\]/gi)].map(m => m[1]); const a = raw.replace(/\s*\[\[[^\]]*\]\]/g, '').replace(/\*\*/g, '').trim(); if (!a) throw 0; msgs.push({ role: 'assistant', content: a }); w.textContent = a; document.dispatchEvent(new CustomEvent('mz:reply', { detail: { text: a, tags, el: w } })); })
       .catch(() => { w.textContent = t('ai_err'); msgs.pop(); });
   }
   $('#aiSug').addEventListener('click', e => { const b = e.target.closest('button'); if (b) ask(b.textContent); });

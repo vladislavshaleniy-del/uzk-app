@@ -269,3 +269,69 @@ body.on-sv .nav { background: rgba(7, 26, 14, .6); }
 .hub { grid-template-columns: 340px minmax(0, 1fr); } .hub-count { left: 360px; }
 .hub-q { flex: none; }
 @media (max-width: 960px) { .hub { grid-template-columns: 1fr; } .hub-count { left: 16px; } }
+
+/* ---------- robot assistant ---------- */
+.robot { position: relative; aspect-ratio: 400 / 520; }
+.robot > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.rb-face { position: absolute; left: 33%; top: 22.69%; width: 34%; height: 35%; background: #03140D; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+.rb-face canvas { display: block; width: 100%; height: 100%; }
+.rb-eyes { transform-box: fill-box; transform-origin: center; animation: rbBlink 5.5s infinite; }
+@keyframes rbBlink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(.15); } }
+.rb-mouth rect { transform-box: fill-box; transform-origin: center; }
+body.rb-talking .rb-mouth rect { animation: rbTalk .42s ease-in-out infinite alternate; animation-delay: calc(var(--k) * -73ms); }
+@keyframes rbTalk { 0% { transform: scaleY(.6); } 50% { transform: scaleY(2.6); } 100% { transform: scaleY(1.2); } }
+.rb-ant { animation: rbAnt 2.4s ease-in-out infinite; } @keyframes rbAnt { 50% { opacity: .35; } }
+body.rb-talking .rb-ear { stroke: #CCFBF1; animation: rbAnt .5s infinite; }
+.robot.big, .robot.mid { animation: rbFloat 7s ease-in-out infinite; } @keyframes rbFloat { 50% { transform: translateY(-6px); } }
+.agent .robot.big { position: absolute; left: 50%; bottom: 0; height: 92%; width: auto; translate: -50% 0; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .6)) drop-shadow(0 0 34px rgba(45, 212, 191, .22)); }
+.agent .robot.big { animation: none; }
+.tile-ag .robot { position: absolute; right: 3%; bottom: -8%; height: 116%; width: auto; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, .6)); }
+.msg-go { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; white-space: normal; }
+.msg-go a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: rgba(242, 180, 90, .14); border: 1px solid rgba(242, 180, 90, .35); color: var(--acc); text-decoration: none; font-weight: 700; font-size: 14px; }
+.msg-go svg { width: 16px; height: 16px; }
+.ai-top { position: relative; }
+.ai-snd { position: absolute; right: 0; top: -6px; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(237, 242, 234, .05); color: var(--dim); font: 700 12.5px Manrope, sans-serif; cursor: pointer; }
+.ai-snd.on { color: #5EEAD4; border-color: rgba(94, 234, 212, .35); }
+.ai-snd .eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 14px; } .ai-snd .eq b { width: 3px; height: 5px; border-radius: 2px; background: currentColor; }
+body.rb-talking .ai-snd.on .eq b { animation: rbEq .5s ease-in-out infinite alternate; } .ai-snd .eq b:nth-child(2) { animation-delay: -.2s !important; } .ai-snd .eq b:nth-child(3) { animation-delay: -.35s !important; }
+@keyframes rbEq { to { height: 14px; } }
+.ai-top > div { padding-right: 150px; }
+.ai-mic { width: 56px; height: 56px; padding: 0; flex: none; } .ai-mic svg { width: 22px; height: 22px; }
+.ai-mic.rec { color: #F87171; border-color: rgba(248, 113, 113, .6); box-shadow: 0 0 0 6px rgba(248, 113, 113, .15); animation: bl 1.2s infinite; }
+
+/* floating robot on every screen */
+.dock { position: fixed; right: 22px; bottom: 22px; z-index: 900; transition: opacity .4s var(--ease), transform .4s var(--ease); }
+.dock.away, .dock.gone { opacity: 0; pointer-events: none; transform: translateY(24px); }
+.dock-btn { position: relative; display: block; width: 96px; height: 96px; padding: 0; border: 0; background: none; cursor: pointer; }
+.dock-av { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 35%, #12462F, #051710 70%); box-shadow: 0 24px 50px -16px rgba(0, 0, 0, .85), 0 0 0 1.5px rgba(94, 234, 212, .45), 0 0 46px rgba(45, 212, 191, .28); transition: transform .4s var(--ease); }
+.dock-btn:hover .dock-av { transform: scale(1.06); }
+.dock-av .robot { position: absolute; left: 50%; top: 4px; width: 104px; translate: -50% 0; }
+.dock-av::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from var(--pa), transparent 0 70%, rgba(94, 234, 212, .7) 85%, transparent); -webkit-mask: radial-gradient(closest-side, transparent 92%, #000 93%); mask: radial-gradient(closest-side, transparent 92%, #000 93%); animation: pa 4s linear infinite; }
+.dock-bub { position: absolute; right: 104px; top: 50%; translate: 0 -50%; white-space: nowrap; padding: 10px 16px; border-radius: 16px 16px 4px 16px; background: rgba(9, 32, 19, .92); border: 1px solid rgba(94, 234, 212, .35); color: var(--tx); font: 700 14px Manrope, sans-serif; box-shadow: 0 16px 40px -16px rgba(0, 0, 0, .8); animation: rise .6s var(--ease) both 1.2s; }
+.dock.open .dock-bub { display: none; }
+.dock-panel { position: fixed; right: 22px; bottom: 132px; width: min(860px, calc(100vw - 44px)); height: min(640px, calc(100vh - 160px)); display: grid; grid-template-columns: 270px minmax(0, 1fr); border-radius: 30px; overflow: hidden; animation: rise .45s var(--ease) both;
+  background: linear-gradient(rgba(8, 30, 18, .94), rgba(8, 30, 18, .94)) padding-box, linear-gradient(135deg, rgba(255, 255, 255, .3), rgba(45, 212, 191, .35), rgba(186, 160, 230, .22), rgba(242, 200, 140, .28)) border-box; border: 1px solid transparent; backdrop-filter: blur(20px); box-shadow: 0 50px 120px -40px rgba(0, 0, 0, .9); }
+.dock-panel[hidden] { display: none; }
+.dock-bot { position: relative; overflow: hidden; background: radial-gradient(90% 70% at 50% 40%, rgba(45, 212, 191, .22), transparent 70%), linear-gradient(180deg, #0B2C1D, #061810); border-right: 1px solid var(--line); }
+.dock-bot .robot { position: absolute; left: 50%; bottom: 0; height: 86%; width: auto; translate: -50% 0; filter: drop-shadow(0 24px 30px rgba(0, 0, 0, .6)); }
+.dock-name { position: absolute; left: 14px; right: 14px; top: 14px; padding: 10px 12px; border-radius: 14px; background: rgba(6, 22, 13, .7); border: 1px solid rgba(94, 234, 212, .3); display: grid; grid-template-columns: 12px 1fr; column-gap: 8px; }
+.dock-name .dot { grid-row: span 2; width: 9px; height: 9px; border-radius: 50%; background: #4ADE80; align-self: center; box-shadow: 0 0 0 4px rgba(74, 222, 128, .2); }
+.dock-name b { font: 700 12.5px Unbounded, sans-serif; } .dock-name i { font-style: normal; color: #4ADE80; font-size: 12px; font-weight: 700; }
+.dock-chat { min-width: 0; display: flex; }
+.dock-chat .ai-card { opacity: 1 !important; transform: none !important; width: 100%; border-radius: 0; box-shadow: none; border: 0 !important; background: transparent !important; padding: 24px 24px 20px; display: flex; flex-direction: column; }
+.dock-chat .ai-top h2 { font-size: 22px; } .dock-chat .ai-top p { font-size: 14px; } .dock-chat .ai-top .ic { display: none; }
+.dock-chat .ai-log { flex: 1; max-height: none; min-height: 0; }
+.dock-x { position: absolute; z-index: 2; right: 14px; top: 14px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: rgba(237, 242, 234, .06); color: var(--tx); cursor: pointer; display: grid; place-items: center; } .dock-x svg { width: 18px; height: 18px; }
+.dock-chat .ai-snd { right: 44px; }
+@media (max-width: 760px) {
+  .dock { right: 14px; bottom: 14px; } .dock-btn { width: 72px; height: 72px; } .dock-av .robot { width: 80px; } .dock-bub { display: none; }
+  .dock-panel { inset: 0; right: 0; bottom: 0; width: 100vw; height: 100dvh; border-radius: 0; grid-template-columns: 1fr; grid-template-rows: 150px minmax(0, 1fr); }
+  .dock-bot { border-right: 0; border-bottom: 1px solid var(--line); } .dock-bot .robot { height: 150%; bottom: -60%; } .dock-name { right: auto; top: auto; bottom: 12px; }
+  .dock-chat .ai-card { padding: 18px 16px; } .ai-top > div { padding-right: 0; } .ai-snd { position: static; margin-top: 10px; } .dock-chat .ai-snd { position: static; }
+  .dock.open .dock-btn { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .robot, .rb-eyes, .rb-ant, .dock-av::after { animation: none !important; } }
+@media (max-width: 760px) {
+  .dock-bot .robot { left: auto; right: 8px; translate: 0 0; height: 200%; bottom: -112%; }
+  .dock-name { left: 14px; right: auto; max-width: 62%; bottom: auto; top: 50%; translate: 0 -50%; }
+}
