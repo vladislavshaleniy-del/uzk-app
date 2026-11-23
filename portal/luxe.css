@@ -216,3 +216,10 @@ body.rb-talking .bot-mouth { animation: botTalk .34s ease-in-out infinite altern
 }
 /* keep the floating air-quality chip clear of the headline */
 .chip.c2 { left: -30px; top: 560px; }
+/* partner form: fields keep their height inside the column labels */
+.pt-form input, .pt-form textarea { flex: none; }
+.pt-form { background: linear-gradient(180deg, #0F3020, #08200F); }
+/* the dock's speech bubble greets once, then steps aside so it never covers content */
+.dock-bub { animation: rise .6s var(--ease) both 1.2s, bubOut .5s var(--ease) forwards 9s; }
+.dock-btn:hover .dock-bub, .dock-btn:focus-visible .dock-bub { animation: none; opacity: 1; transform: none; }
+@keyframes bubOut { to { opacity: 0; transform: translateX(8px); visibility: hidden; } }
