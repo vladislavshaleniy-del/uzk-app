@@ -12,6 +12,7 @@ const SERVICES = [
   ['med', 'Аптеки, больницы, клиники, стоматологии и лаборатории на карте: «открыто сейчас», круглосуточные, звонок, маршрут; номера 103 и 112'],
   ['mosques', 'Мечети и намаз: время намаза на сегодня по городу, ближайшие мечети'], ['mosque_map', 'Мечети на карте: поиск, исторические мечети, маршрут пешком/на авто'],
   ['parking', 'Парковка: мои авто, оплата по QR, карта парковок'], ['parking_map', 'Карта парковок (платные/бесплатные, паркинги) и инструкция, как оплатить парковку'],
+  ['transport', 'Транспорт: метро, автобусы и маршрутки, поезда, самолёты, такси, транспортная карта — всё в одном разделе'], ['trains', 'Поезда: вокзалы и станции на карте, покупка билетов на eticket.railway.uz, маршрут и такси до вокзала'], ['flights', 'Самолёты: живое табло вылетов и прилётов всех аэропортов Узбекистана, такси до аэропорта с ценой, покупка билетов'],
   ['metro', 'Метро Ташкента: схема линий, станции, пересадки, как дойти до станции'], ['bus', 'Автобусы, троллейбусы и маршрутки: остановки рядом, какие маршруты идут, путь маршрута по остановкам, где автобус сейчас (через Яндекс Карты/2ГИС)'],
   ['transit', 'Транспортная карта: пополнить, добавить карту; вход в метро и автобусы'], ['fines', 'Штрафы'], ['ev', 'Зарядка электромобилей'],
   ['pay_light', 'Оплатить электричество'], ['pay_util', 'Коммунальные платежи'], ['doctor', 'Запись к врачу'], ['health', 'Здоровье и медицина: запись к врачу, медкнижка, аптеки и больницы рядом'],
@@ -30,6 +31,7 @@ const MOSQUE = /мечет|намаз|молитв|джума|masjid|namoz|juma|
 const PARK = /парков|паркинг|avtoturargoh|parking|停车/i;
 const NEWS_ANY = /новост|афиш|событ|куда пойти|выходн|концерт|кино|ярмарк|акци|скидк|yangilik|afisha|tadbir|news|event|weekend|concert|cinema|新闻|活动/i;
 
+const DATA = 'https://vladislavshaleniy-del.github.io/uzk-app/data/';   // fresh data published by the GitHub Action
 const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', ...CORS } });
 async function getJSON(url) { try { const r = await fetch(url, { cf: { cacheTtl: 300 } }); return r.ok ? await r.json() : null; } catch { return null; } }
 function dist(a, b) { const R = 6371, r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); }
@@ -84,18 +86,18 @@ export async function onRequestPost({ request, env }) {
   const loc = Array.isArray(ctx.loc) && ctx.loc.length === 2 ? ctx.loc.map(Number) : null;
   let places = '', news = '';
   if (b.mode !== 'raw' && (FOOD_ANY.test(last) || FOOD.some(([re]) => re.test(last)))) {
-    const list = (await getJSON(`${origin}/data/places/${ci}.json`)) || [];
+    const list = (await getJSON(`${DATA}places/${ci}.json`)) || [];
     places = shortlist(list, last, loc).map(p => `${p.id} | ${p.n} | ${p.a} | ${p.cu || '—'} | ${p.h || 'нет данных'} | ${p.ad || '—'} | ${loc ? dist(loc, [p.la, p.lo]).toFixed(1) + ' км' : '—'}`).join('\n');
   }
   if (b.mode !== 'raw' && NEWS_ANY.test(last)) {
-    const n = await getJSON(`${origin}/data/news.json`);
+    const n = await getJSON(`${DATA}news.json`);
     const items = n ? ((n.cities && n.cities[ci]) || n.all || []) : [];
     news = items.slice(0, 8).map(x => `• ${x.t} (${x.s}, ${String(x.d).slice(0, 10)})`).join('\n');
   }
   let extra = '';
   if (b.mode !== 'raw') {
     const poi = async (k, filter, n, label) => {
-      const list = ((await getJSON(`${origin}/data/poi/${k}/${ci}.json`)) || []).filter(filter);
+      const list = ((await getJSON(`${DATA}poi/${k}/${ci}.json`)) || []).filter(filter);
       return nearList(list, loc, n).map(p => `${k}:${p.id} | ${p.n || label} | ${p.a || (p.k ? ({ m: 'многоуровневый', u: 'подземный', s: 'вдоль улицы', g: 'открытая' })[p.k] : '') || (p.hi ? 'историческая' : '')} | ${p.f === 1 ? 'платная' : p.f === 0 ? 'бесплатная' : ''} | ${p.h || ''} | ${p.ad || '—'} | ${p.ph || ''} | ${loc ? dist(loc, [p.la, p.lo]).toFixed(1) + ' км' : ''}`).join('\n');
     };
     const medK = MED.filter(([re]) => re.test(last)).map(([, k]) => k);

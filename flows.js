@@ -558,6 +558,8 @@ const XACT = {
 
 // ======================= «ИИ ассистент»: floating button + chat on every screen =======================
 // own assistant (Cloudflare Pages Function, functions/api/assistant.js); the old endpoint stays as a fallback
+// live data (news, places, maps) is always read from GitHub Pages, where the data Action publishes it
+const DATA_BASE = /github\.io$/.test(location.hostname) || /^(localhost|127\.)/.test(location.hostname) ? '' : 'https://vladislavshaleniy-del.github.io/uzk-app/';
 const AI_OWN = /(^|\.)myuzcity\.(uz|pages\.dev)$/.test(location.hostname) ? '/api/assistant' : 'https://myuzcity.pages.dev/api/assistant';
 async function aiFetch(body, signal) {
   try { const r = await fetch(AI_OWN, { method: 'POST', headers: { 'content-type': 'application/json' }, signal, body: JSON.stringify(body) }); const j = await r.json(); if (j) return j; } catch (e) { if (signal && signal.aborted) throw e; }
@@ -595,6 +597,7 @@ const AI_GO = {
   mosques: ['1:3529', 'Карта мечетей', 'Masjidlar xaritasi', 'Mosque map', '清真寺地图'], marketplace: ['1:5149', 'Маркетплейс', 'Marketpleys', 'Marketplace', '商城'],
   home: ['1:5285', 'Электронный дом', 'Elektron uy', 'E-home', '智慧家庭'],
   med: ['h:poi?med', 'Аптеки и клиники рядом', 'Yaqin dorixona va klinikalar', 'Pharmacies & clinics nearby', '附近药店和诊所'], parking_map: ['h:poi?parking', 'Карта парковок', 'Avtoturargohlar xaritasi', 'Parking map', '停车地图'],
+  transport: ['h:transport', 'Транспорт', 'Transport', 'Transport', '交通'], trains: ['h:trains', 'Поезда и вокзалы', 'Poyezdlar va vokzallar', 'Trains & stations', '火车与车站'], flights: ['h:flights', 'Табло аэропортов', 'Aeroportlar tablosi', 'Airport boards', '机场航班'],
   metro: ['h:transit?metro', 'Схема метро', 'Metro sxemasi', 'Metro map', '地铁线路图'], bus: ['h:transit?bus', 'Автобусы и остановки', 'Avtobuslar va bekatlar', 'Buses & stops', '公交与车站'],
   newbuild: ['h:poi?build', 'Новостройки на карте', 'Yangi uylar xaritada', 'New buildings map', '新楼盘地图'],
   mosque_map: ['h:poi?mosque', 'Мечети на карте', 'Masjidlar xaritada', 'Mosques on the map', '清真寺地图'],
@@ -901,7 +904,7 @@ let NEWS = null, NEWS_AT = 0, NEWS_P = null;
 function loadNews() {
   if (NEWS_P && Date.now() - NEWS_AT < 15 * 60e3) return NEWS_P;
   NEWS_AT = Date.now();
-  return (NEWS_P = fetch('data/news.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.cities) NEWS = j; return NEWS; }).catch(() => NEWS));
+  return (NEWS_P = fetch(DATA_BASE + 'data/news.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.cities) NEWS = j; return NEWS; }).catch(() => NEWS));
 }
 function cityNews(i = cityIdx()) { if (!NEWS) return null; const l = NEWS.cities[i]; return l && l.length ? { items: l, own: true } : { items: NEWS.all || [], own: false }; }
 const NEWS_GRAD = ['#1a4a28,#2f6b3d', '#3b2a5e,#6b4c9a', '#7c2d12,#c2410c', '#0f4c5c,#2a7f8f'];
@@ -979,8 +982,8 @@ const caf = () => (window.__caf = window.__caf || { city: null, cat: 'all', q: '
 let CAF_INDEX = null; const CAF_DATA = {};
 function cafCity() { const s = caf(); if (s.city == null) { const c = cityIdx(); s.city = CAF_INDEX && !CAF_INDEX.cities[c] ? 0 : c; } return s.city; }
 function cafLoad(i) {
-  const idx = CAF_INDEX ? Promise.resolve(CAF_INDEX) : fetch('data/places/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : { cities: {} }).then(j => (CAF_INDEX = j));
-  return idx.then(() => CAF_DATA[i] || (CAF_INDEX.cities[i] ? fetch(`data/places/${i}.json`, { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).then(j => (CAF_DATA[i] = j)) : (CAF_DATA[i] = [])));
+  const idx = CAF_INDEX ? Promise.resolve(CAF_INDEX) : fetch(DATA_BASE + 'data/places/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : { cities: {} }).then(j => (CAF_INDEX = j));
+  return idx.then(() => CAF_DATA[i] || (CAF_INDEX.cities[i] ? fetch(`${DATA_BASE}data/places/${i}.json`, { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).then(j => (CAF_DATA[i] = j)) : (CAF_DATA[i] = [])));
 }
 function cafPri(p) { for (const c of CAF_PRI) if (p.c.includes(c)) return c; return 'cafe'; }
 function cafCuis(p) { return (p.cu || '').split(';').map(c => { const k = c.trim().toLowerCase(); return CUIS[k] ? CUIS[k][LI[LANG]] : k.replace(/_/g, ' '); }).filter(Boolean).slice(0, 3).join(', '); }
@@ -1481,10 +1484,10 @@ PO_K.build = {
 };
 const poH24 = p => p.h === '24/7' || !!(ohState(p.h) || {}).h24;
 let PO_INDEX = null; const PO_DATA = { parking: {}, mosque: {}, med: {}, build: {} };
-function poIndex() { return PO_INDEX ? Promise.resolve(PO_INDEX) : fetch('data/poi/index.json', { cache: 'no-cache' }).then(r => r.json()).then(j => (PO_INDEX = j)); }
+function poIndex() { return PO_INDEX ? Promise.resolve(PO_INDEX) : fetch(DATA_BASE + 'data/poi/index.json', { cache: 'no-cache' }).then(r => r.json()).then(j => (PO_INDEX = j)); }
 function poLoad(k, ci) {
   if (PO_DATA[k][ci]) return Promise.resolve(PO_DATA[k][ci]);
-  return poIndex().then(ix => (ix.n[k] || {})[ci] ? fetch(`data/poi/${k}/${ci}.json`).then(r => r.json()) : []).then(l => (PO_DATA[k][ci] = l));
+  return poIndex().then(ix => (ix.n[k] || {})[ci] ? fetch(`${DATA_BASE}data/poi/${k}/${ci}.json`).then(r => r.json()) : []).then(l => (PO_DATA[k][ci] = l));
 }
 const po = k => { window.__po = window.__po || {}; return (window.__po[k] = window.__po[k] || { city: null, cat: 'all', q: '', more: 0, big: false }); };
 function poCity(k) { const s = po(k); if (s.city == null) { const c = cityIdx(); s.city = PO_INDEX && !(PO_INDEX.n[k] || {})[c] ? 0 : c; } return s.city; }
@@ -1763,7 +1766,7 @@ const TR_TC = { b: '#2563EB', t: '#0891B2', m: '#D97706', tr: '#DC2626' };
 const TR_TN = { b: 'tr_b', t: 'tr_tb', m: 'tr_mb', tr: 'tr_tr' };
 const TR_MCOL = ['#DA291C', '#0057B8', '#009A44', '#F2A900', '#7C3AED'];
 let TR_DATA = null, TR_P = null;
-function trLoad() { if (TR_DATA) return Promise.resolve(TR_DATA); return TR_P || (TR_P = fetch('data/transit/0.json', { cache: 'no-cache' }).then(r => r.json()).then(j => { j.metro.lines.forEach((l, i) => { const nc = { red: '#DA291C', blue: '#0057B8', green: '#009A44', yellow: '#F2A900', purple: '#7C3AED', orange: '#EA580C' }[String(l.c).toLowerCase()]; if (nc) l.c = nc; else if (!/^#?[0-9a-f]{3,6}$/i.test(l.c || '')) l.c = TR_MCOL[i % TR_MCOL.length]; else if (l.c[0] !== '#') l.c = '#' + l.c; l.n = String(l.n).split(':')[0].replace(/\s*линия\s.*$/i, ' линия').replace(/\s*-\s*/g, ' — ').trim(); }); return (TR_DATA = j); }).catch(e => { TR_P = null; throw e; })); }
+function trLoad() { if (TR_DATA) return Promise.resolve(TR_DATA); return TR_P || (TR_P = fetch(DATA_BASE + 'data/transit/0.json', { cache: 'no-cache' }).then(r => r.json()).then(j => { j.metro.lines.forEach((l, i) => { const nc = { red: '#DA291C', blue: '#0057B8', green: '#009A44', yellow: '#F2A900', purple: '#7C3AED', orange: '#EA580C' }[String(l.c).toLowerCase()]; if (nc) l.c = nc; else if (!/^#?[0-9a-f]{3,6}$/i.test(l.c || '')) l.c = TR_MCOL[i % TR_MCOL.length]; else if (l.c[0] !== '#') l.c = '#' + l.c; l.n = String(l.n).split(':')[0].replace(/\s*линия\s.*$/i, ' линия').replace(/\s*-\s*/g, ' — ').trim(); }); return (TR_DATA = j); }).catch(e => { TR_P = null; throw e; })); }
 const tr = () => (window.__tr = window.__tr || { tab: 'metro', q: '', route: null, more: 0, big: false });
 const TR_IC = {
   metro: '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18 8 6l4 8 4-8 4 12"/></svg>',
@@ -2043,3 +2046,205 @@ function drawProfile(layers) {
   document.addEventListener('focusout', () => setTimeout(fit, 150));
   window.__kbFit = fit;
 })();
+
+// ======================= Transport hub: metro, buses, trains, flights, taxi, transport card =======================
+const TP_I = {
+  ru: { tp_t: 'Транспорт', tp_metro_s: 'Схема, станции, пересадки', tp_bus: 'Автобусы и маршрутки', tp_bus_s: 'Остановки и маршруты', tp_train: 'Поезда', tp_train_s: 'Вокзалы и билеты', tp_air: 'Самолёты', tp_air_s: 'Онлайн-табло аэропортов', tp_taxi: 'Такси', tp_taxi_s: 'Yandex Go', tp_card: 'Транспортная карта', tp_card_s: 'Пополнить, поездки',
+    tr_st_t: 'Вокзалы и станции', tr_q: 'Город или станция', tr_buy: 'Купить билет на поезд', tr_buy_s: 'Официальная продажа — АО «Узбекистон темир йуллари»', tr_info: 'Скоростные Afrosiyob: Ташкент — Самарканд — Бухара, Карши. Скоростной поезд Ташкент — Хива. Ночные и пригородные поезда — по всей стране.', tr_main: 'Вокзал', tr_stn: 'Станция', tr_to: 'Как добраться',
+    fl_t: 'Самолёты', fl_dep: 'Вылет', fl_arr: 'Прилёт', fl_load: 'Загружаем табло…', fl_err: 'Табло сейчас недоступно — откройте его на сайте аэропортов', fl_none: 'Рейсов нет', fl_upd: 'Обновлено в {t}', fl_tom: 'завтра', fl_term: 'Терминал', fl_ck: 'Регистрация', fl_gate: 'Выход', fl_taxi: 'Такси до аэропорта', fl_buy: 'Купить авиабилет', fl_site: 'Табло на сайте Uzbekistan Airports', fl_src: 'Онлайн-табло АО «Uzbekistan Airports», обновляется каждые 2 минуты', fl_q: 'Город или номер рейса',
+    fs_sc: 'По расписанию', fs_dl: 'Задерживается', fs_dp: 'Вылетел', fs_ld: 'Прибыл', fs_cx: 'Отменён', fs_ex: 'Ожидается', fs_ci: 'Регистрация', fs_bd: 'Посадка', fs_ot: '',
+    tx_t: 'Такси', tx_s: 'Вызовите Yandex Go — адрес и цену укажете в приложении. Цену поездки до кафе, вокзала или аэропорта мы показываем прямо в их карточках.', tx_go: 'Открыть Yandex Go' },
+  uz: { tp_t: 'Transport', tp_metro_s: 'Sxema, bekatlar, o‘tishlar', tp_bus: 'Avtobus va marshrutkalar', tp_bus_s: "Bekatlar va yo'nalishlar", tp_train: 'Poyezdlar', tp_train_s: 'Vokzallar va chiptalar', tp_air: 'Samolyotlar', tp_air_s: 'Aeroportlar onlayn tablosi', tp_taxi: 'Taksi', tp_taxi_s: 'Yandex Go', tp_card: 'Transport kartasi', tp_card_s: "To'ldirish, safarlar",
+    tr_st_t: 'Vokzal va bekatlar', tr_q: 'Shahar yoki bekat', tr_buy: 'Poyezd chiptasini sotib olish', tr_buy_s: "Rasmiy sotuv — «O'zbekiston temir yo'llari» AJ", tr_info: "Tezyurar Afrosiyob: Toshkent — Samarqand — Buxoro, Qarshi. Toshkent — Xiva tezyurar poyezdi. Tungi va shahar atrofi poyezdlari — butun mamlakat bo'ylab.", tr_main: 'Vokzal', tr_stn: 'Bekat', tr_to: 'Qanday borish',
+    fl_t: 'Samolyotlar', fl_dep: 'Uchish', fl_arr: 'Qo‘nish', fl_load: 'Tablo yuklanmoqda…', fl_err: 'Tablo hozir mavjud emas — aeroportlar saytida oching', fl_none: "Reyslar yo'q", fl_upd: '{t} da yangilandi', fl_tom: 'ertaga', fl_term: 'Terminal', fl_ck: "Ro'yxatdan o'tish", fl_gate: "Yo'lak", fl_taxi: 'Aeroportgacha taksi', fl_buy: 'Aviachipta sotib olish', fl_site: 'Uzbekistan Airports saytidagi tablo', fl_src: '«Uzbekistan Airports» AJ onlayn tablosi, har 2 daqiqada yangilanadi', fl_q: 'Shahar yoki reys raqami',
+    fs_sc: "Jadval bo'yicha", fs_dl: 'Kechikmoqda', fs_dp: 'Uchib ketdi', fs_ld: 'Yetib keldi', fs_cx: 'Bekor qilindi', fs_ex: 'Kutilmoqda', fs_ci: "Ro'yxatdan o'tish", fs_bd: 'Chiqish', fs_ot: '',
+    tx_t: 'Taksi', tx_s: "Yandex Go'ni chaqiring — manzil va narxni ilovada ko'rsatasiz. Kafe, vokzal yoki aeroportgacha narxni ularning kartochkasida ko'rsatamiz.", tx_go: "Yandex Go'ni ochish" },
+  en: { tp_t: 'Transport', tp_metro_s: 'Map, stations, transfers', tp_bus: 'Buses & minibuses', tp_bus_s: 'Stops and routes', tp_train: 'Trains', tp_train_s: 'Stations and tickets', tp_air: 'Flights', tp_air_s: 'Live airport boards', tp_taxi: 'Taxi', tp_taxi_s: 'Yandex Go', tp_card: 'Transport card', tp_card_s: 'Top up, trips',
+    tr_st_t: 'Railway stations', tr_q: 'City or station', tr_buy: 'Buy a train ticket', tr_buy_s: 'Official sales — Uzbekistan Railways', tr_info: 'High-speed Afrosiyob: Tashkent — Samarkand — Bukhara, Karshi. High-speed train Tashkent — Khiva. Night and suburban trains across the country.', tr_main: 'Station', tr_stn: 'Stop', tr_to: 'Getting there',
+    fl_t: 'Flights', fl_dep: 'Departures', fl_arr: 'Arrivals', fl_load: 'Loading the board…', fl_err: 'The board is unavailable now — open it on the airports website', fl_none: 'No flights', fl_upd: 'Updated at {t}', fl_tom: 'tomorrow', fl_term: 'Terminal', fl_ck: 'Check-in', fl_gate: 'Gate', fl_taxi: 'Taxi to the airport', fl_buy: 'Buy a plane ticket', fl_site: 'Board on the Uzbekistan Airports website', fl_src: 'Live board of JSC Uzbekistan Airports, refreshed every 2 minutes', fl_q: 'City or flight number',
+    fs_sc: 'Scheduled', fs_dl: 'Delayed', fs_dp: 'Departed', fs_ld: 'Landed', fs_cx: 'Cancelled', fs_ex: 'Expected', fs_ci: 'Check-in', fs_bd: 'Boarding', fs_ot: '',
+    tx_t: 'Taxi', tx_s: 'Call Yandex Go — set the address and see the price in its app. Prices to a cafe, station or airport are shown right in their cards.', tx_go: 'Open Yandex Go' },
+  zh: { tp_t: '交通', tp_metro_s: '线路图、车站、换乘', tp_bus: '公交与小巴', tp_bus_s: '车站与线路', tp_train: '火车', tp_train_s: '车站与车票', tp_air: '航班', tp_air_s: '机场实时航班', tp_taxi: '出租车', tp_taxi_s: 'Yandex Go', tp_card: '交通卡', tp_card_s: '充值、行程',
+    tr_st_t: '火车站', tr_q: '城市或车站', tr_buy: '购买火车票', tr_buy_s: '官方售票 — 乌兹别克斯坦铁路公司', tr_info: 'Afrosiyob 高速列车：塔什干 — 撒马尔罕 — 布哈拉、卡尔希。塔什干 — 希瓦高速列车。全国都有夜车和市郊列车。', tr_main: '火车站', tr_stn: '车站', tr_to: '如何前往',
+    fl_t: '航班', fl_dep: '出发', fl_arr: '到达', fl_load: '正在加载航班…', fl_err: '航班信息暂不可用，请在机场网站查看', fl_none: '没有航班', fl_upd: '更新于 {t}', fl_tom: '明天', fl_term: '航站楼', fl_ck: '值机柜台', fl_gate: '登机口', fl_taxi: '打车去机场', fl_buy: '购买机票', fl_site: 'Uzbekistan Airports 网站航班信息', fl_src: 'Uzbekistan Airports 实时航班信息，每 2 分钟更新', fl_q: '城市或航班号',
+    fs_sc: '按计划', fs_dl: '延误', fs_dp: '已起飞', fs_ld: '已到达', fs_cx: '已取消', fs_ex: '预计', fs_ci: '值机', fs_bd: '登机', fs_ot: '',
+    tx_t: '出租车', tx_s: '打开 Yandex Go 设置地址并查看价格。去餐厅、车站或机场的价格会直接显示在其卡片中。', tx_go: '打开 Yandex Go' },
+};
+for (const l in TP_I) Object.assign(I[l], TP_I[l]);
+const TP_SVG = {
+  train: '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 10h14M9 21l-2-4M15 21l2-4"/><circle cx="9" cy="13.5" r=".8" fill="#fff"/><circle cx="15" cy="13.5" r=".8" fill="#fff"/></svg>',
+  air: '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
+  taxi: '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4M8 6l1.5-3h5L16 6M5 17h14v-5l-2-6H7l-2 6z"/><circle cx="8" cy="14.5" r=".9" fill="#fff"/><circle cx="16" cy="14.5" r=".9" fill="#fff"/><path d="M6 17v2M18 17v2"/></svg>',
+  card: '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
+};
+const tpIc = (k, s) => (TP_SVG[k] || TR_IC[k]).replace(/\{s\}/g, s);
+HS.transport = () => {
+  const tile = (k, ic, col, title, sub, act) => `<button class="tp-tile" data-act="${act}"><span class="tp-ic" style="background:${col}">${tpIc(ic, 26)}</span><b>${esc(t(title))}</b><i>${esc(t(sub))}</i></button>`;
+  return `${hdr(t('tp_t'))}<div class="h-body tp-body">
+    <div class="tp-grid">
+      ${tile('m', 'metro', '#DA291C', 'tr_metro', 'tp_metro_s', 'go:h:transit?metro')}
+      ${tile('b', 'bus', '#2563EB', 'tp_bus', 'tp_bus_s', 'go:h:transit?bus')}
+      ${tile('t', 'train', '#0F766E', 'tp_train', 'tp_train_s', 'go:h:trains')}
+      ${tile('a', 'air', '#7C3AED', 'tp_air', 'tp_air_s', 'go:h:flights')}
+      ${tile('x', 'taxi', '#EAB308', 'tp_taxi', 'tp_taxi_s', 'tptaxi')}
+      ${tile('c', 'card', '#8B5E34', 'tp_card', 'tp_card_s', 'go:1:2379')}
+    </div>
+    <button class="hv-btn tr-livebtn" data-act="trlive">${trIc('bus', 18)} ${esc(t('tr_live'))}</button>
+  </div>`;
+};
+function tpTaxi() {
+  const link = `https://3.redirect.appmetrica.yandex.com/route?ref=myuzcity&appmetrica_tracking_id=1178268795219780156&lang=${LANG}`;
+  bsheet(`<div class="tr-hero"><span style="background:#FCE000">${tpIc('taxi', 26).replace(/#fff/g, '#111')}</span><div><b>${esc(t('tx_t'))}</b><i>Yandex Go</i></div></div>
+    <p class="tp-p">${esc(t('tx_s'))}</p><a class="h-btn h-primary cf-callbtn" href="${esc(link)}" target="_blank" rel="noopener">${esc(t('tx_go'))}</a>`, 'bs-caf');
+}
+
+// ---- trains: stations from OpenStreetMap, tickets on eticket.railway.uz
+let UZT = null, UZT_P = null;
+const AIRPORTS = [['TAS', 'Ташкент', 'Toshkent', 'Tashkent', '塔什干', 41.2579, 69.2812], ['SKD', 'Самарканд', 'Samarqand', 'Samarkand', '撒马尔罕', 39.7005, 66.9838], ['BHK', 'Бухара', 'Buxoro', 'Bukhara', '布哈拉', 39.775, 64.4833],
+  ['UGC', 'Ургенч', 'Urganch', 'Urgench', '乌尔根奇', 41.5843, 60.6417], ['NCU', 'Нукус', 'Nukus', 'Nukus', '努库斯', 42.4884, 59.6233], ['NMA', 'Наманган', 'Namangan', 'Namangan', '纳曼干', 40.9846, 71.5567], ['FEG', 'Фергана', "Farg'ona", 'Fergana', '费尔干纳', 40.3588, 71.745],
+  ['AZN', 'Андижан', 'Andijon', 'Andijan', '安集延', 40.7277, 72.294], ['KSQ', 'Карши', 'Qarshi', 'Karshi', '卡尔希', 38.8336, 65.9215], ['TMJ', 'Термез', 'Termiz', 'Termez', '铁尔梅兹', 37.2867, 67.31], ['NVI', 'Навои', 'Navoiy', 'Navoi', '纳沃伊', 40.1172, 65.1708]];
+function uztLoad() {
+  if (UZT) return Promise.resolve(UZT);
+  return UZT_P || (UZT_P = fetch(DATA_BASE + 'data/transit/uz.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : { air: [], rail: [] }).catch(() => ({ air: [], rail: [] })).then(j => {
+    for (const a of j.air || []) { const x = AIRPORTS.find(y => y[0] === a.iata); if (x) { x[5] = a.la; x[6] = a.lo; } }
+    return (UZT = j);
+  }));
+}
+const trs = () => (window.__trs = window.__trs || { q: '', big: false });
+HS.trains = () => {
+  const s = trs();
+  return `<div class="h-hdr"><button class="h-back" data-act="back">${IC.back}</button><div class="h-title">${esc(t('tp_train'))}</div></div>
+    <div class="cf-bar"><label class="cf-search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="tsQ" type="search" enterkeyhint="search" autocomplete="off" placeholder="${esc(t('tr_q'))}" value="${esc(s.q)}"></label></div>
+    <a class="po-x pk tr-live" href="https://eticket.railway.uz/${LANG === 'uz' ? 'uz' : LANG === 'en' ? 'en' : 'ru'}/home" target="_blank" rel="noopener"><span class="po-xi" style="background:#CCFBF1">${tpIc('train', 20).replace(/#fff/g, '#0F766E')}</span><span class="po-xt"><b>${esc(t('tr_buy'))}</b><i>${esc(t('tr_buy_s'))}</i></span>${IC.chev}</a>
+    <div class="cf-mapph" style="height:${s.big ? Math.max(260, VH - 300) : Math.min(280, Math.max(200, Math.round(VH * .3)))}px"></div>
+    <div class="h-body cf-body" id="tsList"><div class="cf-empty">${esc(t('po_load'))}</div></div>`;
+};
+let TS_MAP = null, TS_SEL = null;
+function mapAt(el, ph, onBig) {
+  const app = document.getElementById('app'), ar = app.getBoundingClientRect(), pr = ph.getBoundingClientRect();
+  const mw = document.createElement('div'); mw.className = 'cf-map';
+  mw.style.top = (pr.top - ar.top) + 'px'; mw.style.height = pr.height + 'px'; mw.style.width = P(430);
+  mw.innerHTML = `<div id="cfMap"></div><div class="cf-mbtns" style="zoom:${U}"><button data-cf="me"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#143C20" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2" fill="#143C20"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg></button><button data-cf="big"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#143C20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div>`;
+  app.appendChild(mw);
+  return mw;
+}
+HS.trains.mount = el => {
+  const s = trs();
+  const q = el.querySelector('#tsQ'); let tm;
+  q.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(() => { s.q = q.value; tsRefresh(); }, 220); });
+  const mw = mapAt(el, el.querySelector('.cf-mapph'));
+  mw.addEventListener('click', e => { const b = e.target.closest('[data-cf]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.cf === 'big') { s.big = !s.big; render(current, currentP); } else geo().then(l => { caf().loc = l; if (TS_MAP) TS_MAP.flyTo(l, 12); tsRefresh(); }).catch(() => toast(t('caf_geo_err'))); });
+  Promise.all([leafletReady(), uztLoad()]).then(() => {
+    if (!document.body.contains(mw)) return;
+    const c = CITIES[cityIdx()];
+    TS_MAP = tiles(L.map(mw.querySelector('#cfMap'), { zoomControl: false, preferCanvas: true }).setView([c[5], c[6]], 11));
+    TS_SEL = null; RT = null; RT_LINE = null;
+    tsRefresh();
+  });
+};
+function tsList() {
+  const q = trs().q.trim().toLowerCase(), l = caf().loc, c = CITIES[cityIdx()], from = l || [c[5], c[6]];
+  return (UZT ? UZT.rail : []).filter(x => !q || (x.n + ' ' + x.n2).toLowerCase().includes(q)).map(x => [cafDistRaw(from, [x.la, x.lo]) - (x.m ? 3 : 0), x]).sort((a, b) => a[0] - b[0]).map(y => y[1]);
+}
+function tsRefresh() {
+  const list = document.getElementById('tsList'); if (!list) return;
+  const r = tsList(), l = caf().loc;
+  list.innerHTML = `<div class="tp-info">${esc(t('tr_info'))}</div><div class="cf-count">${esc(t('tr_st_t'))} · ${r.length}</div>` + r.slice(0, 60).map((x, i) => `<button class="cf-item" data-act="tsopen:${x.id}"><span class="cf-ic" style="background:${x.m ? '#0F766E' : '#5EAAA0'}">${tpIc('train', 18)}</span><span class="cf-it"><b>${esc(x.n)}</b><i>${esc(x.m ? t('tr_main') : t('tr_stn'))}${x.n2 && x.n2 !== x.n ? ' · ' + esc(x.n2) : ''}</i></span>${l ? `<span class="cf-dist">${esc(fmtDist(cafDistRaw(l, [x.la, x.lo])))}</span>` : ''}</button>`).join('') + `<div class="h-muted small cam-note">${esc(t('po_src'))}</div>`;
+  if (!TS_MAP) return;
+  if (TS_MAP.__lay) TS_MAP.__lay.remove();
+  TS_MAP.__lay = L.layerGroup(r.map(x => { const m = L.circleMarker([x.la, x.lo], { radius: x.m ? 7 : 5, color: '#fff', weight: 2, fillColor: x.m ? '#0F766E' : '#5EAAA0', fillOpacity: 1 }); m.on('click', () => tsOpen(x.id)); return m; })).addTo(TS_MAP);
+}
+function tsOpen(id) {
+  const x = UZT && UZT.rail.find(s => s.id === id); if (!x) return;
+  if (TS_MAP) { if (TS_SEL) TS_SEL.remove(); TS_SEL = L.circleMarker([x.la, x.lo], { radius: 11, color: '#fff', weight: 3, fillColor: '#0F766E', fillOpacity: 1 }).addTo(TS_MAP); TS_MAP.panTo([x.la, x.lo]); }
+  bsheet(`<div class="tr-hero"><span style="background:#0F766E">${tpIc('train', 26)}</span><div><b>${esc(x.n)}</b><i>${esc(x.m ? t('tr_main') : t('tr_stn'))}${x.n2 && x.n2 !== x.n ? ' · ' + esc(x.n2) : ''}</i></div></div>
+    <a class="h-btn h-primary cf-callbtn" href="https://eticket.railway.uz/${LANG === 'uz' ? 'uz' : LANG === 'en' ? 'en' : 'ru'}/home" target="_blank" rel="noopener">${esc(t('tr_buy'))}</a>
+    <button class="h-btn h-ghostd cf-rtbtn" data-act="tsroute:${x.id}">${esc(t('rt_t'))}</button>
+    <div class="cf-sec">${esc(t('caf_route'))}</div><div class="cf-sub">${esc(t('caf_route_s'))}</div>
+    <div class="cf-routes">${navLinks({ la: x.la, lo: x.lo }, null, 'car').map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>
+    <div class="h-muted small cam-note">${esc(t('po_src'))}</div>`, 'bs-caf');
+}
+async function routeGeneric(p, map, col, ic, open) {
+  bsheetClose(true);
+  let from; try { from = await geo(); } catch (e) { toast(t('rt_geo')); return; }
+  rtClear();
+  RT = { p, from, mode: 'car', car: null, foot: null, map, col, ic, open, taxi: true };
+  rtPanel();
+  const [car, foot] = await Promise.all([osrm('car', from, [p.la, p.lo]), osrm('foot', from, [p.la, p.lo])]);
+  if (!RT || RT.p.id !== p.id) return; RT.car = car; RT.foot = foot; rtDraw(); rtPanel();
+}
+
+// ---- flights: live board through /api/flights
+const fls = () => (window.__fls = window.__fls || { ap: null, dir: 'dep', q: '' });
+const FL_API = AI_OWN.replace(/\/api\/assistant$/, '') + '/api/flights';
+const FL_COL = { sc: '#15803D', dl: '#D97706', dp: '#6B7280', ld: '#6B7280', cx: '#DC2626', ex: '#2563EB', ci: '#2563EB', bd: '#7C3AED', ot: '#6B7280' };
+function flAp() { const s = fls(); if (!s.ap) { const c = CITIES[cityIdx()]; s.ap = AIRPORTS.map(a => [cafDistRaw([c[5], c[6]], [a[5], a[6]]), a[0]]).sort((a, b) => a[0] - b[0])[0][1]; } return s.ap; }
+const apName = code => { const a = AIRPORTS.find(x => x[0] === code); return a ? a[LI[LANG] + 1] : code; };
+HS.flights = () => {
+  const s = fls(), ap = flAp();
+  return `<div class="h-hdr"><button class="h-back" data-act="back">${IC.back}</button><div class="h-title">${esc(t('fl_t'))}</div></div>
+    <div class="cf-chips hs fl-aps" id="flAps">${AIRPORTS.map(a => `<button class="h-chip ${a[0] === ap ? 'on' : ''}" data-act="flap:${a[0]}">${esc(a[LI[LANG] + 1])} <i>${a[0]}</i></button>`).join('')}</div>
+    <div class="tr-tabs fl-tabs"><button class="tr-tab ${s.dir === 'dep' ? 'on' : ''}" data-act="fldir:dep">🛫 ${esc(t('fl_dep'))}</button><button class="tr-tab ${s.dir === 'arr' ? 'on' : ''}" data-act="fldir:arr">🛬 ${esc(t('fl_arr'))}</button></div>
+    <div class="cf-bar"><label class="cf-search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="flQ" type="search" enterkeyhint="search" autocomplete="off" placeholder="${esc(t('fl_q'))}" value="${esc(s.q)}"></label></div>
+    <div class="h-body cf-body fl-body" id="flList"><div class="cf-empty">${esc(t('fl_load'))}</div></div>`;
+};
+let FL_DATA = {}, FL_T = 0;
+HS.flights.mount = el => {
+  const s = fls();
+  const chips = el.querySelector('#flAps'); const on = chips.querySelector('.on'); if (on && on.offsetLeft > 200) chips.scrollLeft = on.offsetLeft - 24;
+  const q = el.querySelector('#flQ'); let tm;
+  q.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(() => { s.q = q.value; flRender(); }, 200); });
+  clearInterval(FL_T); FL_T = setInterval(() => { if (current !== 'h:flights') return clearInterval(FL_T); flLoad(true); }, 120000);
+  uztLoad(); flLoad();
+};
+function flKey() { const s = fls(); return flAp() + ':' + s.dir; }
+function flLoad(quiet) {
+  const s = fls(), k = flKey(), lg = LANG === 'uz' ? 'uz' : LANG === 'en' || LANG === 'zh' ? 'en' : 'ru';
+  if (FL_DATA[k] && !quiet) flRender();
+  fetch(`${FL_API}?ap=${flAp()}&dir=${s.dir}&lang=${lg}`).then(r => r.json()).then(j => { if (!j.ok) throw 0; FL_DATA[k] = j; if (flKey() === k) flRender(); })
+    .catch(() => { if (!FL_DATA[k] && flKey() === k) { const l = document.getElementById('flList'); if (l) l.innerHTML = flErr(); } });
+}
+function flErr() { return `<div class="cf-empty">${esc(t('fl_err'))}</div>${flActions()}`; }
+function flActions() {
+  const ap = flAp(), a = AIRPORTS.find(x => x[0] === ap);
+  return `<div class="fl-acts"><button class="h-btn h-primary" data-act="fltaxi:${ap}">${tpIc('taxi', 18)} ${esc(t('fl_taxi'))}</button>
+    <a class="h-btn h-ghostd cf-callbtn" href="https://www.uzairways.com/${LANG === 'uz' ? 'uz' : LANG === 'en' ? 'en' : 'ru'}" target="_blank" rel="noopener">${esc(t('fl_buy'))}</a></div>
+    <a class="cf-ya" href="https://uzairports.com/flights/${fls().dir === 'arr' ? 'arrival' : 'departure'}?airport=${ap}" target="_blank" rel="noopener">${esc(t('fl_site'))} ›</a>
+    <div class="h-muted small cam-note">${esc(t('fl_src'))}</div>`;
+}
+function flRender() {
+  const list = document.getElementById('flList'); if (!list) return;
+  const j = FL_DATA[flKey()]; if (!j) return;
+  const q = fls().q.trim().toLowerCase();
+  const rows = j.rows.filter(r => !q || (r.c + ' ' + r.i + ' ' + r.f + ' ' + r.a).toLowerCase().includes(q));
+  const at = new Date(j.at), hhmm = String(at.getHours()).padStart(2, '0') + ':' + String(at.getMinutes()).padStart(2, '0');
+  list.innerHTML = `<div class="cf-count">${esc(apName(j.ap))} · ${esc(t(j.dir === 'arr' ? 'fl_arr' : 'fl_dep'))} · ${esc(t('fl_upd', { t: hhmm }))}</div>`
+    + (rows.length ? rows.slice(0, 120).map(r => {
+      const late = r.e && r.e !== r.t;
+      return `<div class="fl-row"><div class="fl-time"><b class="${late ? 'old' : ''}">${esc(r.t)}</b>${late ? `<b class="new">${esc(r.e)}</b>` : ''}${r.d ? `<i>${esc(t('fl_tom'))}</i>` : ''}</div>
+        <div class="fl-mid"><b>${esc(r.c)} <em>${esc(r.i)}</em></b><i>${esc(r.f)} · ${esc(r.a)}</i>${r.tm || r.g || r.ck ? `<i>${[r.tm ? t('fl_term') + ' ' + r.tm : '', r.ck ? t('fl_ck') + ' ' + r.ck : '', r.g ? t('fl_gate') + ' ' + r.g : ''].filter(Boolean).map(esc).join(' · ')}</i>` : ''}</div>
+        <span class="fl-st" style="color:${FL_COL[r.st]};background:${FL_COL[r.st]}14">${esc(t('fs_' + r.st) || r.s)}</span></div>`;
+    }).join('') : `<div class="cf-empty">${esc(t('fl_none'))}</div>`) + flActions();
+}
+async function flTaxi(code) {
+  const a = AIRPORTS.find(x => x[0] === code); if (!a) return;
+  const p = { id: 'ap' + code, n: (LANG === 'ru' ? 'Аэропорт ' : '') + a[LI[LANG] + 1] + (LANG === 'ru' ? '' : ' airport'), la: a[5], lo: a[6] };
+  let from; try { from = await geo(); } catch (e) { toast(t('rt_geo')); return; }
+  bsheet(`<div class="tr-hero"><span style="background:#7C3AED">${tpIc('air', 26)}</span><div><b>${esc(p.n)}</b><i>${esc(code)}</i></div></div><div class="tg-wait"><span class="h-spin"></span>…</div>`, 'bs-caf');
+  const car = await osrm('car', from, [p.la, p.lo]);
+  const km = car ? car.d / 1000 : null, mn = car ? car.s / 60 : null;
+  bsheet(`<div class="tr-hero"><span style="background:#7C3AED">${tpIc('air', 26)}</span><div><b>${esc(p.n)}</b><i>${car ? esc(fmtDur(car.s) + ' · ' + fmtKm(car.d)) : esc(code)}</i></div></div>
+    <div class="rt-taxi"><span class="rt-go">Go</span><span class="rt-tt"><b>${car ? `≈ ${fmtSum(taxiPrice('start', km, mn))} ${t('rt_sum')}` : 'Yandex Go'}</b><i>${car ? `Yandex Go · ${t('rt_start')}; ${t('rt_comfort')} ≈ ${fmtSum(taxiPrice('comfort', km, mn))}` : ''}</i></span><a class="rt-call" href="${esc(taxiLink(p, from))}" target="_blank" rel="noopener">${esc(t('rt_taxi'))}</a></div>
+    <div class="rt-note">${esc(t('rt_taxi_s'))}</div>
+    <div class="cf-sec">${esc(t('caf_route'))}</div>
+    <div class="cf-routes">${navLinks(p, from, 'car').map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>`, 'bs-caf');
+}
+Object.assign(XACT, {
+  tptaxi: () => tpTaxi(),
+  tsopen: id => tsOpen(id),
+  tsroute: id => { const x = UZT && UZT.rail.find(s => s.id === id); if (x) routeGeneric({ id: x.id, n: x.n, la: x.la, lo: x.lo }, TS_MAP, '#0F766E', tpIc('train', 16), () => tsOpen(id)); },
+  flap: code => { fls().ap = code; render(current, currentP); },
+  fldir: d => { fls().dir = d; render(current, currentP); },
+  fltaxi: code => flTaxi(code),
+});
+AI_HIDE.add('h:trains'); AI_HIDE.add('h:flights');

@@ -310,6 +310,24 @@ async function transit() {
   if (out.metro.lines.length || out.bus.stops.length) writeFileSync(f, JSON.stringify(out));
 }
 
+// airports (with IATA codes) and railway stations of the whole country, weekly
+async function uzTransport() {
+  const f = ROOT + 'data/transit/uz.json';
+  const prev = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null;
+  if (!process.env.FORCE_PLACES && prev && prev.rail.length && Date.now() - Date.parse(prev.at || 0) < 6 * 864e5) return;
+  try {
+    const j = await overpass('[out:json][timeout:120];area["ISO3166-1"="UZ"][admin_level=2]->.uz;(nwr["aeroway"="aerodrome"]["iata"](area.uz);node["railway"="station"]["name"](area.uz););out center tags;');
+    const air = [], rail = [];
+    for (const e of j.elements) {
+      const t = e.tags || {}; const la = e.lat ?? e.center?.lat, lo = e.lon ?? e.center?.lon; if (la == null) continue;
+      if (t.aeroway === 'aerodrome') air.push({ iata: t.iata, n: t['name:ru'] || t.name, n2: t['name:uz'] || t['name:en'] || '', la: +la.toFixed(5), lo: +lo.toFixed(5) });
+      else if (t.station !== 'subway' && t.subway !== 'yes' && t.station !== 'light_rail') rail.push({ id: 'n' + e.id, n: t['name:ru'] || t.name, n2: t['name:uz'] || t.name || '', la: +la.toFixed(5), lo: +lo.toFixed(5), ...(t.usage === 'main' || /вокзал|vokzal|пассажир/i.test(t.name || '') ? { m: 1 } : {}) });
+    }
+    if (rail.length || air.length) writeFileSync(f, JSON.stringify({ at: new Date().toISOString(), air, rail }));
+    console.log(`uz transport: ${air.length} airports, ${rail.length} stations`);
+  } catch (e) { console.log('uz transport failed: ' + e.message); }
+}
+
 async function cityData() {
   // each run refreshes the oldest data (older than 6 days) within a time budget, Tashkent first
   const pdir = ROOT + 'data/places/'; mkdirSync(pdir, { recursive: true });
@@ -365,5 +383,6 @@ async function cityData() {
 }
 
 await news();
+await uzTransport();
 await transit();
 await cityData();
