@@ -1,6 +1,7 @@
 // Refreshes the app's live data (run by .github/workflows/update-data.yml).
 //   data/news.json          — city news + Tashkent afisha from public RSS feeds (every run)
 //   data/places/<city>.json — cafes & restaurants from OpenStreetMap (weekly, or FORCE_PLACES=1)
+//   data/transit/0.json — Tashkent metro lines/stations and bus, trolleybus, minibus stops with routes (weekly)
 //   data/poi/<kind>/<city>.json — parking, mosques, medicine (hospitals, clinics, pharmacies) from OpenStreetMap (weekly)
 // City list, names and coordinates come from CITIES in flows.js (index = city id in the app).
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -94,7 +95,9 @@ async function news() {
 }
 
 // ---------------------------------------------------------------- places (OpenStreetMap)
-const OVERPASS = ['https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass-api.de/api/interpreter'];
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+// bounding box "s,w,n,e" around a point (bbox queries are much lighter for Overpass than around:)
+const bb = (r, la, lo) => { const dl = r / 111320, dn = r / (111320 * Math.cos(la * Math.PI / 180)); return [la - dl, lo - dn, la + dl, lo + dn].map(v => v.toFixed(4)).join(','); };
 const has = (s, re) => re.test(s || '');
 function cats(t) {
   const name = [t.name, t['name:ru'], t['name:uz'], t['name:en']].join(' ');
@@ -138,11 +141,13 @@ function place(e, ci) {
 }
 async function overpass(q) {
   for (const base of OVERPASS) {
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 150e3);
     try {
-      const r = await fetch(base, { method: 'POST', headers: { 'user-agent': UA, accept: 'application/json,*/*;q=0.8', 'content-type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q) });
+      const r = await fetch(base, { method: 'POST', signal: ctl.signal, headers: { 'user-agent': 'MyUzCity-data/1.0 (+https://github.com/vladislavshaleniy-del/uzk-app)', accept: '*/*', 'content-type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q) });
       if (r.ok) return await r.json();
       console.log(`overpass ${base}: ${r.status}`);
     } catch (e) { console.log(`overpass ${base}: ${e.message}`); }
+    finally { clearTimeout(tm); }
     await new Promise(r => setTimeout(r, 1500));
   }
   throw new Error('all overpass servers failed');
@@ -164,7 +169,7 @@ function base(e) {
 const POI = {
   parking: {
     r: [12000, 6000],
-    q: (r, la, lo) => `nwr["amenity"="parking"]["access"!~"^(private|no|permit|employees)$"](around:${r},${la},${lo});`,
+    q: (r, la, lo) => `nw["amenity"="parking"]["access"!~"^(private|no|permit|employees)$"](${bb(r, la, lo)});`,
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       const k = { 'multi-storey': 'm', underground: 'u', rooftop: 'm', street_side: 's', lane: 's', on_street: 's' }[t.parking] || 'g';
@@ -181,7 +186,7 @@ const POI = {
   },
   mosque: {
     r: [16000, 8000],
-    q: (r, la, lo) => `nwr["amenity"="place_of_worship"]["religion"="muslim"](around:${r},${la},${lo});`,
+    q: (r, la, lo) => `nwr["amenity"="place_of_worship"]["religion"="muslim"](${bb(r, la, lo)});`,
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       if (t.historic || t.heritage || t['heritage:operator'] || t.wikipedia || t.wikidata && t.tourism) p.hi = 1;
@@ -194,7 +199,7 @@ const POI = {
   },
   med: {
     r: [16000, 8000],
-    q: (r, la, lo) => `nwr["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"](around:${r},${la},${lo});nwr["healthcare"~"^(laboratory|centre|blood_donation|rehabilitation)$"](around:${r},${la},${lo});`,
+    q: (r, la, lo) => `nwr["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"](${bb(r, la, lo)});nwr["healthcare"~"^(laboratory|centre|blood_donation|rehabilitation)$"](${bb(r, la, lo)});`,
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       const hc = t.healthcare || '';
@@ -208,6 +213,73 @@ const POI = {
     },
   },
 };
+
+// ---------------------------------------------------------------- public transport: metro + bus/trolleybus/minibus stops (OpenStreetMap)
+function thin(pts, m = 25) {
+  const out = []; let last = null, li = -1;
+  pts.forEach(([la, lo], i) => {
+    if (last) { const dy = (la - last[0]) * 111320, dx = (lo - last[1]) * 111320 * Math.cos(la * Math.PI / 180); if (dx * dx + dy * dy < m * m) return; }
+    last = [la, lo]; li = i; out.push([+la.toFixed(5), +lo.toFixed(5)]);
+  });
+  if (pts.length > 1 && li !== pts.length - 1) { const z = pts[pts.length - 1]; out.push([+z[0].toFixed(5), +z[1].toFixed(5)]); }
+  return out;
+}
+const mdist = (a, b) => { const dy = (a[0] - b[0]) * 111320, dx = (a[1] - b[1]) * 111320 * Math.cos(a[0] * Math.PI / 180); return Math.sqrt(dx * dx + dy * dy); };
+async function transit() {
+  const dir = ROOT + 'data/transit/'; mkdirSync(dir, { recursive: true });
+  const f = dir + '0.json';
+  if (!process.env.FORCE_PLACES && existsSync(f) && Date.now() - Date.parse(JSON.parse(readFileSync(f, 'utf8')).at || 0) < 6 * 864e5) return;
+  const [, , , , , lat, lon] = CITIES[0];
+  const out = { at: new Date().toISOString(), metro: { lines: [], st: [] }, bus: { routes: {}, stops: [] } };
+  try {
+    const j = await overpass(`[out:json][timeout:150];(relation["route"="subway"](${bb(30000, lat, lon)});node["railway"="station"]["station"="subway"](${bb(30000, lat, lon)});node["public_transport"="station"]["subway"="yes"](${bb(30000, lat, lon)}););out geom;`);
+    const rels = j.elements.filter(e => e.type === 'relation'), stn = j.elements.filter(e => e.type === 'node' && e.tags && e.tags.name);
+    const byRef = {};
+    for (const r of rels) {
+      const t = r.tags || {}; const ref = t.ref || t.name || String(r.id);
+      const segs = r.members.filter(m => m.type === 'way' && m.geometry && !/platform/.test(m.role || '')).map(m => m.geometry.map(g => [g.lat, g.lon]));
+      const stops = r.members.filter(m => m.type === 'node' && /stop/.test(m.role || '') && m.lat != null).map(m => [m.lat, m.lon]);
+      if (!byRef[ref] || segs.length > byRef[ref].segs.length) byRef[ref] = { ref, n: t['name:ru'] || t.name || ref, c: t.colour || t.color || '', segs, stops };
+    }
+    const seenSt = [];
+    for (const s of stn) { const p = [s.lat, s.lon]; if (seenSt.some(x => x.n === (s.tags['name:ru'] || s.tags.name) && mdist([x.la, x.lo], p) < 400)) continue; seenSt.push({ id: 'n' + s.id, n: s.tags['name:ru'] || s.tags.name, n2: s.tags['name:uz'] || s.tags['name:en'] || '', la: +s.lat.toFixed(6), lo: +s.lon.toFixed(6), l: [] }); }
+    for (const L of Object.values(byRef)) {
+      out.metro.lines.push({ r: L.ref, n: L.n, c: L.c, g: L.segs.map(g => thin(g, 20)).filter(g => g.length > 1) });
+      for (const sp of L.stops) { let best = null, bd = 450; for (const s of seenSt) { const d = mdist([s.la, s.lo], sp); if (d < bd) { bd = d; best = s; } } if (best && !best.l.includes(L.ref)) best.l.push(L.ref); }
+    }
+    out.metro.st = seenSt.filter(s => s.l.length);
+    console.log(`metro: ${out.metro.lines.length} lines, ${out.metro.st.length} stations`);
+  } catch (e) { console.log('metro failed: ' + e.message); }
+  await new Promise(r => setTimeout(r, 1500));
+  try {
+    const j = await overpass(`[out:json][timeout:180];relation["type"="route"]["route"~"^(bus|trolleybus|minibus|share_taxi|tram)$"](${bb(18000, lat, lon)})->.r;.r out body;node(r.r);out body;`);
+    const nodes = new Map(j.elements.filter(e => e.type === 'node').map(e => [e.id, e]));
+    const rels = j.elements.filter(e => e.type === 'relation');
+    const stops = []; const stopOf = new Map();
+    const getStop = (n) => {
+      if (stopOf.has(n.id)) return stopOf.get(n.id);
+      const t = n.tags || {}; const name = t['name:ru'] || t.name; if (!name) return null;
+      const p = [n.lat, n.lon];
+      let s = stops.find(x => x.n === name && mdist([x.la, x.lo], p) < 90);
+      if (!s) { s = { i: stops.length, n: name, la: +n.lat.toFixed(6), lo: +n.lon.toFixed(6), r: [] }; stops.push(s); }
+      stopOf.set(n.id, s); return s;
+    };
+    const TYPE = { bus: 'b', trolleybus: 't', minibus: 'm', share_taxi: 'm', tram: 'tr' };
+    for (const r of rels) {
+      const t = r.tags || {}; const ref = (t.ref || '').trim(); if (!ref) continue;
+      const key = (TYPE[t.route] || 'b') + ref;
+      const seq = [];
+      for (const m of r.members) { if (m.type !== 'node' || !/^(platform|stop)/.test(m.role || '')) continue; const n = nodes.get(m.ref); if (!n) continue; const s = getStop(n); if (s && seq[seq.length - 1] !== s.i) seq.push(s.i); }
+      if (!seq.length) continue;
+      for (const i of seq) if (!stops[i].r.includes(key)) stops[i].r.push(key);
+      const R = out.bus.routes[key];
+      if (!R || seq.length > R.s.length) out.bus.routes[key] = { r: ref, t: TYPE[t.route] || 'b', f: t.from || '', to: t.to || '', n: t['name:ru'] || t.name || '', s: seq };
+    }
+    out.bus.stops = stops.map(s => ({ n: s.n, la: s.la, lo: s.lo, r: s.r.sort((a, b) => parseInt(a.replace(/\D+/g, '')) - parseInt(b.replace(/\D+/g, '')) || a.localeCompare(b)) }));
+    console.log(`bus: ${Object.keys(out.bus.routes).length} routes, ${out.bus.stops.length} stops`);
+  } catch (e) { console.log('bus failed: ' + e.message); }
+  if (out.metro.lines.length || out.bus.stops.length) writeFileSync(f, JSON.stringify(out));
+}
 
 async function cityData() {
   // each run refreshes the oldest data (older than 6 days) within a time budget, Tashkent first
@@ -236,7 +308,7 @@ async function cityData() {
     try {
       if (kind === 'places') {
         const r = i === 0 ? 16000 : 6000;
-        const j = await overpass(`[out:json][timeout:90];nwr["amenity"~"^(restaurant|cafe|fast_food|bar|pub|hookah_lounge|food_court|biergarten)$"]["name"](around:${r},${lat},${lon});out center tags;`);
+        const j = await overpass(`[out:json][timeout:90];nwr["amenity"~"^(restaurant|cafe|fast_food|bar|pub|hookah_lounge|food_court|biergarten)$"]["name"](${bb(r, lat, lon)});out center tags;`);
         const items = j.elements.map(e => place(e, i)).filter(Boolean);
         const seen = new Set(); const list = items.filter(p => { const k = p.n.toLowerCase() + Math.round(p.la * 2000) + Math.round(p.lo * 2000); return !seen.has(k) && seen.add(k); });
         if (list.length) { writeFileSync(pdir + i + '.json', JSON.stringify(list)); index.cities[i] = list.length; }
@@ -260,4 +332,5 @@ async function cityData() {
 }
 
 await news();
+await transit();
 await cityData();

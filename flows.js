@@ -558,11 +558,8 @@ const XACT = {
 // ======================= «ИИ ассистент»: floating button + chat on every screen =======================
 // own assistant (Cloudflare Pages Function, functions/api/assistant.js); the old endpoint stays as a fallback
 const AI_OWN = /(^|\.)myuzcity\.(uz|pages\.dev)$/.test(location.hostname) ? '/api/assistant' : 'https://myuzcity.pages.dev/api/assistant';
-const AI_URL = 'https://www.ast-group.uz/api/assistant';
 async function aiFetch(body, signal) {
-  for (const u of [AI_OWN, AI_URL]) {
-    try { const r = await fetch(u, { method: 'POST', headers: { 'content-type': 'application/json' }, signal, body: JSON.stringify(body) }); if (!r.ok && u !== AI_URL) continue; const j = await r.json(); if (j && (j.ok || u === AI_URL)) return j; } catch (e) { if (signal && signal.aborted) throw e; }
-  }
+  try { const r = await fetch(AI_OWN, { method: 'POST', headers: { 'content-type': 'application/json' }, signal, body: JSON.stringify(body) }); const j = await r.json(); if (j) return j; } catch (e) { if (signal && signal.aborted) throw e; }
   return {};
 }
 const AIX = {
@@ -596,6 +593,9 @@ const AI_GO = {
   roads: ['1:3863', 'Дороги и ремонт', "Yo'llar va ta'mirlash", 'Roads and repairs', '道路与维修'], clean: ['1:4063', 'Чистый город', 'Toza shahar', 'Clean city', '清洁城市'],
   mosques: ['1:3529', 'Карта мечетей', 'Masjidlar xaritasi', 'Mosque map', '清真寺地图'], marketplace: ['1:5149', 'Маркетплейс', 'Marketpleys', 'Marketplace', '商城'],
   home: ['1:5285', 'Электронный дом', 'Elektron uy', 'E-home', '智慧家庭'],
+  med: ['h:poi?med', 'Аптеки и клиники рядом', 'Yaqin dorixona va klinikalar', 'Pharmacies & clinics nearby', '附近药店和诊所'], parking_map: ['h:poi?parking', 'Карта парковок', 'Avtoturargohlar xaritasi', 'Parking map', '停车地图'],
+  metro: ['h:transit?metro', 'Схема метро', 'Metro sxemasi', 'Metro map', '地铁线路图'], bus: ['h:transit?bus', 'Автобусы и остановки', 'Avtobuslar va bekatlar', 'Buses & stops', '公交与车站'],
+  mosque_map: ['h:poi?mosque', 'Мечети на карте', 'Masjidlar xaritada', 'Mosques on the map', '清真寺地图'],
   cams: ['h:cams', 'Видеокамеры', 'Videokameralar', 'Live cameras', '实时摄像头'], news: ['h:news', 'Новости и афиша', 'Yangiliklar va afisha', 'News & events', '新闻与活动'],
 };
 const SPARK = s => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none"><path d="M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z" fill="#fff"/><path d="M18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" fill="#fff" opacity=".85"/></svg>`;
@@ -613,9 +613,11 @@ function aiFmt(s) {
   const pl = [], cq = [];
   s = String(s).replace(/\s*\[\[\s*place\s*:\s*([nwr]\d+)\s*\]\]/gi, (m, id) => { if (!pl.includes(id)) pl.push(id); return ''; })
     .replace(/\s*\[\[\s*cafes\s*:\s*([^\]]{1,80})\]\]/gi, (m, q) => { cq.push(q.trim()); return ''; });
+  const pq = []; s = String(s).replace(/\s*\[\[\s*poi\s*:\s*(parking|mosque|med)\s*:\s*([nwr]\d+)\s*\]\]/gi, (m, k, id) => { if (!pq.some(x => x[1] === id)) pq.push([k, id]); return ''; });
   const go = []; s = String(s).replace(/\s*\[\[\s*(?:go\s*:\s*)?([a-z_]+)\s*\]\]/gi, (m, k) => { if (AI_GO[k] && !go.includes(k)) go.push(k); return ''; }).trim();
   const plist = CAF_DATA[cityIdx()] || CAF_DATA[0] || [];
   const extra = pl.map(id => { const p = plist.find(x => x.id === id); return `<button class="ai-place" data-place="${id}"><b>${esc(p ? p.n : t('caf_t'))}</b><i>${esc(p ? [cafKind(p), cafCuis(p)].filter(Boolean).join(' · ') : '')}</i><span>${esc(t('ai_open'))} ›</span></button>`; }).join('')
+    + pq.slice(0, 4).map(([k, id]) => { const p = (PO_DATA[k][cityIdx()] || PO_DATA[k][0] || []).find(x => x.id === id); return `<button class="ai-place" data-poi="${k}:${id}"><b>${esc(p ? PO_K[k].name(p) : t(PO_K[k].title))}</b><i>${esc(p ? [PO_K[k].sub(p), p.ad].filter(Boolean).join(' · ') : '')}</i><span>${esc(t('ai_open'))} ›</span></button>`; }).join('')
     + cq.slice(0, 1).map(q => `<button class="ai-place cq" data-cafq="${esc(q)}"><b>${esc(t('ai_btn'))}</b><i>${esc(q)}</i><span>›</span></button>`).join('');
   let h = esc(s).replace(/^\s*[-*•]\s+/gm, '• ').replace(/\n/g, '<br>');
   if (extra) h += `<div class="ai-places">${extra}</div>`;
@@ -639,7 +641,7 @@ async function aiAsk(q) {
   try {
     const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 45000);
     const j = await aiFetch({ messages: AIS.msgs.filter(m => m.role === 'user' || m.role === 'assistant').slice(-14), lang: LANG, name: { ru: 'Владислав', uz: 'Vladislav', en: 'Vladislav', zh: 'Vladislav' }[LANG], city: cityName(), date: liveText('date'), screen: AIS.screen || '',
-      ctx: { cityIdx: cityIdx(), loc: (window.__caf && window.__caf.loc) || null } }, ctl.signal).catch(() => ({}));
+      ctx: { cityIdx: cityIdx(), loc: (window.__caf && window.__caf.loc) || null, pray: (() => { try { const P0 = prayNow(); return P0.tm.map((m, i) => I.ru['pr_' + i] + ' ' + hm(m)).join(', ') + '; следующий — ' + I.ru['pr_' + P0.next]; } catch (e) { return ''; } })() } }, ctl.signal).catch(() => ({}));
     clearTimeout(tm); reply = j.reply || ''; ok = !!j.ok && !!reply;
     if (!ok && j.error) { reply = j.error; ok = true; }
   } catch (e) {}
@@ -649,7 +651,7 @@ async function aiAsk(q) {
 }
 function aiOpen() {
   if (document.getElementById('aiPanel')) return;
-  try { cafLoad(cityIdx()); } catch (e) {}
+  try { cafLoad(cityIdx()); poIndex().then(() => { poLoad('med', poCity('med')); poLoad('mosque', poCity('mosque')); }).catch(() => {}); } catch (e) {}
   AIS.screen = screenTitle();
   const p = document.createElement('div'); p.id = 'aiPanel';
   p.innerHTML = `<div class="ai-hd"><span class="ai-av">${SPARK(22)}</span><span class="ai-tt"><b>${esc(t('as_t'))}</b><i>${esc(t('as_s'))}</i></span>
@@ -675,6 +677,7 @@ function aiOpen() {
     else if (b.dataset.q) aiAsk(b.dataset.q);
     else if (b.dataset.retry) aiAsk();
     else if (b.dataset.place) { window.__cafOpenId = b.dataset.place; aiClose(); setTimeout(() => current === 'h:cafes' ? cafOpen(b.dataset.place) : go('h:cafes'), 120); }
+    else if (b.dataset.poi) { const [k, id] = b.dataset.poi.split(':'); aiClose(); setTimeout(() => { if (current === 'h:poi' && window.__poK === k) poOpen(k, id); else { window.__poOpen = id; po(k).cat = 'all'; po(k).city = null; go('h:poi', k); } }, 120); }
     else if (b.dataset.cafq) { window.__cafAsk = b.dataset.cafq; aiClose(); setTimeout(() => { if (current === 'h:cafes') { const q = window.__cafAsk; window.__cafAsk = null; XACT.aiopen(); cgAsk(q); } else go('h:cafes'); }, 120); }
     else if (b.dataset.go) { const to = AI_GO[b.dataset.go][0]; aiClose(); setTimeout(() => to.startsWith('h:') ? go(to.split('?')[0], to.split('?')[1]) : go(to), 120); }
   });
@@ -928,6 +931,11 @@ function drawHomeNews(inner) {
   });
 }
 function afterRender(id, layers) {
+  if (id === '1:4858') return drawParking(layers);
+  if (id === '1:3529') return drawMosques(layers);
+  if (id === '1:5032') return drawHealth(layers);
+  if (id === '1:996') return drawMahalla(layers);
+  if (id === '1:2379') return drawTransit(layers);
   if (id !== '1:1909') return;
   const inner = layers['s:1:1910']; if (!inner) return;
   const draw = () => { if (current === '1:1909' && document.body.contains(inner)) drawHomeNews(inner); };
@@ -1202,29 +1210,29 @@ async function cafRoute(id) {
   bsheetClose(true);
   let from; try { from = await geo(); } catch (e) { toast(t('rt_geo')); return; }
   rtClear(); cafSelect(p);
-  RT = { p, from, mode: 'car', car: null, foot: null };
+  RT = { p, from, mode: 'car', car: null, foot: null, map: CAF_MAP, col: CAF_COL[cafPri(p)], ic: CAF_IC.replace(/\{s\}/g, 16), open: () => cafOpen(p.id), taxi: true };
   rtPanel();
   const [car, foot] = await Promise.all([osrm('car', from, [p.la, p.lo]), osrm('foot', from, [p.la, p.lo])]);
   if (!RT || RT.p !== p) return;
   RT.car = car; RT.foot = foot; rtDraw(); rtPanel();
 }
 function rtDraw() {
-  if (!CAF_MAP || !RT) return; const r = RT[RT.mode]; if (!r) return;
+  const M = RT && RT.map; if (!M) return; const r = RT[RT.mode]; if (!r) return;
   if (RT_LINE) RT_LINE.remove();
-  RT_LINE = L.polyline(r.g, RT.mode === 'car' ? { color: '#143C20', weight: 5, opacity: .9 } : { color: '#2563EB', weight: 4, dashArray: '2 8', lineCap: 'round' }).addTo(CAF_MAP);
-  CAF_MAP.fitBounds(RT_LINE.getBounds(), { padding: [36, 36] });
+  RT_LINE = L.polyline(r.g, RT.mode === 'car' ? { color: '#143C20', weight: 5, opacity: .9 } : { color: '#2563EB', weight: 4, dashArray: '2 8', lineCap: 'round' }).addTo(M);
+  M.fitBounds(RT_LINE.getBounds(), { padding: [36, 36] });
 }
 function rtPanel() {
   if (!RT) return; const { p, from, mode, car, foot } = RT;
   const app = document.getElementById('app'); let w = app.querySelector('.rt-panel');
   if (!w) { w = document.createElement('div'); w.className = 'rt-panel'; w.style.zoom = U; app.appendChild(w);
-    w.addEventListener('click', e => { const b = e.target.closest('[data-rt]'); if (!b) return; e.preventDefault(); const a = b.dataset.rt; if (a === 'x') rtClear(); else if (a === 'car' || a === 'foot') { RT.mode = a; rtDraw(); rtPanel(); } else if (a === 'open') cafOpen(RT.p.id); }); }
+    w.addEventListener('click', e => { const b = e.target.closest('[data-rt]'); if (!b) return; e.preventDefault(); const a = b.dataset.rt; if (a === 'x') rtClear(); else if (a === 'car' || a === 'foot') { RT.mode = a; rtDraw(); rtPanel(); } else if (a === 'open' && RT.open) RT.open(); }); }
   const tab = (k, r) => `<button class="rt-tab ${mode === k ? 'on' : ''}" data-rt="${k}">${k === 'car' ? '🚗' : '🚶'} <b>${r ? fmtDur(r.s) : '…'}</b><i>${r ? (r.est ? '≈ ' : '') + fmtKm(r.d) : t(k === 'car' ? 'rt_car' : 'rt_foot')}</i></button>`;
   const km = car ? car.d / 1000 : null, mn = car ? car.s / 60 : null;
-  w.innerHTML = `<div class="rt-head"><button class="rt-name" data-rt="open"><span class="rt-ic" style="background:${CAF_COL[cafPri(p)]}">${CAF_IC.replace(/\{s\}/g, 16)}</span><b>${esc(p.n)}</b></button><button class="rt-x" data-rt="x">${IC.close}</button></div>
+  w.innerHTML = `<div class="rt-head"><button class="rt-name" data-rt="open"><span class="rt-ic" style="background:${RT.col}">${RT.ic}</span><b>${esc(p.n)}</b></button><button class="rt-x" data-rt="x">${IC.close}</button></div>
     <div class="rt-tabs">${tab('car', car)}${tab('foot', foot)}</div>
-    <div class="rt-taxi"><span class="rt-go">Go</span><span class="rt-tt"><b>${car ? `≈ ${fmtSum(taxiPrice('start', km, mn))} ${t('rt_sum')}` : 'Yandex Go'}</b><i>${car ? `Yandex Go · ${t('rt_start')}; ${t('rt_comfort')} ≈ ${fmtSum(taxiPrice('comfort', km, mn))}` : '…'}</i></span><a class="rt-call" href="${esc(taxiLink(p, from))}" target="_blank" rel="noopener">${esc(t('rt_taxi'))}</a></div>
-    <div class="rt-note">${esc(t('rt_taxi_s'))}</div>
+    ${RT.taxi ? `<div class="rt-taxi"><span class="rt-go">Go</span><span class="rt-tt"><b>${car ? `≈ ${fmtSum(taxiPrice('start', km, mn))} ${t('rt_sum')}` : 'Yandex Go'}</b><i>${car ? `Yandex Go · ${t('rt_start')}; ${t('rt_comfort')} ≈ ${fmtSum(taxiPrice('comfort', km, mn))}` : '…'}</i></span><a class="rt-call" href="${esc(taxiLink(p, from))}" target="_blank" rel="noopener">${esc(t('rt_taxi'))}</a></div>
+    <div class="rt-note">${esc(t('rt_taxi_s'))}</div>` : ''}
     <div class="rt-nav">${navLinks(p, from, mode).map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>`;
 }
 
@@ -1285,9 +1293,9 @@ async function cgAsk(q) {
     const prompt = `Ты — гид по кафе в приложении MyUzCity. Пользователь просит: «${q}». Город: ${CITIES[cafCity()][0]}. Сейчас ${hm(now.getHours() * 60 + now.getMinutes())}.\nПодходящие заведения из открытых данных (id | название | тип | кухня | часы | расстояние):\n${lines}\nВыбери до 3 лучших под запрос. Ответь на ${lang} языке. Формат строго:\nпервая строка — короткий ответ (до 15 слов);\nзатем по строке на заведение: ID | почему подходит (до 12 слов).\nНе придумывай заведения, цены, рейтинги и факты, которых нет в списке.`;
     try {
       const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 20000);
-      const r = await fetch(AI_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl.signal, body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], lang: LANG, name: { ru: 'Владислав', uz: 'Vladislav', en: 'Vladislav', zh: 'Vladislav' }[LANG], city: cityName(), date: liveText('date'), screen: t('caf_t') }) });
+      const j = await aiFetch({ messages: [{ role: 'user', content: prompt }], lang: LANG, mode: 'raw' }, ctl.signal);
       clearTimeout(tm);
-      const j = await r.json(); const rep = String(j.reply || '').replace(/\[\[[^\]]*\]\]/g, '').trim();
+      const rep = String(j.reply || '').replace(/\[\[[^\]]*\]\]/g, '').trim();
       const ids = new Set(list.map(p => p.id));
       for (const raw of rep.split('\n')) {
         const ln = raw.replace(/[*_`]/g, '').trim(); if (!ln) continue;
@@ -1321,3 +1329,577 @@ Object.assign(XACT, {
   aiq: k => { aiSheet(); cgAsk(t('aq_' + k) + (k === 'near' ? '' : (LANG === 'ru' ? ' рядом' : ''))); },
   aisend: () => { const i = document.getElementById('aiCafQ'); if (i) cgAsk(i.value); },
 });
+
+// ======================= City maps: parking, mosques, medicine (OpenStreetMap) =======================
+const PO_I = {
+  ru: { pk_t: 'Парковки', mq_t: 'Мечети', md_t: 'Медицина рядом', po_q_parking: 'Улица или название парковки', po_q_mosque: 'Название мечети или улица', po_q_med: 'Аптека, клиника, больница…',
+    po_n: 'Найдено: {n}', po_load: 'Загружаем карту…', po_err: 'Не удалось загрузить данные. Проверьте интернет.', po_none: 'Ничего не нашлось — попробуйте другой фильтр', po_src: 'Данные — OpenStreetMap, обновляются еженедельно', po_soon: 'По этому городу данные скоро появятся — показываем Ташкент', po_open_map: 'Открыть карту', po_near: 'рядом', po_all_m: 'Все ›',
+    pkc_paid: 'Платные', pkc_free: 'Бесплатные', pkc_m: 'Многоуровневые', pkc_u: 'Подземные', pkc_s: 'Вдоль улиц',
+    pkk_g: 'Парковка', pkk_m: 'Многоуровневый паркинг', pkk_u: 'Подземный паркинг', pkk_s: 'Парковка вдоль улицы', pk_paid: 'Платная', pk_free: 'Бесплатная', pk_cap: 'Мест', pk_op: 'Оператор', pk_cust: 'Для клиентов', pk_dis: 'Места для людей с инвалидностью', pk_type: 'Тип',
+    pk_pay: 'Как оплатить парковку', pk_pay_s: '5 000–12 000 сум/час · Poytaxt Parking, Payme, Click',
+    pk_h: 'Как оплатить парковку', pk_h_s: 'Платные придорожные парковки Ташкента',
+    pk_s1: 'Найдите знак «P» и номер зоны', pk_s1d: 'Платные места вдоль улиц отмечены знаками «P». На табличке — номер зоны и тариф. Первые 5 минут бесплатно.',
+    pk_s2: 'Оплатите в Poytaxt Parking', pk_s2d: 'Введите госномер и номер зоны (или отсканируйте QR на табличке), выберите время. Карты Uzcard, Humo, Visa, Mastercard.',
+    pk_s3: 'Или через Payme, Click, Uzum Bank, Paynet', pk_s3d: 'В разделе «Парковка» / Poytaxt Parking введите госномер и зону. Наличными — в терминалах Paynet.',
+    pk_app: 'Скачать Poytaxt Parking', pk_tar: 'Тарифы и правила', pk_t1: 'Стоимость', pk_t1v: '5 000–12 000 сум в час, зависит от улицы; у сквера Амира Темура — 12 000',
+    pk_t2: 'Штраф за неоплату', pk_t2v: '2 БРВ — 880 000 сум', pk_t3: 'Бесплатно', pk_t3v: 'Первые 5 минут; в праздники 31 декабря – 4 января',
+    pk_t4: 'Жителям улиц', pk_t4v: 'Резидентское разрешение: ночью (20:00–8:00) бесплатно, днём — 1 БРВ в год, до 2 авто на семью', pk_res: 'Оформить разрешение на my.gov.uz', pk_sup: 'Поддержка Poytaxt Parking',
+    pk_note: 'Тарифы могут меняться — точная цена для зоны показана в приложении Poytaxt Parking.',
+    mqc_hist: 'Исторические', mq_kind: 'Мечеть', mq_hist: 'Памятник истории', mq_pt: 'Время намаза', mq_today: '{c}, сегодня', mq_next: 'Следующий — {p} в {t}', mq_in: 'через {d}', mq_calc: 'Время рассчитано по координатам города (±2 мин) по методике Управления мусульман Узбекистана.', mq_wiki: 'Статья в Википедии', mq_near: 'Мечети рядом', mq_open: 'Время намаза и карта',
+    pr_0: 'Фаджр', pr_1: 'Восход', pr_2: 'Зухр', pr_3: 'Аср', pr_4: 'Магриб', pr_5: 'Иша',
+    mdc_pharmacy: 'Аптеки', mdc_hospital: 'Больницы', mdc_clinic: 'Клиники', mdc_dentist: 'Стоматологии', mdc_lab: 'Анализы', mdc_h24: 'Круглосуточно',
+    mdk_pharmacy: 'Аптека', mdk_hospital: 'Больница', mdk_clinic: 'Клиника', mdk_dentist: 'Стоматология', mdk_lab: 'Лаборатория', md_em: 'Приёмное отделение', md_sp: 'Направления', md_103: 'Скорая', md_112: 'Экстренная',
+    md_near: 'Рядом с вами', md_n: '{n} на карте', md_open_of: 'открыто {o} из {n}', pk_pay_l: 'Как оплатить' },
+  uz: { pk_t: 'Avtoturargohlar', mq_t: 'Masjidlar', md_t: 'Yaqin atrofdagi tibbiyot', po_q_parking: "Ko'cha yoki avtoturargoh nomi", po_q_mosque: "Masjid nomi yoki ko'cha", po_q_med: 'Dorixona, klinika, shifoxona…',
+    po_n: 'Topildi: {n}', po_load: 'Xarita yuklanmoqda…', po_err: "Ma'lumotlarni yuklab bo'lmadi. Internetni tekshiring.", po_none: "Hech narsa topilmadi — boshqa filtrni sinab ko'ring", po_src: "Ma'lumotlar — OpenStreetMap, har hafta yangilanadi", po_soon: "Bu shahar bo'yicha ma'lumotlar tez orada — Toshkentni ko'rsatamiz", po_open_map: 'Xaritani ochish', po_near: 'yaqinda', po_all_m: 'Barchasi ›',
+    pkc_paid: 'Pullik', pkc_free: 'Bepul', pkc_m: "Ko'p qavatli", pkc_u: 'Yer osti', pkc_s: "Ko'cha bo'yi",
+    pkk_g: 'Avtoturargoh', pkk_m: "Ko'p qavatli avtoturargoh", pkk_u: 'Yer osti avtoturargohi', pkk_s: "Ko'cha bo'yidagi avtoturargoh", pk_paid: 'Pullik', pk_free: 'Bepul', pk_cap: "Joylar", pk_op: 'Operator', pk_cust: 'Mijozlar uchun', pk_dis: "Nogironligi bo'lganlar uchun joylar", pk_type: 'Turi',
+    pk_pay: "Avtoturargoh uchun qanday to'lash", pk_pay_s: "Soatiga 5 000–12 000 so'm · Poytaxt Parking, Payme, Click",
+    pk_h: "Avtoturargoh uchun qanday to'lash", pk_h_s: "Toshkentdagi pullik yo'l bo'yi avtoturargohlari",
+    pk_s1: '«P» belgisi va zona raqamini toping', pk_s1d: "Pullik joylar «P» belgilari bilan belgilangan. Lavhada zona raqami va tarif bor. Dastlabki 5 daqiqa bepul.",
+    pk_s2: "Poytaxt Parking'da to'lang", pk_s2d: "Davlat raqami va zona raqamini kiriting (yoki lavhadagi QR-kodni skanerlang), vaqtni tanlang. Uzcard, Humo, Visa, Mastercard.",
+    pk_s3: 'Yoki Payme, Click, Uzum Bank, Paynet orqali', pk_s3d: "«Avtoturargoh» / Poytaxt Parking bo'limida davlat raqami va zonani kiriting. Naqd — Paynet terminallarida.",
+    pk_app: 'Poytaxt Parking yuklab olish', pk_tar: 'Tariflar va qoidalar', pk_t1: 'Narxi', pk_t1v: "Soatiga 5 000–12 000 so'm, ko'chaga bog'liq; Amir Temur xiyoboni yonida — 12 000",
+    pk_t2: "To'lamaganlik uchun jarima", pk_t2v: "2 BHM — 880 000 so'm", pk_t3: 'Bepul', pk_t3v: 'Dastlabki 5 daqiqa; bayramlarda 31-dekabr – 4-yanvar',
+    pk_t4: 'Ko‘cha aholisi uchun', pk_t4v: 'Rezident ruxsatnomasi: kechasi (20:00–8:00) bepul, kunduzi — yiliga 1 BHM, oilaga 2 tagacha avto', pk_res: 'my.gov.uz orqali ruxsatnoma olish', pk_sup: "Poytaxt Parking qo'llab-quvvatlash",
+    pk_note: "Tariflar o'zgarishi mumkin — zona uchun aniq narx Poytaxt Parking ilovasida.",
+    mqc_hist: 'Tarixiy', mq_kind: 'Masjid', mq_hist: 'Tarixiy yodgorlik', mq_pt: 'Namoz vaqtlari', mq_today: '{c}, bugun', mq_next: 'Keyingisi — {p}, {t} da', mq_in: '{d} dan keyin', mq_calc: "Vaqt shahar koordinatalari bo'yicha hisoblangan (±2 daq), O'zbekiston musulmonlari idorasi uslubida.", mq_wiki: 'Vikipediyadagi maqola', mq_near: 'Yaqin masjidlar', mq_open: 'Namoz vaqtlari va xarita',
+    pr_0: 'Bomdod', pr_1: 'Quyosh', pr_2: 'Peshin', pr_3: 'Asr', pr_4: 'Shom', pr_5: 'Xufton',
+    mdc_pharmacy: 'Dorixonalar', mdc_hospital: 'Shifoxonalar', mdc_clinic: 'Klinikalar', mdc_dentist: 'Stomatologiya', mdc_lab: 'Tahlillar', mdc_h24: 'Kecha-kunduz',
+    mdk_pharmacy: 'Dorixona', mdk_hospital: 'Shifoxona', mdk_clinic: 'Klinika', mdk_dentist: 'Stomatologiya', mdk_lab: 'Laboratoriya', md_em: "Qabul bo'limi", md_sp: "Yo'nalishlar", md_103: 'Tez yordam', md_112: 'Favqulodda',
+    md_near: 'Yaqin atrofda', md_n: 'xaritada {n} ta', md_open_of: '{n} tadan {o} tasi ochiq', pk_pay_l: "Qanday to'lash" },
+  en: { pk_t: 'Parking', mq_t: 'Mosques', md_t: 'Medical care nearby', po_q_parking: 'Street or parking name', po_q_mosque: 'Mosque name or street', po_q_med: 'Pharmacy, clinic, hospital…',
+    po_n: 'Found: {n}', po_load: 'Loading the map…', po_err: 'Could not load the data. Check your connection.', po_none: 'Nothing found — try another filter', po_src: 'Data — OpenStreetMap, updated weekly', po_soon: 'Data for this city is coming soon — showing Tashkent', po_open_map: 'Open map', po_near: 'nearby', po_all_m: 'All ›',
+    pkc_paid: 'Paid', pkc_free: 'Free', pkc_m: 'Multi-storey', pkc_u: 'Underground', pkc_s: 'Street-side',
+    pkk_g: 'Parking', pkk_m: 'Multi-storey car park', pkk_u: 'Underground car park', pkk_s: 'Street-side parking', pk_paid: 'Paid', pk_free: 'Free', pk_cap: 'Spaces', pk_op: 'Operator', pk_cust: 'Customers only', pk_dis: 'Accessible spaces', pk_type: 'Type',
+    pk_pay: 'How to pay for parking', pk_pay_s: '5,000–12,000 sum/hour · Poytaxt Parking, Payme, Click',
+    pk_h: 'How to pay for parking', pk_h_s: 'Paid street parking in Tashkent',
+    pk_s1: 'Find the “P” sign and the zone number', pk_s1d: 'Paid street spaces are marked with “P” signs. The plate shows the zone number and the rate. The first 5 minutes are free.',
+    pk_s2: 'Pay in Poytaxt Parking', pk_s2d: 'Enter your plate and the zone number (or scan the QR on the sign) and choose the time. Uzcard, Humo, Visa, Mastercard.',
+    pk_s3: 'Or via Payme, Click, Uzum Bank, Paynet', pk_s3d: 'In the “Parking” / Poytaxt Parking section enter the plate and zone. Cash — at Paynet terminals.',
+    pk_app: 'Get Poytaxt Parking', pk_tar: 'Rates and rules', pk_t1: 'Price', pk_t1v: '5,000–12,000 sum per hour depending on the street; at Amir Temur Square — 12,000',
+    pk_t2: 'Fine for not paying', pk_t2v: '2 BCA — 880,000 sum', pk_t3: 'Free', pk_t3v: 'The first 5 minutes; holidays 31 December – 4 January',
+    pk_t4: 'Residents', pk_t4v: 'Resident permit: free at night (20:00–8:00), daytime — 1 BCA a year, up to 2 cars per household', pk_res: 'Apply for a permit on my.gov.uz', pk_sup: 'Poytaxt Parking support',
+    pk_note: 'Rates may change — the exact price for a zone is shown in the Poytaxt Parking app.',
+    mqc_hist: 'Historic', mq_kind: 'Mosque', mq_hist: 'Historic monument', mq_pt: 'Prayer times', mq_today: '{c}, today', mq_next: 'Next — {p} at {t}', mq_in: 'in {d}', mq_calc: 'Calculated for the city’s coordinates (±2 min) using the Muslim Board of Uzbekistan method.', mq_wiki: 'Wikipedia article', mq_near: 'Mosques nearby', mq_open: 'Prayer times and map',
+    pr_0: 'Fajr', pr_1: 'Sunrise', pr_2: 'Dhuhr', pr_3: 'Asr', pr_4: 'Maghrib', pr_5: 'Isha',
+    mdc_pharmacy: 'Pharmacies', mdc_hospital: 'Hospitals', mdc_clinic: 'Clinics', mdc_dentist: 'Dentists', mdc_lab: 'Labs', mdc_h24: 'Open 24/7',
+    mdk_pharmacy: 'Pharmacy', mdk_hospital: 'Hospital', mdk_clinic: 'Clinic', mdk_dentist: 'Dentist', mdk_lab: 'Laboratory', md_em: 'Emergency department', md_sp: 'Specialities', md_103: 'Ambulance', md_112: 'Emergency',
+    md_near: 'Near you', md_n: '{n} on the map', md_open_of: '{o} of {n} open', pk_pay_l: 'How to pay' },
+  zh: { pk_t: '停车场', mq_t: '清真寺', md_t: '附近医疗', po_q_parking: '街道或停车场名称', po_q_mosque: '清真寺名称或街道', po_q_med: '药店、诊所、医院…',
+    po_n: '找到：{n}', po_load: '正在加载地图…', po_err: '无法加载数据，请检查网络。', po_none: '未找到，请换个筛选条件', po_src: '数据来自 OpenStreetMap，每周更新', po_soon: '该城市数据即将上线 — 现显示塔什干', po_open_map: '打开地图', po_near: '附近', po_all_m: '全部 ›',
+    pkc_paid: '收费', pkc_free: '免费', pkc_m: '立体停车楼', pkc_u: '地下停车场', pkc_s: '路边',
+    pkk_g: '停车场', pkk_m: '立体停车楼', pkk_u: '地下停车场', pkk_s: '路边停车', pk_paid: '收费', pk_free: '免费', pk_cap: '车位', pk_op: '运营方', pk_cust: '仅限顾客', pk_dis: '无障碍车位', pk_type: '类型',
+    pk_pay: '如何支付停车费', pk_pay_s: '每小时 5 000–12 000 苏姆 · Poytaxt Parking、Payme、Click',
+    pk_h: '如何支付停车费', pk_h_s: '塔什干路边收费停车',
+    pk_s1: '找到“P”标志和区域编号', pk_s1d: '路边收费车位有“P”标志，牌上写有区域编号和价格。前 5 分钟免费。',
+    pk_s2: '在 Poytaxt Parking 中支付', pk_s2d: '输入车牌和区域编号（或扫描牌上的二维码），选择时长。支持 Uzcard、Humo、Visa、Mastercard。',
+    pk_s3: '或通过 Payme、Click、Uzum Bank、Paynet', pk_s3d: '在“停车”/Poytaxt Parking 栏目输入车牌和区域。现金可在 Paynet 终端支付。',
+    pk_app: '下载 Poytaxt Parking', pk_tar: '价格与规则', pk_t1: '价格', pk_t1v: '每小时 5 000–12 000 苏姆，视街道而定；帖木儿广场附近 12 000',
+    pk_t2: '未付费罚款', pk_t2v: '2 个基本计算单位 — 880 000 苏姆', pk_t3: '免费', pk_t3v: '前 5 分钟；节假日 12 月 31 日至 1 月 4 日',
+    pk_t4: '本街居民', pk_t4v: '居民许可：夜间（20:00–8:00）免费，白天每年 1 个基本计算单位，每户最多 2 辆车', pk_res: '在 my.gov.uz 申请许可', pk_sup: 'Poytaxt Parking 客服',
+    pk_note: '价格可能变动 — 各区域准确价格以 Poytaxt Parking 应用为准。',
+    mqc_hist: '历史古迹', mq_kind: '清真寺', mq_hist: '历史古迹', mq_pt: '礼拜时间', mq_today: '{c}，今天', mq_next: '下一次 — {p} {t}', mq_in: '{d}后', mq_calc: '按城市坐标计算（±2 分钟），采用乌兹别克斯坦穆斯林管理局的方法。', mq_wiki: '维基百科条目', mq_near: '附近清真寺', mq_open: '礼拜时间和地图',
+    pr_0: '晨礼', pr_1: '日出', pr_2: '晌礼', pr_3: '晡礼', pr_4: '昏礼', pr_5: '宵礼',
+    mdc_pharmacy: '药店', mdc_hospital: '医院', mdc_clinic: '诊所', mdc_dentist: '牙科', mdc_lab: '化验', mdc_h24: '24 小时',
+    mdk_pharmacy: '药店', mdk_hospital: '医院', mdk_clinic: '诊所', mdk_dentist: '牙科', mdk_lab: '化验室', md_em: '急诊', md_sp: '科室', md_103: '急救', md_112: '紧急',
+    md_near: '您附近', md_n: '地图上 {n} 处', md_open_of: '{n} 处中 {o} 处营业', pk_pay_l: '如何支付' },
+};
+for (const l in PO_I) Object.assign(I[l], PO_I[l]);
+
+// ---- prayer times (calibrated against the official Tashkent timetable: Fajr/Isha 15.5°, Hanafi Asr, Dhuhr +1, Maghrib +4)
+function prayTimes(lat, lon, d = new Date(Date.now() + 5 * 3600e3)) {
+  const tz = 5, rad = Math.PI / 180;
+  const jd = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 864e5 + 2440587.5;
+  const D = jd + 0.5 - tz / 24 - 2451545;
+  const g = ((357.529 + 0.98560028 * D) % 360) * rad, q = (280.459 + 0.98564736 * D) % 360;
+  const Ls = ((q + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) % 360) * rad, e = (23.439 - 0.00000036 * D) * rad;
+  const RA = Math.atan2(Math.cos(e) * Math.sin(Ls), Math.cos(Ls)) / rad / 15;
+  const dec = Math.asin(Math.sin(e) * Math.sin(Ls));
+  let eq = q / 15 - (((RA % 24) + 24) % 24); if (eq > 12) eq -= 24; if (eq < -12) eq += 24;
+  const noon = 12 + tz - lon / 15 - eq, phi = lat * rad;
+  const ha = a => Math.acos(Math.max(-1, Math.min(1, (-Math.sin(a * rad) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec))))) / rad / 15;
+  const asrA = -Math.atan(1 / (2 + Math.tan(Math.abs(phi - dec)))) / rad;
+  return [noon - ha(15.5), noon - ha(0.833), noon + 1 / 60, noon + ha(asrA), noon + ha(0.833) + 4 / 60, noon + ha(15.5)].map(h => Math.round(h * 60));
+}
+function prayNow(ci = cityIdx()) {
+  const c = CITIES[ci] || CITIES[0], tm = prayTimes(c[5], c[6]);
+  const n = new Date(Date.now() + 5 * 3600e3), now = n.getUTCHours() * 60 + n.getUTCMinutes();
+  let next = tm.findIndex(m => m > now); const tomorrow = next < 0; if (tomorrow) next = 0;
+  const left = (tomorrow ? tm[0] + 1440 : tm[next]) - now;
+  return { tm, next, left, now };
+}
+const fmtLeft = m => m < 60 ? `${m} ${t('rt_min')}` : `${Math.floor(m / 60)} ${t('rt_h')} ${m % 60} ${t('rt_min')}`;
+
+// ---- data
+const PO_COL = { pharmacy: '#16A34A', hospital: '#DC2626', clinic: '#2563EB', dentist: '#0891B2', lab: '#7C3AED' };
+const PO_SVG = {
+  parking: '<path d="M9 18V6h4.5a3.5 3.5 0 0 1 0 7H9" stroke-width="2.4"/>',
+  mosque: '<path d="M12 3.5c-.6 1.7-3.5 2.6-3.5 5.5h7c0-2.9-2.9-3.8-3.5-5.5Z"/><path d="M5 20.5V12h14v8.5M3 20.5h18M10 20.5v-3.2a2 2 0 0 1 4 0v3.2"/>',
+  pharmacy: '<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/>',
+  hospital: '<path d="M12 6v12M6 12h12" stroke-width="2.8"/>', clinic: '<path d="M12 6v12M6 12h12" stroke-width="2.8"/>',
+  dentist: '<path d="M7.5 3.5c-2.2 0-4 1.6-4 4.3 0 1.9 1 3.3 1.4 5.2.5 2 .6 4.9 1.6 6.8.5 1 1.5 1 1.9 0 .6-1.6.6-4.1 2.1-5 .7-.4 1.3-.4 2 0 1.5.9 1.5 3.4 2.1 5 .4 1 1.4 1 1.9 0 1-1.9 1.1-4.8 1.6-6.8.4-1.9 1.4-3.3 1.4-5.2 0-2.7-1.8-4.3-4-4.3-2 0-2.8 1-4.5 1s-2.5-1-4.5-1Z"/>',
+  lab: '<path d="M9 3h6M10 3v6.5L4.6 18.8A1.5 1.5 0 0 0 5.9 21h12.2a1.5 1.5 0 0 0 1.3-2.2L14 9.5V3"/><path d="M7 15h10"/>',
+};
+const poIc = (k, s) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${PO_SVG[k] || PO_SVG.clinic}</svg>`;
+const PO_K = {
+  parking: {
+    title: 'pk_t', cats: ['paid', 'free', 'm', 'u', 's'], extraH: 70, foot: false,
+    has: (p, c) => c === 'paid' ? p.f === 1 : c === 'free' ? p.f === 0 : p.k === c,
+    col: p => p.k === 'm' || p.k === 'u' ? '#7C3AED' : p.f === 1 ? '#1D4ED8' : p.f === 0 ? '#15803D' : '#64748B',
+    ic: () => 'parking', name: p => p.n || t('pkk_' + p.k),
+    sub: p => [p.n ? t('pkk_' + p.k) : '', p.f === 1 ? t('pk_paid') : p.f === 0 ? t('pk_free') : '', p.c ? `${p.c} ${t('pk_cap').toLowerCase()}` : ''].filter(Boolean).join(' · '),
+    cat: p => p.f === 1 ? 'pkc_paid' : p.f === 0 ? 'pkc_free' : '',
+  },
+  mosque: {
+    title: 'mq_t', cats: ['hist'], extraH: 76, foot: true,
+    has: (p, c) => c === 'hist' ? p.hi : false,
+    col: p => p.hi ? '#B45309' : '#0F766E', ic: () => 'mosque', name: p => p.n || t('mq_kind'),
+    sub: p => [p.hi ? t('mq_hist') : t('mq_kind'), p.n2 || ''].filter(Boolean).join(' · '),
+  },
+  med: {
+    title: 'md_t', cats: ['open', 'h24', 'pharmacy', 'hospital', 'clinic', 'dentist', 'lab'], extraH: 62, foot: true,
+    has: (p, c) => c === 'open' ? (ohState(p.h) || {}).open : c === 'h24' ? poH24(p) : p.a === c,
+    col: p => PO_COL[p.a] || '#2563EB', ic: p => p.a, name: p => p.n || t('mdk_' + p.a),
+    sub: p => [t('mdk_' + p.a), p.em ? t('md_em') : ''].filter(Boolean).join(' · '),
+  },
+};
+const poH24 = p => p.h === '24/7' || !!(ohState(p.h) || {}).h24;
+let PO_INDEX = null; const PO_DATA = { parking: {}, mosque: {}, med: {} };
+function poIndex() { return PO_INDEX ? Promise.resolve(PO_INDEX) : fetch('data/poi/index.json', { cache: 'no-cache' }).then(r => r.json()).then(j => (PO_INDEX = j)); }
+function poLoad(k, ci) {
+  if (PO_DATA[k][ci]) return Promise.resolve(PO_DATA[k][ci]);
+  return poIndex().then(ix => (ix.n[k] || {})[ci] ? fetch(`data/poi/${k}/${ci}.json`).then(r => r.json()) : []).then(l => (PO_DATA[k][ci] = l));
+}
+const po = k => { window.__po = window.__po || {}; return (window.__po[k] = window.__po[k] || { city: null, cat: 'all', q: '', more: 0, big: false }); };
+function poCity(k) { const s = po(k); if (s.city == null) { const c = cityIdx(); s.city = PO_INDEX && !(PO_INDEX.n[k] || {})[c] ? 0 : c; } return s.city; }
+function poDist(p) { const l = caf().loc; return l ? cafDistRaw(l, [p.la, p.lo]) : null; }
+function poFiltered(k) {
+  const s = po(k), K = PO_K[k], list = PO_DATA[k][poCity(k)] || [], q = s.q.trim().toLowerCase();
+  let r = list.filter(p => (s.cat === 'all' || K.has(p, s.cat)) && (!q || [K.name(p), p.n2, p.ad, p.op, p.sp].join(' ').toLowerCase().includes(q)));
+  const score = p => (p.n ? 3 : 0) + (p.ph ? 1 : 0) + (p.h ? 1 : 0) + (p.ad ? 1 : 0) + (p.hi ? 2 : 0) + (p.c ? Math.min(2, p.c / 100) : 0) + (p.em ? 2 : 0);
+  return caf().loc ? r.map(p => [poDist(p), p]).sort((a, b) => a[0] - b[0]).map(x => x[1]) : r.slice().sort((a, b) => score(b) - score(a));
+}
+function poItem(k, p) {
+  const K = PO_K[k], d = fmtDist(poDist(p));
+  return `<button class="cf-item" data-act="poopen:${k}:${p.id}"><span class="cf-ic" style="background:${K.col(p)}">${poIc(K.ic(p), 18)}</span>
+    <span class="cf-it"><b>${esc(K.name(p))}</b><i>${esc(K.sub(p))}</i>${p.ad ? `<i>${esc(p.ad)}</i>` : ''}${p.h ? ohLabel(p) : ''}</span>${d ? `<span class="cf-dist">${esc(d)}</span>` : ''}</button>`;
+}
+function prayStrip(ci, cls = '') {
+  const P = prayNow(ci);
+  return `<div class="pr-strip ${cls}">${P.tm.map((m, i) => `<div class="${i === P.next ? 'on' : ''}"><i>${esc(t('pr_' + i))}</i><b>${hm(m)}</b></div>`).join('')}</div>`;
+}
+function poExtra(k, ci) {
+  if (k === 'parking') return `<button class="po-x pk" data-act="pkpay"><span class="po-xi"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></span><span class="po-xt"><b>${esc(t('pk_pay'))}</b><i>${esc(t('pk_pay_s'))}</i></span>${IC.chev}</button>`;
+  if (k === 'mosque') return `<div class="po-x mq">${prayStrip(ci)}</div>`;
+  return `<div class="po-x md"><a href="tel:103" class="md-sos"><b>103</b><span>${esc(t('md_103'))}</span></a><a href="tel:112" class="md-sos"><b>112</b><span>${esc(t('md_112'))}</span></a></div>`;
+}
+const PO_MAP_TOP = 236;
+function poMapH(k) { const top = PO_MAP_TOP + PO_K[k].extraH; return po(k).big ? Math.max(260, VH - top) : Math.min(300, Math.max(200, Math.round(VH * .33))); }
+HS.poi = (arg) => {
+  const [k0, c0] = String(arg || 'parking').split(':'); const k = PO_K[k0] ? k0 : 'parking', s = po(k), K = PO_K[k];
+  if (c0 && (c0 === 'all' || K.cats.includes(c0))) { s.cat = c0; s.more = 0; if (window.__poChipX) delete window.__poChipX[k]; }
+  window.__poK = k; currentP = k;
+  const ci = poCity(k), list = PO_DATA[k][ci];
+  const counts = {}; if (list) for (const c of K.cats) counts[c] = list.filter(p => K.has(p, c)).length;
+  const chips = ['all', ...K.cats].filter(c => !list || c === 'all' || counts[c]).map(c => {
+    const lab = c === 'all' ? t('cat_all') : t((k === 'parking' ? 'pkc_' : k === 'mosque' ? 'mqc_' : c === 'open' ? 'cat_' : 'mdc_') + c);
+    const col = k === 'med' && PO_COL[c] ? PO_COL[c] : k === 'parking' ? { paid: '#1D4ED8', free: '#15803D', m: '#7C3AED', u: '#7C3AED' }[c] : k === 'mosque' && c === 'hist' ? '#B45309' : '';
+    return `<button class="h-chip ${s.cat === c ? 'on' : ''}" data-act="pocat:${k}:${c}">${col ? `<span class="cf-dot" style="background:${col}"></span>` : ''}${esc(lab)}${list ? ` <i>${c === 'all' ? list.length : counts[c]}</i>` : ''}</button>`;
+  }).join('');
+  return `<div class="h-hdr"><button class="h-back" data-act="back">${IC.back}</button><div class="h-title">${esc(t(K.title))}</div><button class="cf-city" data-act="pocity:${k}">${esc(cityName(ci))}<svg viewBox="0 0 20 20" width="16" height="16">${CHEV_DOWN}</svg></button></div>
+    <div class="cf-bar"><label class="cf-search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="poQ" type="search" enterkeyhint="search" autocomplete="off" placeholder="${esc(t('po_q_' + k))}" value="${esc(s.q)}"></label></div>
+    <div class="cf-chips hs" id="poChips">${chips}</div>
+    ${poExtra(k, ci)}
+    <div class="cf-mapph" style="height:${poMapH(k)}px"></div>
+    <div class="h-body cf-body" id="poList">${list ? '' : `<div class="cf-empty">${esc(t('po_load'))}</div>`}</div>`;
+};
+let PO_MAP = null, PO_LAYER = null, PO_SEL = null, PO_ME = null;
+function tiles(m) { L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(m); m.attributionControl.setPrefix(false); return m; }
+HS.poi.mount = (el) => {
+  const k = window.__poK, s = po(k);
+  const chips = el.querySelector('#poChips'); const cx = (window.__poChipX || {})[k]; if (cx) chips.scrollLeft = cx; else { const on = chips.querySelector('.on'); if (on && on.offsetLeft > 200) chips.scrollLeft = on.offsetLeft - 24; }
+  chips.addEventListener('scroll', () => { (window.__poChipX = window.__poChipX || {})[k] = chips.scrollLeft; }, { passive: true });
+  const q = el.querySelector('#poQ'); let tm;
+  q.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(() => { s.q = q.value; s.more = 0; poRefresh(k); }, 220); });
+  q.addEventListener('keydown', e => { if (e.key === 'Enter') q.blur(); });
+  const app = document.getElementById('app'), ph = el.querySelector('.cf-mapph');
+  const ar = app.getBoundingClientRect(), pr = ph.getBoundingClientRect();
+  const mw = document.createElement('div'); mw.className = 'cf-map';
+  mw.style.top = (pr.top - ar.top) + 'px'; mw.style.height = pr.height + 'px'; mw.style.width = P(430);
+  mw.innerHTML = `<div id="cfMap"></div><div class="cf-mbtns" style="zoom:${U}"><button data-cf="me" aria-label="${esc(t('caf_me'))}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#143C20" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2" fill="#143C20"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg></button><button data-cf="big" aria-label="${esc(t(s.big ? 'caf_small' : 'caf_big'))}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#143C20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${s.big ? '<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>' : '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>'}</svg></button></div>`;
+  app.appendChild(mw);
+  mw.addEventListener('click', e => { const b = e.target.closest('[data-cf]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.cf === 'big') { s.big = !s.big; render(current, currentP); } else poLocate(k); });
+  const list = el.querySelector('#poList');
+  list.addEventListener('scroll', () => { (window.__poListY = window.__poListY || {})[k] = list.scrollTop; }, { passive: true });
+  if (k === 'mosque') { clearInterval(window.__prT); window.__prT = setInterval(() => { const x = el.querySelector('.po-x.mq'); if (!document.body.contains(el)) return clearInterval(window.__prT); if (x) x.innerHTML = prayStrip(poCity(k)); }, 30000); }
+  Promise.all([leafletReady(), poIndex()]).then(() => poLoad(k, poCity(k))).then(() => {
+    if (!document.body.contains(mw)) return;
+    const ci = poCity(k);
+    if (!(PO_INDEX.n[k] || {})[ci] && ci !== 0) { s.city = 0; toast(t('po_soon')); return render(current, currentP); }
+    if (!el.querySelector('.cf-chips .h-chip i')) return render(current, currentP);
+    PO_SEL = null; PO_ME = null;
+    const c = CITIES[ci]; const v = (window.__poView || {})[k]; const vv = v && v.city === ci ? v : null;
+    PO_MAP = tiles(L.map(mw.querySelector('#cfMap'), { zoomControl: false, attributionControl: true, preferCanvas: true }).setView(vv ? vv.c : [c[5], c[6]], vv ? vv.z : (ci === 0 ? 12 : 13)));
+    PO_MAP.on('moveend', () => { (window.__poView = window.__poView || {})[k] = { city: ci, c: PO_MAP.getCenter(), z: PO_MAP.getZoom() }; });
+    PO_LAYER = L.layerGroup().addTo(PO_MAP);
+    PO_MAP.on('zoomend', () => { const r = poR(); PO_LAYER.eachLayer(m => m.setStyle({ radius: r, weight: r < 5 ? 1 : 1.6 })); });
+    if (caf().loc) poMe();
+    poRefresh(k, true);
+    RT = null; RT_LINE = null;
+    if (window.__poOpen) { const id = window.__poOpen; window.__poOpen = null; poOpen(k, id); }
+  }).catch(() => { list.innerHTML = `<div class="cf-empty">${esc(t('po_err'))}</div>`; });
+};
+function poR() { const z = PO_MAP ? PO_MAP.getZoom() : 13; return z <= 11 ? 3.5 : z === 12 ? 4.5 : z === 13 ? 5.5 : z === 14 ? 6.5 : 7.5; }
+function poRefresh(k, keep) {
+  const r = poFiltered(k), s = po(k), list = document.getElementById('poList'); if (!list) return;
+  const shown = r.slice(0, 40 + s.more);
+  list.innerHTML = `<div class="cf-count">${esc(t('po_n', { n: r.length }))}</div>${shown.map(p => poItem(k, p)).join('') || `<div class="cf-empty">${esc(t('po_none'))}</div>`}
+    ${r.length > shown.length ? btn(t('caf_more'), 'pomore:' + k, 'ghostd') : ''}<div class="h-muted small cam-note">${esc(t('po_src'))}</div>`;
+  const y = (window.__poListY || {})[k]; list.scrollTop = keep && y ? y : 0;
+  if (!PO_LAYER || !window.L) return;
+  PO_LAYER.clearLayers(); const K = PO_K[k];
+  for (const p of r) { const m = L.circleMarker([p.la, p.lo], { radius: poR(), color: '#fff', weight: poR() < 5 ? 1 : 1.6, fillColor: K.col(p), fillOpacity: .95 }); m.on('click', () => poOpen(k, p.id)); m.addTo(PO_LAYER); }
+}
+function poMe() { const l = caf().loc; if (!PO_MAP || !l) return; if (PO_ME) PO_ME.remove(); PO_ME = L.circleMarker(l, { radius: 8, color: '#fff', weight: 3, fillColor: '#2563EB', fillOpacity: 1 }).addTo(PO_MAP); }
+function poLocate(k) {
+  if (!navigator.geolocation) return toast(t('caf_geo_err'));
+  navigator.geolocation.getCurrentPosition(pos => {
+    caf().loc = [pos.coords.latitude, pos.coords.longitude]; poMe();
+    if (PO_MAP) PO_MAP.flyTo(caf().loc, 15, { duration: .6 });
+    poRefresh(k);
+  }, () => toast(t('caf_geo_err')), { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+}
+function poSelect(k, p) {
+  if (!PO_MAP) return; if (PO_SEL) PO_SEL.remove();
+  PO_SEL = L.circleMarker([p.la, p.lo], { radius: 11, color: '#fff', weight: 3, fillColor: PO_K[k].col(p), fillOpacity: 1 }).addTo(PO_MAP);
+  PO_MAP.panTo([p.la, p.lo], { animate: true });
+}
+function poFind(k, id) { return (PO_DATA[k][poCity(k)] || []).find(x => x.id === id); }
+function poOpen(k, id) {
+  const p = poFind(k, id); if (!p) return; const K = PO_K[k]; poSelect(k, p);
+  const col = K.col(p), city = cityName(poCity(k)), st = p.h ? ohState(p.h) : null;
+  const photo = p.im || (p.wc ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(p.wc.replace(/^File:/, ''))}?width=900` : '');
+  const row = (a, v) => `<div class="cf-row"><span>${esc(a)}</span><div>${v}</div></div>`;
+  const tel = p.ph ? p.ph.replace(/[^\d+]/g, '') : '';
+  const tags = k === 'parking' ? [t('pkk_' + p.k), p.f === 1 ? t('pk_paid') : p.f === 0 ? t('pk_free') : '', p.cu ? t('pk_cust') : ''] : k === 'mosque' ? [t('mq_kind'), p.hi ? t('mq_hist') : ''] : [t('mdk_' + p.a), p.em ? t('md_em') : '', poH24(p) ? t('mdc_h24') : ''];
+  const wp = p.wp ? p.wp.match(/^([a-z-]+):(.+)$/) : null;
+  bsheet(`<div class="cf-photo${photo ? '' : ' po-ph'}" style="${photo ? `background-image:url('${esc(photo)}')` : `background:linear-gradient(135deg,${col},${col}c4)`}">${photo ? '' : `<span class="cf-ph-ic">${poIc(K.ic(p), 46)}</span>`}</div>
+    <div class="cf-name">${esc(K.name(p))}</div>${p.n2 ? `<div class="cf-n2">${esc(p.n2)}</div>` : ''}
+    <div class="cf-tags">${tags.filter(Boolean).map((x, i) => `<span${i ? '' : ` style="background:${col}1a;color:${col}"`}>${esc(x)}</span>`).join('')}</div>
+    ${st ? `<div class="cf-open ${st.open ? 'on' : 'off'}">${esc(st.open ? (st.h24 ? t('caf_h24') : st.until != null ? t('caf_until', { t: hm(st.until) }) : t('caf_open')) : t('caf_closed'))}</div>` : ''}
+    ${k === 'mosque' ? `<div class="cf-sec">${esc(t('mq_pt'))}</div>${prayStrip(poCity(k), 'in')}` : ''}
+    <div class="h-card cf-info">
+      ${row(t('caf_addr'), esc(p.ad ? p.ad + ', ' + city : city))}
+      ${k === 'parking' && p.c ? row(t('pk_cap'), esc(String(p.c)) + (p.ds ? ` · ${esc(t('pk_dis'))}` : '')) : ''}
+      ${k === 'parking' && p.op ? row(t('pk_op'), esc(p.op)) : ''}
+      ${k === 'med' && p.sp ? row(t('md_sp'), esc(p.sp.split(';').map(x => x.replace(/_/g, ' ')).join(', '))) : ''}
+      ${p.h ? row(t('caf_hours'), ohPretty(esc(p.h))) : ''}
+      ${p.ph ? row(t('caf_phone'), `<a href="tel:${esc(tel)}">${esc(p.ph)}</a>`) : ''}
+      ${p.w ? row(t('caf_site'), `<a href="${esc(/^https?:/.test(p.w) ? p.w : 'https://' + p.w)}" target="_blank" rel="noopener">${esc(p.w.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a>`) : ''}
+      ${wp ? row('Wikipedia', `<a href="https://${esc(wp[1])}.wikipedia.org/wiki/${esc(encodeURIComponent(wp[2]))}" target="_blank" rel="noopener">${esc(t('mq_wiki'))}</a>`) : ''}
+    </div>
+    ${tel ? `<a class="h-btn h-ghostd cf-callbtn" href="tel:${esc(tel)}">${esc(t('caf_call'))}</a>` : ''}
+    ${k === 'parking' ? `<button class="h-btn h-ghostd cf-rtbtn" data-act="pkpay">${esc(t('pk_pay'))}</button>` : ''}
+    <button class="h-btn h-primary cf-rtbtn" data-act="poroute:${k}:${p.id}">${esc(t(k === 'parking' ? 'route' : 'rt_t'))}</button>
+    <div class="cf-sec">${esc(t('caf_route'))}</div><div class="cf-sub">${esc(t('caf_route_s'))}</div>
+    <div class="cf-routes">${navLinks(p, null, 'car').map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>
+    <div class="h-muted small cam-note">${esc(t('po_src'))}</div>`, 'bs-caf');
+}
+async function poRoute(k, id) {
+  const p = poFind(k, id); if (!p) return; const K = PO_K[k];
+  bsheetClose(true);
+  let from; try { from = await geo(); } catch (e) { toast(t('rt_geo')); return; }
+  rtClear(); poSelect(k, p);
+  const near = cafDistRaw(from, [p.la, p.lo]) < 1.3;
+  RT = { p: Object.assign({}, p, { n: K.name(p) }), from, mode: K.foot && near ? 'foot' : 'car', car: null, foot: null, map: PO_MAP, col: K.col(p), ic: poIc(K.ic(p), 16), open: () => poOpen(k, id), taxi: k !== 'parking' };
+  rtPanel();
+  const [car, foot] = await Promise.all([osrm('car', from, [p.la, p.lo]), osrm('foot', from, [p.la, p.lo])]);
+  if (!RT || RT.p.id !== p.id) return;
+  RT.car = car; RT.foot = foot; rtDraw(); rtPanel();
+}
+function pkPay() {
+  const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const app = ios ? 'https://apps.apple.com/uz/app/poytaxt-parking/id6448937713' : 'https://play.google.com/store/search?q=Poytaxt%20Parking&c=apps';
+  const step = (n, a, b) => `<div class="pk-step"><span>${n}</span><div><b>${esc(t(a))}</b><p>${esc(t(b))}</p></div></div>`;
+  const row = (a, b) => `<div class="cf-row"><span>${esc(t(a))}</span><div>${esc(t(b))}</div></div>`;
+  bsheet(`<div class="pk-hero"><span>P</span><div><b>${esc(t('pk_h'))}</b><i>${esc(t('pk_h_s'))}</i></div></div>
+    ${step(1, 'pk_s1', 'pk_s1d')}${step(2, 'pk_s2', 'pk_s2d')}${step(3, 'pk_s3', 'pk_s3d')}
+    <a class="h-btn h-primary cf-callbtn" href="${esc(app)}" target="_blank" rel="noopener">${esc(t('pk_app'))}</a>
+    <div class="cf-sec">${esc(t('pk_tar'))}</div>
+    <div class="h-card cf-info">${row('pk_t1', 'pk_t1v')}${row('pk_t3', 'pk_t3v')}${row('pk_t2', 'pk_t2v')}${row('pk_t4', 'pk_t4v')}</div>
+    <a class="h-btn h-ghostd cf-callbtn" style="margin-top:12px" href="https://oldmy.gov.uz/${LANG === 'uz' ? 'uz' : LANG === 'en' ? 'en' : 'ru'}/service/1286" target="_blank" rel="noopener">${esc(t('pk_res'))}</a>
+    <a class="cf-ya" href="tel:+998781136700">${esc(t('pk_sup'))}: +998 78 113 67 00</a>
+    <div class="h-muted small cam-note">${esc(t('pk_note'))}</div>`, 'bs-caf');
+}
+function poCitySheet(k) {
+  const ix = (PO_INDEX && PO_INDEX.n[k]) || {};
+  const ids = Object.keys(ix).map(Number).sort((a, b) => (a === 0 ? -1 : b === 0 ? 1 : ix[b] - ix[a]));
+  bsheet(`<div class="cf-sec" style="margin-top:4px">${esc(t('caf_city_t'))}</div><div class="h-card np">${ids.map(i => `<button class="h-row cam-orow" data-act="posetcity:${k}:${i}"><span class="h-rt"><b>${esc(cityName(i))}</b><i>${esc(t('po_n', { n: ix[i] }))}</i></span>${i === poCity(k) ? '<span class="cf-chk">✓</span>' : IC.chev}</button>`).join('')}</div>`);
+}
+Object.assign(XACT, {
+  pocat: a => { const [k, c] = a.split(':'); const s = po(k); s.cat = s.cat === c && c !== 'all' ? 'all' : c; s.more = 0; rtClear(); render(current, k); },
+  pomore: k => { po(k).more += 60; poRefresh(k, true); },
+  poopen: a => { const [k, id] = a.split(':'); poOpen(k, id); },
+  poroute: a => { const [k, id] = a.split(':'); poRoute(k, id); },
+  pocity: k => poIndex().then(() => poCitySheet(k)),
+  posetcity: a => { const [k, i] = a.split(':'); bsheetClose(true); const s = po(k); s.city = +i; s.more = 0; rtClear(); if (window.__poView) delete window.__poView[k]; render(current, k); },
+  pkpay: () => { bsheetClose(true); setTimeout(pkPay, 30); },
+});
+AI_HIDE.add('h:poi');
+
+// ---- live overlays on the designed screens: parking, mosques (prayer times), health, mahalla
+function miniMap(layer, box, k, onOpen) {
+  const [x, y, w, h] = box;
+  const d = document.createElement('div'); d.className = 'mini-map';
+  d.style.left = P(x); d.style.top = P(y); d.style.width = P(w); d.style.height = P(h); d.style.borderRadius = P(20);
+  d.innerHTML = `<div class="mm-in"></div><button class="mm-btn" style="zoom:${U}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#143C20" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 21 3l-8 18-2-8z"/></svg>${esc(t('po_open_map'))}</button>`;
+  layer.appendChild(d);
+  d.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onOpen(); });
+  Promise.all([leafletReady(), poIndex()]).then(() => poLoad(k, poCity(k))).then(list => {
+    if (!document.body.contains(d)) return;
+    const c = CITIES[poCity(k)];
+    const m = tiles(L.map(d.querySelector('.mm-in'), { zoomControl: false, attributionControl: true, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, tap: false, preferCanvas: true }).setView([c[5], c[6]], poCity(k) === 0 ? 12 : 13));
+    const K = PO_K[k];
+    for (const p of list) L.circleMarker([p.la, p.lo], { radius: 3.5, color: '#fff', weight: 1, fillColor: K.col(p), fillOpacity: .95, interactive: false }).addTo(m);
+  }).catch(() => {});
+  return d;
+}
+function hoverlay(layer, x, y, w, h, html, cls = '') {
+  const d = document.createElement('div'); d.className = 'hov ' + cls;
+  d.style.left = P(x); d.style.top = P(y); d.style.width = P(w); if (h) d.style.height = P(h);
+  d.innerHTML = `<div class="hov-z" style="zoom:${U};width:${w}px">${html}</div>`; layer.appendChild(d); return d;
+}
+function drawParking(layers) {
+  const r = layers.r; if (!r) return;
+  miniMap(r, [24, 652, 382, 349.5], 'parking', () => go('h:poi', 'parking'));
+  const a = hoverlay(r, 236, 606, 170, 32, `<button class="hov-link">${esc(t('pk_pay_l'))} ›</button>`);
+  a.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); pkPay(); });
+}
+function drawMosques(layers) {
+  const r = layers.r; if (!r) return;
+  const ci = cityIdx(), P0 = prayNow(ci);
+  [[95, 300], [211, 300], [327, 300], [95, 426], [211, 426], [327, 426]].forEach(([cx, y], i) =>
+    hoverlay(r, cx - 52, y, 104, 24, `<div class="pr-t${i === P0.next ? ' on' : ''}">${hm(P0.tm[i])}</div>`));
+  hoverlay(r, 24, 482, 382, 22, `<div class="pr-next">${esc(t('mq_next', { p: t('pr_' + P0.next), t: hm(P0.tm[P0.next]) }))} · ${esc(t('mq_in', { d: fmtLeft(P0.left) }))}</div>`);
+  miniMap(r, [24, 512, 382, 261], 'mosque', () => go('h:poi', 'mosque'));
+}
+const HEALTH_Y = 716, MAH_Y = 918;
+function drawHealth(layers) {
+  const r = layers.r; if (!r) return;
+  const tiles4 = ['pharmacy', 'hospital', 'clinic', 'dentist'];
+  const w = hoverlay(r, 24, HEALTH_Y, 382, 284, `<div class="hv-h">${esc(t('md_near'))}</div>
+    <div class="hv-grid">${tiles4.map(c => `<button data-md="${c}"><span class="hv-ic" style="background:${PO_COL[c]}">${poIc(c, 22)}</span><b>${esc(t('mdc_' + c))}</b><i data-mdn="${c}">${esc(t('po_load'))}</i></button>`).join('')}</div>
+    <div class="hv-sos"><a href="tel:103"><b>103</b>${esc(t('md_103'))}</a><a href="tel:112"><b>112</b>${esc(t('md_112'))}</a></div>`);
+  w.addEventListener('click', e => { const b = e.target.closest('[data-md]'); if (!b) return; e.preventDefault(); e.stopPropagation(); go('h:poi', 'med:' + b.dataset.md); });
+  poIndex().then(() => poLoad('med', poCity('med'))).then(list => {
+    for (const c of tiles4) { const n = list.filter(p => p.a === c), o = n.filter(p => (ohState(p.h) || {}).open).length; const e = w.querySelector(`[data-mdn="${c}"]`); if (e) e.textContent = n.length ? (o ? t('md_open_of', { o, n: n.length }) : t('md_n', { n: n.length })) : '—'; }
+  }).catch(() => {});
+}
+function drawMahalla(layers) {
+  const r = layers.r; if (!r) return;
+  const ci = cityIdx(), P0 = prayNow(ci);
+  const w = hoverlay(r, 24, MAH_Y, 382, 360, `<div class="hv-h">${esc(t('mq_near'))}<button data-mq="map">${esc(t('po_all_m'))}</button></div>
+    <div class="hv-card"><button class="hv-pr" data-mq="pt"><span class="hv-ic" style="background:#0F766E">${poIc('mosque', 22)}</span><span><b>${esc(t('mq_next', { p: t('pr_' + P0.next), t: hm(P0.tm[P0.next]) }))}</b><i>${esc(t('mq_in', { d: fmtLeft(P0.left) }))} · ${esc(cityName(ci))}</i></span>${IC.chev}</button>
+    <div class="hv-list">${[0, 1, 2].map(() => '<div class="hv-sk"></div>').join('')}</div>
+    <button class="hv-btn" data-mq="pt">${esc(t('mq_open'))}</button></div>`);
+  w.addEventListener('click', e => { const b = e.target.closest('[data-mq],[data-mid]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.mid) { window.__poOpen = b.dataset.mid; go('h:poi', 'mosque'); } else if (b.dataset.mq === 'map') go('h:poi', 'mosque'); else go('1:3529'); });
+  const draw = list => {
+    const l = caf().loc, c = CITIES[poCity('mosque')]; const from = l || [c[5], c[6]];
+    const near = list.filter(p => p.n).map(p => [cafDistRaw(from, [p.la, p.lo]), p]).sort((a, b) => a[0] - b[0]).slice(0, 3);
+    const box = w.querySelector('.hv-list'); if (!box) return;
+    box.innerHTML = near.map(([d, p]) => `<button class="hv-mq" data-mid="${p.id}"><span class="hv-dot" style="background:${PO_K.mosque.col(p)}"></span><span><b>${esc(p.n)}</b><i>${esc([p.ad, l ? fmtDist(d) : ''].filter(Boolean).join(' · ') || t(p.hi ? 'mq_hist' : 'mq_kind'))}</i></span>${IC.chev}</button>`).join('') || `<div class="cf-empty">${esc(t('po_none'))}</div>`;
+  };
+  poIndex().then(() => poLoad('mosque', poCity('mosque'))).then(draw).catch(() => {});
+}
+
+// ======================= Public transport: Tashkent metro + buses (OpenStreetMap) =======================
+const TR_I = {
+  ru: { tr_t: 'Метро и автобусы', tr_metro: 'Метро', tr_bus: 'Автобусы', tr_q_metro: 'Станция метро', tr_q_bus: 'Номер маршрута или остановка', tr_st: '{n} станций', tr_stops: '{n} остановок',
+    tr_live: 'Где автобус сейчас', tr_live_s: 'Движение автобусов в реальном времени — в Яндекс Картах и 2ГИС', tr_ya: 'Яндекс Карты', tr_2gis: '2ГИС', tr_routes: 'Маршруты', tr_near: 'Остановки рядом', tr_pop: 'Крупные остановки',
+    tr_found_r: 'Маршруты: {n}', tr_found_s: 'Остановки: {n}', tr_b: 'Автобус', tr_tb: 'Троллейбус', tr_mb: 'Маршрутка', tr_tr: 'Трамвай', tr_line: 'Линия', tr_transfer: 'Пересадка', tr_walk: 'Как дойти', tr_map_ya: 'Схема метро в Яндексе',
+    tr_route_stops: 'Остановки маршрута', tr_reset: 'Показать все', tr_only_tash: 'Схема метро и маршруты пока есть только для Ташкента', tr_src: 'Данные о маршрутах — OpenStreetMap; время прибытия — в Яндекс Картах и 2ГИС',
+    tr_sec: 'Метро и автобусы', tr_m_s: 'Схема, станции, пересадки', tr_b_s: 'Остановки и маршруты', tr_arr: 'Прибытие на остановку' },
+  uz: { tr_t: 'Metro va avtobuslar', tr_metro: 'Metro', tr_bus: 'Avtobuslar', tr_q_metro: 'Metro bekati', tr_q_bus: "Yo'nalish raqami yoki bekat", tr_st: '{n} ta bekat', tr_stops: '{n} ta bekat',
+    tr_live: 'Avtobus hozir qayerda', tr_live_s: "Avtobuslar harakati real vaqtda — Yandex Xaritalar va 2GIS'da", tr_ya: 'Yandex Xaritalar', tr_2gis: '2GIS', tr_routes: "Yo'nalishlar", tr_near: 'Yaqin bekatlar', tr_pop: 'Yirik bekatlar',
+    tr_found_r: "Yo'nalishlar: {n}", tr_found_s: 'Bekatlar: {n}', tr_b: 'Avtobus', tr_tb: 'Trolleybus', tr_mb: 'Marshrutka', tr_tr: 'Tramvay', tr_line: 'Liniya', tr_transfer: "O'tish", tr_walk: 'Qanday borish', tr_map_ya: 'Yandex metro sxemasi',
+    tr_route_stops: "Yo'nalish bekatlari", tr_reset: "Hammasini ko'rsatish", tr_only_tash: "Metro sxemasi va yo'nalishlar hozircha faqat Toshkent uchun", tr_src: "Yo'nalishlar — OpenStreetMap; kelish vaqti — Yandex Xaritalar va 2GIS'da",
+    tr_sec: 'Metro va avtobuslar', tr_m_s: "Sxema, bekatlar, o'tishlar", tr_b_s: "Bekatlar va yo'nalishlar", tr_arr: 'Bekatga kelishi' },
+  en: { tr_t: 'Metro & buses', tr_metro: 'Metro', tr_bus: 'Buses', tr_q_metro: 'Metro station', tr_q_bus: 'Route number or stop', tr_st: '{n} stations', tr_stops: '{n} stops',
+    tr_live: 'Where is my bus', tr_live_s: 'Live bus positions — in Yandex Maps and 2GIS', tr_ya: 'Yandex Maps', tr_2gis: '2GIS', tr_routes: 'Routes', tr_near: 'Stops nearby', tr_pop: 'Major stops',
+    tr_found_r: 'Routes: {n}', tr_found_s: 'Stops: {n}', tr_b: 'Bus', tr_tb: 'Trolleybus', tr_mb: 'Minibus', tr_tr: 'Tram', tr_line: 'Line', tr_transfer: 'Transfer', tr_walk: 'Walk there', tr_map_ya: 'Metro map in Yandex',
+    tr_route_stops: 'Route stops', tr_reset: 'Show all', tr_only_tash: 'The metro map and routes are available for Tashkent only for now', tr_src: 'Routes — OpenStreetMap; arrival times — in Yandex Maps and 2GIS',
+    tr_sec: 'Metro & buses', tr_m_s: 'Map, stations, transfers', tr_b_s: 'Stops and routes', tr_arr: 'Arrivals at the stop' },
+  zh: { tr_t: '地铁与公交', tr_metro: '地铁', tr_bus: '公交', tr_q_metro: '地铁站', tr_q_bus: '线路号或车站', tr_st: '{n} 个站', tr_stops: '{n} 个站',
+    tr_live: '公交实时位置', tr_live_s: '在 Yandex 地图和 2GIS 中查看公交实时位置', tr_ya: 'Yandex 地图', tr_2gis: '2GIS', tr_routes: '线路', tr_near: '附近车站', tr_pop: '主要车站',
+    tr_found_r: '线路：{n}', tr_found_s: '车站：{n}', tr_b: '公交车', tr_tb: '无轨电车', tr_mb: '小巴', tr_tr: '有轨电车', tr_line: '线路', tr_transfer: '换乘', tr_walk: '步行前往', tr_map_ya: 'Yandex 地铁图',
+    tr_route_stops: '线路车站', tr_reset: '显示全部', tr_only_tash: '地铁图和线路目前仅支持塔什干', tr_src: '线路数据来自 OpenStreetMap；到站时间见 Yandex 地图和 2GIS',
+    tr_sec: '地铁与公交', tr_m_s: '线路图、车站、换乘', tr_b_s: '车站与线路', tr_arr: '到站信息' },
+};
+for (const l in TR_I) Object.assign(I[l], TR_I[l]);
+const TR_TC = { b: '#2563EB', t: '#0891B2', m: '#D97706', tr: '#DC2626' };
+const TR_TN = { b: 'tr_b', t: 'tr_tb', m: 'tr_mb', tr: 'tr_tr' };
+const TR_MCOL = ['#DA291C', '#0057B8', '#009A44', '#F2A900', '#7C3AED'];
+let TR_DATA = null, TR_P = null;
+function trLoad() { if (TR_DATA) return Promise.resolve(TR_DATA); return TR_P || (TR_P = fetch('data/transit/0.json', { cache: 'no-cache' }).then(r => r.json()).then(j => { j.metro.lines.forEach((l, i) => { if (!/^#?[0-9a-f]{3,6}$/i.test(l.c || '')) l.c = TR_MCOL[i % TR_MCOL.length]; else if (l.c[0] !== '#') l.c = '#' + l.c; }); return (TR_DATA = j); }).catch(e => { TR_P = null; throw e; })); }
+const tr = () => (window.__tr = window.__tr || { tab: 'metro', q: '', route: null, more: 0, big: false });
+const TR_IC = {
+  metro: '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18 8 6l4 8 4-8 4 12"/></svg>',
+  bus: '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6M16 6v6M2 12h19.6M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>',
+};
+const trIc = (k, s) => TR_IC[k].replace(/\{s\}/g, s);
+function trLineOf(ref) { return TR_DATA ? TR_DATA.metro.lines.find(l => l.r === ref) : null; }
+function trShort(l) { return (l.n.replace(/^[^:]*:\s*/, '').replace(/\s*(линия|line|liniyasi|chizig['ʻ’`]?i)\s*/gi, ' ').trim()) || l.r; }
+function trBadge(ref) { const l = trLineOf(ref); return `<span class="tr-lb" style="background:${l ? l.c : '#6B7280'}">${esc(l ? trShort(l) : ref)}</span>`; }
+function trRb(key) { const R = TR_DATA && TR_DATA.bus.routes[key]; const ty = R ? R.t : key.replace(/\d.*/, '') || 'b'; return `<span class="tr-rb" style="background:${TR_TC[ty] || '#2563EB'}">${esc(R ? R.r : key.replace(/^\D+/, ''))}</span>`; }
+function trFilter() {
+  const s = tr(), q = s.q.trim().toLowerCase(), D = TR_DATA; if (!D) return { routes: [], stops: [], st: [] };
+  if (s.tab === 'metro') return { st: D.metro.st.filter(x => !q || (x.n + ' ' + (x.n2 || '')).toLowerCase().includes(q)) };
+  const routes = q ? Object.entries(D.bus.routes).filter(([k, R]) => R.r.toLowerCase() === q || R.r.toLowerCase().startsWith(q) && /^\d/.test(q) || (!/^\d/.test(q) && (R.f + ' ' + R.to + ' ' + R.n).toLowerCase().includes(q))).sort((a, b) => (parseInt(a[1].r) || 999) - (parseInt(b[1].r) || 999)).slice(0, 30) : [];
+  let stops = D.bus.stops.map((x, i) => Object.assign({ i }, x)).filter(x => x.r.length && (!q || x.n.toLowerCase().includes(q) || x.r.some(k => D.bus.routes[k] && D.bus.routes[k].r.toLowerCase() === q)));
+  const l = caf().loc;
+  stops = l ? stops.map(x => [cafDistRaw(l, [x.la, x.lo]), x]).sort((a, b) => a[0] - b[0]).map(x => x[1]) : stops.sort((a, b) => b.r.length - a.r.length);
+  return { routes, stops };
+}
+const TR_TOP = 236;
+function trMapH() { return tr().big ? Math.max(260, VH - TR_TOP - 60) : Math.min(290, Math.max(200, Math.round(VH * .32))); }
+HS.transit = (arg) => {
+  const s = tr(); if (arg === 'metro' || arg === 'bus') { if (s.tab !== arg) { s.tab = arg; s.q = ''; s.route = null; } currentP = null; }
+  const tab = k => `<button class="tr-tab ${s.tab === k ? 'on' : ''}" data-act="trtab:${k}"><span style="background:${k === 'metro' ? '#DA291C' : '#2563EB'}">${trIc(k, 16)}</span>${esc(t('tr_' + k))}</button>`;
+  return `<div class="h-hdr"><button class="h-back" data-act="back">${IC.back}</button><div class="h-title">${esc(t('tr_t'))}</div></div>
+    <div class="tr-tabs">${tab('metro')}${tab('bus')}</div>
+    <div class="cf-bar"><label class="cf-search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="trQ" type="search" enterkeyhint="search" autocomplete="off" placeholder="${esc(t('tr_q_' + s.tab))}" value="${esc(s.q)}"></label></div>
+    ${s.tab === 'bus' ? `<button class="po-x pk tr-live" data-act="trlive"><span class="po-xi" style="background:#DBEAFE">${trIc('bus', 20).replace('#fff', '#2563EB')}</span><span class="po-xt"><b>${esc(t('tr_live'))}</b><i>${esc(t('tr_live_s'))}</i></span>${IC.chev}</button>` : ''}
+    <div class="cf-mapph" style="height:${trMapH()}px"></div>
+    <div class="h-body cf-body" id="trList">${TR_DATA ? '' : `<div class="cf-empty">${esc(t('po_load'))}</div>`}</div>`;
+};
+let TR_MAP = null, TR_L = null, TR_SEL = null, TR_ME = null;
+HS.transit.mount = el => {
+  const s = tr();
+  const q = el.querySelector('#trQ'); let tm;
+  q.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(() => { s.q = q.value; s.more = 0; s.route = null; trRefresh(); }, 220); });
+  q.addEventListener('keydown', e => { if (e.key === 'Enter') q.blur(); });
+  const app = document.getElementById('app'), ph = el.querySelector('.cf-mapph');
+  const ar = app.getBoundingClientRect(), pr = ph.getBoundingClientRect();
+  const mw = document.createElement('div'); mw.className = 'cf-map';
+  mw.style.top = (pr.top - ar.top) + 'px'; mw.style.height = pr.height + 'px'; mw.style.width = P(430);
+  mw.innerHTML = `<div id="cfMap"></div><div class="cf-mbtns" style="zoom:${U}"><button data-cf="me"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#143C20" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2" fill="#143C20"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg></button><button data-cf="big"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#143C20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${s.big ? '<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>' : '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>'}</svg></button></div>`;
+  app.appendChild(mw);
+  mw.addEventListener('click', e => { const b = e.target.closest('[data-cf]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.cf === 'big') { s.big = !s.big; render(current, currentP); } else trLocate(); });
+  const list = el.querySelector('#trList');
+  Promise.all([leafletReady(), trLoad()]).then(() => {
+    if (!document.body.contains(mw)) return;
+    if (list.querySelector('.cf-empty') && !list.querySelector('.cf-item')) list.innerHTML = '';
+    const c = CITIES[0], v = window.__trView;
+    TR_MAP = tiles(L.map(mw.querySelector('#cfMap'), { zoomControl: false, attributionControl: true, preferCanvas: true }).setView(v ? v.c : [c[5], c[6]], v ? v.z : 12));
+    TR_MAP.on('moveend', () => { window.__trView = { c: TR_MAP.getCenter(), z: TR_MAP.getZoom() }; });
+    TR_L = L.layerGroup().addTo(TR_MAP); TR_SEL = null; TR_ME = null; RT = null; RT_LINE = null;
+    TR_MAP.on('zoomend', () => { if (tr().tab === 'bus' && !tr().route) trDraw(); });
+    if (caf().loc) trMe();
+    trRefresh(true);
+    if (cityIdx() !== 0 && !window.__trWarn) { window.__trWarn = 1; toast(t('tr_only_tash')); }
+  }).catch(() => { list.innerHTML = `<div class="cf-empty">${esc(t('po_err'))}</div>`; });
+};
+function trMe() { const l = caf().loc; if (!TR_MAP || !l) return; if (TR_ME) TR_ME.remove(); TR_ME = L.circleMarker(l, { radius: 8, color: '#fff', weight: 3, fillColor: '#2563EB', fillOpacity: 1 }).addTo(TR_MAP); }
+function trLocate() {
+  if (!navigator.geolocation) return toast(t('caf_geo_err'));
+  navigator.geolocation.getCurrentPosition(pos => { caf().loc = [pos.coords.latitude, pos.coords.longitude]; trMe(); if (TR_MAP) TR_MAP.flyTo(caf().loc, 15, { duration: .6 }); trRefresh(); }, () => toast(t('caf_geo_err')), { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+}
+function trDraw() {
+  if (!TR_L || !TR_DATA) return; TR_L.clearLayers(); const s = tr(), D = TR_DATA;
+  if (s.tab === 'metro') {
+    for (const l of D.metro.lines) for (const g of l.g) L.polyline(g, { color: l.c, weight: 5, opacity: .9, interactive: false }).addTo(TR_L);
+    for (const x of D.metro.st) { const l = trLineOf(x.l[0]); const m = L.circleMarker([x.la, x.lo], { radius: 6, color: l ? l.c : '#111', weight: 3, fillColor: '#fff', fillOpacity: 1 }); m.on('click', () => trStation(x.id)); m.addTo(TR_L); }
+    return;
+  }
+  if (s.route) {
+    const R = D.bus.routes[s.route]; if (!R) return; const col = TR_TC[R.t] || '#2563EB';
+    const pts = R.s.map(i => [D.bus.stops[i].la, D.bus.stops[i].lo]);
+    const pl = L.polyline(pts, { color: col, weight: 4, opacity: .85, interactive: false }).addTo(TR_L);
+    R.s.forEach(i => { const x = D.bus.stops[i]; const m = L.circleMarker([x.la, x.lo], { radius: 5, color: '#fff', weight: 2, fillColor: col, fillOpacity: 1 }); m.on('click', () => trStop(i)); m.addTo(TR_L); });
+    TR_MAP.fitBounds(pl.getBounds(), { padding: [30, 30] });
+    return;
+  }
+  const z = TR_MAP.getZoom(); if (z < 12) return;   // too many stops at country zoom
+  const b = TR_MAP.getBounds().pad(.3);
+  D.bus.stops.forEach((x, i) => { if (!x.r.length || !b.contains([x.la, x.lo])) return; const m = L.circleMarker([x.la, x.lo], { radius: z >= 15 ? 6 : z >= 13 ? 4.5 : 3, color: '#fff', weight: 1.5, fillColor: '#2563EB', fillOpacity: .95 }); m.on('click', () => trStop(i)); m.addTo(TR_L); });
+}
+function trRefresh(keep) {
+  const s = tr(), list = document.getElementById('trList'); if (!list || !TR_DATA) return;
+  const D = TR_DATA, f = trFilter(); let h = '';
+  if (s.tab === 'metro') {
+    const q = s.q.trim();
+    if (q) h = `<div class="cf-count">${esc(t('po_n', { n: f.st.length }))}</div>` + f.st.map(trStItem).join('');
+    else h = D.metro.lines.map(l => { const st = D.metro.st.filter(x => x.l.includes(l.r)); return `<div class="tr-lh"><span style="background:${l.c}"></span><b>${esc(l.n)}</b><i>${esc(t('tr_st', { n: st.length }))}</i></div>` + st.map(trStItem).join(''); }).join('');
+  } else if (s.route) {
+    const R = D.bus.routes[s.route];
+    h = `<div class="tr-rh">${trRb(s.route)}<span><b>${esc(t(TR_TN[R.t]) + ' ' + R.r)}</b><i>${esc([R.f, R.to].filter(Boolean).join(' → ') || R.n)}</i></span><button class="h-chip" data-act="trroute:">${esc(t('tr_reset'))}</button></div>
+      <div class="cf-count">${esc(t('tr_route_stops'))} · ${R.s.length}</div>` + R.s.map(i => trStopItem(Object.assign({ i }, D.bus.stops[i]), true)).join('');
+  } else {
+    const shown = f.stops.slice(0, 40 + s.more);
+    h = (f.routes.length ? `<div class="cf-count">${esc(t('tr_found_r', { n: f.routes.length }))}</div>` + f.routes.map(([k, R]) => `<button class="cf-item" data-act="trroute:${k}">${trRb(k)}<span class="cf-it"><b>${esc(t(TR_TN[R.t]) + ' ' + R.r)}</b><i>${esc([R.f, R.to].filter(Boolean).join(' → ') || R.n || t('tr_stops', { n: R.s.length }))}</i></span></button>`).join('') : '')
+      + `<div class="cf-count">${esc(s.q ? t('tr_found_s', { n: f.stops.length }) : caf().loc ? t('tr_near') : t('tr_pop'))}</div>` + shown.map(x => trStopItem(x)).join('')
+      + (f.stops.length > shown.length ? btn(t('caf_more'), 'trmore', 'ghostd') : '');
+  }
+  list.innerHTML = (h || `<div class="cf-empty">${esc(t('po_none'))}</div>`) + `<div class="h-muted small cam-note">${esc(t('tr_src'))}</div>`;
+  if (!keep) list.scrollTop = 0;
+  trDraw();
+}
+function trStItem(x) { const d = fmtDist(caf().loc ? cafDistRaw(caf().loc, [x.la, x.lo]) : null); return `<button class="cf-item" data-act="trst:${x.id}"><span class="cf-ic" style="background:${(trLineOf(x.l[0]) || {}).c || '#DA291C'}">${trIc('metro', 18)}</span><span class="cf-it"><b>${esc(x.n)}</b>${x.l.length > 1 ? `<i class="tr-x">${esc(t('tr_transfer'))}: ${x.l.map(trBadge).join(' ')}</i>` : x.n2 ? `<i>${esc(x.n2)}</i>` : ''}</span>${d ? `<span class="cf-dist">${esc(d)}</span>` : ''}</button>`; }
+function trStopItem(x, inRoute) { const d = fmtDist(caf().loc ? cafDistRaw(caf().loc, [x.la, x.lo]) : null); return `<button class="cf-item" data-act="trstop:${x.i}"><span class="cf-ic" style="background:#2563EB">${trIc('bus', 18)}</span><span class="cf-it"><b>${esc(x.n)}</b><i class="tr-rbs">${x.r.slice(0, inRoute ? 10 : 8).map(trRb).join('')}${x.r.length > (inRoute ? 10 : 8) ? `<em>+${x.r.length - (inRoute ? 10 : 8)}</em>` : ''}</i></span>${d ? `<span class="cf-dist">${esc(d)}</span>` : ''}</button>`; }
+function trSelect(la, lo, col) { if (!TR_MAP) return; if (TR_SEL) TR_SEL.remove(); TR_SEL = L.circleMarker([la, lo], { radius: 11, color: '#fff', weight: 3, fillColor: col, fillOpacity: 1 }).addTo(TR_MAP); TR_MAP.panTo([la, lo], { animate: true }); }
+function trLinks(la, lo) {
+  return [['Яндекс Карты', `https://yandex.uz/maps/10335/tashkent/?ll=${lo},${la}&z=17&l=masstransit`, '#FC3F1D', 'Я'], ['2ГИС', `https://2gis.uz/tashkent?m=${lo}%2C${la}%2F17`, '#29A746', '2'], ['Google Maps', `https://www.google.com/maps/search/?api=1&query=${la},${lo}`, '#1A73E8', 'G']];
+}
+function trSheet(title, sub, col, ic, la, lo, extra, walkAct) {
+  bsheet(`<div class="tr-hero"><span style="background:${col}">${ic}</span><div><b>${esc(title)}</b>${sub}</div></div>
+    ${extra}
+    <button class="h-btn h-primary cf-rtbtn" data-act="${walkAct}">${esc(t('tr_walk'))}</button>
+    <div class="cf-sec">${esc(t('tr_arr'))}</div><div class="cf-sub">${esc(t('tr_live_s'))}</div>
+    <div class="cf-routes">${trLinks(la, lo).map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>
+    <div class="h-muted small cam-note">${esc(t('tr_src'))}</div>`, 'bs-caf');
+}
+function trStation(id) {
+  const x = TR_DATA.metro.st.find(s => s.id === id); if (!x) return; const l = trLineOf(x.l[0]);
+  trSelect(x.la, x.lo, l ? l.c : '#DA291C');
+  trSheet(x.n, `<i>${esc(x.n2 || '')}</i><div class="tr-lbs">${x.l.map(trBadge).join('')}</div>`, l ? l.c : '#DA291C', trIc('metro', 26), x.la, x.lo,
+    `<a class="cf-ya" href="https://yandex.uz/metro/tashkent" target="_blank" rel="noopener">${esc(t('tr_map_ya'))} ›</a>`, 'trwalk:m:' + id);
+}
+function trStop(i) {
+  const x = TR_DATA.bus.stops[i]; if (!x) return; trSelect(x.la, x.lo, '#2563EB');
+  trSheet(x.n, `<i>${esc(t('tr_found_r', { n: x.r.length }))}</i>`, '#2563EB', trIc('bus', 26), x.la, x.lo,
+    `<div class="cf-sec">${esc(t('tr_routes'))}</div><div class="tr-rgrid">${x.r.map(k => `<button data-act="trroute:${k}">${trRb(k)}<i>${esc(t(TR_TN[(TR_DATA.bus.routes[k] || {}).t || 'b']))}</i></button>`).join('')}</div>`, 'trwalk:b:' + i);
+}
+async function trWalk(kind, id) {
+  const x = kind === 'm' ? TR_DATA.metro.st.find(s => s.id === id) : TR_DATA.bus.stops[+id]; if (!x) return;
+  bsheetClose(true);
+  let from; try { from = await geo(); } catch (e) { toast(t('rt_geo')); return; }
+  rtClear();
+  const col = kind === 'm' ? ((trLineOf(x.l[0]) || {}).c || '#DA291C') : '#2563EB';
+  const p = { id: kind + id, n: x.n, la: x.la, lo: x.lo };
+  RT = { p, from, mode: 'foot', car: null, foot: null, map: TR_MAP, col, ic: trIc(kind === 'm' ? 'metro' : 'bus', 16), open: () => kind === 'm' ? trStation(id) : trStop(+id), taxi: true };
+  rtPanel();
+  const [car, foot] = await Promise.all([osrm('car', from, [x.la, x.lo]), osrm('foot', from, [x.la, x.lo])]);
+  if (!RT || RT.p.id !== p.id) return; RT.car = car; RT.foot = foot; rtDraw(); rtPanel();
+}
+function trLive() {
+  const l = caf().loc, c = l || [CITIES[0][5], CITIES[0][6]];
+  bsheet(`<div class="tr-hero"><span style="background:#2563EB">${trIc('bus', 26)}</span><div><b>${esc(t('tr_live'))}</b><i>${esc(t('tr_live_s'))}</i></div></div>
+    <div class="cf-routes" style="grid-template-columns:1fr 1fr;margin-top:14px">${trLinks(c[0], c[1]).slice(0, 2).map(([n, u, cc, ll]) => `<a href="${esc(u.replace('z=17', 'z=' + (l ? 16 : 12)).replace('%2F17', '%2F' + (l ? 16 : 12)))}" target="_blank" rel="noopener"><span style="background:${cc}">${ll}</span>${esc(n)}</a>`).join('')}</div>
+    <div class="h-muted small cam-note">${esc(t('tr_src'))}</div>`, 'bs-caf');
+}
+Object.assign(XACT, {
+  trtab: k => { const s = tr(); if (s.tab === k) return; s.tab = k; s.q = ''; s.route = null; s.more = 0; rtClear(); render(current, null); },
+  trst: id => trStation(id), trstop: i => trStop(+i), trmore: () => { tr().more += 60; trRefresh(true); },
+  trroute: k => { bsheetClose(true); const s = tr(); s.route = k || null; if (s.tab !== 'bus') { s.tab = 'bus'; return render(current, null); } rtClear(); trRefresh(); },
+  trwalk: a => { const [k, ...id] = a.split(':'); trWalk(k, id.join(':')); }, trlive: () => trLive(),
+});
+AI_HIDE.add('h:transit');
+function drawTransit(layers) {
+  const r = layers.r; if (!r) return;
+  const w = hoverlay(r, 24, 540, 382, 190, `<div class="hv-h">${esc(t('tr_sec'))}</div>
+    <div class="hv-grid"><button data-tr="metro"><span class="hv-ic" style="background:#DA291C">${trIc('metro', 22)}</span><b>${esc(t('tr_metro'))}</b><i>${esc(t('tr_m_s'))}</i></button>
+    <button data-tr="bus"><span class="hv-ic" style="background:#2563EB">${trIc('bus', 22)}</span><b>${esc(t('tr_bus'))}</b><i>${esc(t('tr_b_s'))}</i></button></div>
+    <button class="hv-btn tr-livebtn" data-tr="live">${trIc('bus', 18)} ${esc(t('tr_live'))}</button>`);
+  w.addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.tr === 'live') trLive(); else go('h:transit', b.dataset.tr); });
+}
