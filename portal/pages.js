@@ -445,8 +445,8 @@ void main(){
       const s = now / 1000, ny = talking ? .004 * Math.sin(s * 5.3) + .002 * Math.sin(s * 8.1) : .0015 * Math.sin(s * 1.1), nx = talking ? .003 * Math.sin(s * 3.4) : .001 * Math.sin(s * .7);
       lives.forEach(f => { if (!f.ok || !f.vis) return; if (RM && f.drawnRM && !talking) return; f.drawnRM = RM;
         if (!f.seen) f.seen = now;
-        // surfaces from the code (2.4 s), stays, sinks back into the rain and returns: a 13 s breath; always present while speaking
-        const age = (now - f.seen) / 1000, c = age % 13; let as = c < 2.4 ? c / 2.4 : c < 9.6 ? 1 : c < 11.2 ? 1 - (c - 9.6) / 1.6 : 0;
+        // mostly pure code; now and then the face surfaces as an imprint (2.6 s), stays ~5 s and sinks back; always present while speaking
+        const age = (now - f.seen) / 1000 + 4, c = age % 17; let as = c < 6 ? 0 : c < 8.6 ? (c - 6) / 2.6 : c < 13.4 ? 1 : c < 16 ? 1 - (c - 13.4) / 2.6 : 0;
         as = as * as * (3 - 2 * as); f.as = talking ? Math.min(1, (f.as || 0) + .06) : as; if (talking) as = f.as;
         liveDraw(f, RM ? 0 : now, mOpen, RM ? 0 : ny, RM ? 0 : nx, RM ? 1 : as); }); }; requestAnimationFrame(loop); }
     function wireRobots(root = document) { root.querySelectorAll('.bot').forEach(liveInit); }
