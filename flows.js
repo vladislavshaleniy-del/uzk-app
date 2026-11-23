@@ -1268,7 +1268,12 @@ async function aiAsk(q) {
       clearTimeout(tm);
       const j = await r.json(); const rep = String(j.reply || '').replace(/\[\[[^\]]*\]\]/g, '').trim();
       const ids = new Set(list.map(p => p.id));
-      for (const ln of rep.split('\n')) { const m = ln.match(/^\s*[-*•]?\s*([nwr]\d+)\s*[|:—-]\s*(.+)$/); if (m && ids.has(m[1]) && picks.length < 3) picks.push([m[1], m[2].trim()]); else if (!picks.length && ln.trim() && !text) text = ln.trim(); }
+      for (const raw of rep.split('\n')) {
+        const ln = raw.replace(/[*_`]/g, '').trim(); if (!ln) continue;
+        const id = (ln.match(/\b([nwr]\d{3,})\b/) || [])[1];
+        if (id && ids.has(id)) { if (picks.length < 3 && !picks.some(x => x[0] === id)) picks.push([id, ln.slice(ln.indexOf(id) + id.length).replace(/^\s*[|:—–-]\s*/, '').trim()]); }
+        else if (!picks.length && !text) text = ln.replace(/^\d+[.)]\s*/, '');
+      }
     } catch (e) {}
     if (!picks.length) picks = list.slice(0, 3).map(p => [p.id, '']);
     if (!text) text = t('ai_here');
