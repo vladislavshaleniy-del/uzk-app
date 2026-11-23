@@ -11,7 +11,7 @@ jobs:
       - name: Download pictures uploaded to the art hand-off
         run: |
           mkdir -p portal/art
-          for n in face1 face2 face3 face4; do
+          for n in me1 me2 face3 face4; do
             curl -sf --max-time 60 -o "portal/art/in-$n.webp" "https://myuzcity.pages.dev/api/art?n=$n" || rm -f "portal/art/in-$n.webp"
           done
           ls -la portal/art

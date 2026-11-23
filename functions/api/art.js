@@ -2,7 +2,7 @@
 // a GitHub Action copies them into portal/art/ and this endpoint is then removed.
 // Write-once, fixed names, WebP only, size-capped.
 import { json, CORS, ready } from '../_lib/auth.js';
-const NAMES = ['face1', 'face2', 'face3', 'face4'];
+const NAMES = ['face1', 'face2', 'face3', 'face4', 'me1', 'me2'];
 const ok = n => NAMES.includes(n);
 const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
 async function table(env) { await env.DB.prepare('CREATE TABLE IF NOT EXISTS art (name TEXT PRIMARY KEY, data TEXT NOT NULL, created INTEGER NOT NULL)').run(); }
