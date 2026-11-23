@@ -556,7 +556,15 @@ const XACT = {
 };
 
 // ======================= «ИИ ассистент»: floating button + chat on every screen =======================
+// own assistant (Cloudflare Pages Function, functions/api/assistant.js); the old endpoint stays as a fallback
+const AI_OWN = /(^|\.)myuzcity\.(uz|pages\.dev)$/.test(location.hostname) ? '/api/assistant' : 'https://myuzcity.pages.dev/api/assistant';
 const AI_URL = 'https://www.ast-group.uz/api/assistant';
+async function aiFetch(body, signal) {
+  for (const u of [AI_OWN, AI_URL]) {
+    try { const r = await fetch(u, { method: 'POST', headers: { 'content-type': 'application/json' }, signal, body: JSON.stringify(body) }); if (!r.ok && u !== AI_URL) continue; const j = await r.json(); if (j && (j.ok || u === AI_URL)) return j; } catch (e) { if (signal && signal.aborted) throw e; }
+  }
+  return {};
+}
 const AIX = {
   ru: { as_t: 'ИИ ассистент', as_s: 'Отвечу на любой вопрос', as_hi: 'Здравствуйте, Владислав! Я ИИ ассистент MyUzCity. Спросите о чём угодно — госуслуги, платежи, транспорт, здоровье или любой другой вопрос.', as_ph: 'Напишите вопрос…', as_err: 'Не удалось получить ответ. Проверьте интернет и попробуйте ещё раз.', as_retry: 'Повторить', as_new: 'Новый диалог',
     as_q: 'Как оформить загранпаспорт?|Сколько стоит проезд в метро?|Какие документы нужны для детского сада?|Что посмотреть в городе {c}?' },
@@ -588,6 +596,7 @@ const AI_GO = {
   roads: ['1:3863', 'Дороги и ремонт', "Yo'llar va ta'mirlash", 'Roads and repairs', '道路与维修'], clean: ['1:4063', 'Чистый город', 'Toza shahar', 'Clean city', '清洁城市'],
   mosques: ['1:3529', 'Карта мечетей', 'Masjidlar xaritasi', 'Mosque map', '清真寺地图'], marketplace: ['1:5149', 'Маркетплейс', 'Marketpleys', 'Marketplace', '商城'],
   home: ['1:5285', 'Электронный дом', 'Elektron uy', 'E-home', '智慧家庭'],
+  cams: ['h:cams', 'Видеокамеры', 'Videokameralar', 'Live cameras', '实时摄像头'], news: ['h:news', 'Новости и афиша', 'Yangiliklar va afisha', 'News & events', '新闻与活动'],
 };
 const SPARK = s => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none"><path d="M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z" fill="#fff"/><path d="M18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" fill="#fff" opacity=".85"/></svg>`;
 let AIS = { msgs: [], busy: false };
@@ -601,8 +610,15 @@ function screenTitle() {
   return (DATA.screens[current] && DATA.screens[current].name) || current;
 }
 function aiFmt(s) {
+  const pl = [], cq = [];
+  s = String(s).replace(/\s*\[\[\s*place\s*:\s*([nwr]\d+)\s*\]\]/gi, (m, id) => { if (!pl.includes(id)) pl.push(id); return ''; })
+    .replace(/\s*\[\[\s*cafes\s*:\s*([^\]]{1,80})\]\]/gi, (m, q) => { cq.push(q.trim()); return ''; });
   const go = []; s = String(s).replace(/\s*\[\[\s*(?:go\s*:\s*)?([a-z_]+)\s*\]\]/gi, (m, k) => { if (AI_GO[k] && !go.includes(k)) go.push(k); return ''; }).trim();
+  const plist = CAF_DATA[cityIdx()] || CAF_DATA[0] || [];
+  const extra = pl.map(id => { const p = plist.find(x => x.id === id); return `<button class="ai-place" data-place="${id}"><b>${esc(p ? p.n : t('caf_t'))}</b><i>${esc(p ? [cafKind(p), cafCuis(p)].filter(Boolean).join(' · ') : '')}</i><span>${esc(t('ai_open'))} ›</span></button>`; }).join('')
+    + cq.slice(0, 1).map(q => `<button class="ai-place cq" data-cafq="${esc(q)}"><b>${esc(t('ai_btn'))}</b><i>${esc(q)}</i><span>›</span></button>`).join('');
   let h = esc(s).replace(/^\s*[-*•]\s+/gm, '• ').replace(/\n/g, '<br>');
+  if (extra) h += `<div class="ai-places">${extra}</div>`;
   if (go.length) h += `<div class="ai-go">${go.map(k => `<button data-go="${k}">${esc(AI_GO[k][LI[LANG] + 1])} →</button>`).join('')}</div>`;
   return h;
 }
@@ -622,10 +638,9 @@ async function aiAsk(q) {
   let reply = '', ok = false;
   try {
     const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 45000);
-    const r = await fetch(AI_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl.signal,
-      body: JSON.stringify({ messages: AIS.msgs.filter(m => m.role === 'user' || m.role === 'assistant').slice(-14), lang: LANG, name: { ru: 'Владислав', uz: 'Vladislav', en: 'Vladislav', zh: 'Vladislav' }[LANG], city: cityName(), date: liveText('date'), screen: AIS.screen || '' }) });
-    clearTimeout(tm);
-    const j = await r.json().catch(() => ({})); reply = j.reply || ''; ok = !!j.ok && !!reply;
+    const j = await aiFetch({ messages: AIS.msgs.filter(m => m.role === 'user' || m.role === 'assistant').slice(-14), lang: LANG, name: { ru: 'Владислав', uz: 'Vladislav', en: 'Vladislav', zh: 'Vladislav' }[LANG], city: cityName(), date: liveText('date'), screen: AIS.screen || '',
+      ctx: { cityIdx: cityIdx(), loc: (window.__caf && window.__caf.loc) || null } }, ctl.signal).catch(() => ({}));
+    clearTimeout(tm); reply = j.reply || ''; ok = !!j.ok && !!reply;
     if (!ok && j.error) { reply = j.error; ok = true; }
   } catch (e) {}
   AIS.busy = false;
@@ -634,6 +649,7 @@ async function aiAsk(q) {
 }
 function aiOpen() {
   if (document.getElementById('aiPanel')) return;
+  try { cafLoad(cityIdx()); } catch (e) {}
   AIS.screen = screenTitle();
   const p = document.createElement('div'); p.id = 'aiPanel';
   p.innerHTML = `<div class="ai-hd"><span class="ai-av">${SPARK(22)}</span><span class="ai-tt"><b>${esc(t('as_t'))}</b><i>${esc(t('as_s'))}</i></span>
@@ -658,6 +674,8 @@ function aiOpen() {
     else if (b.dataset.new) { AIS.msgs = []; aiSave(); aiRender(); }
     else if (b.dataset.q) aiAsk(b.dataset.q);
     else if (b.dataset.retry) aiAsk();
+    else if (b.dataset.place) { window.__cafOpenId = b.dataset.place; aiClose(); setTimeout(() => current === 'h:cafes' ? cafOpen(b.dataset.place) : go('h:cafes'), 120); }
+    else if (b.dataset.cafq) { window.__cafAsk = b.dataset.cafq; aiClose(); setTimeout(() => { if (current === 'h:cafes') { const q = window.__cafAsk; window.__cafAsk = null; XACT.aiopen(); cgAsk(q); } else go('h:cafes'); }, 120); }
     else if (b.dataset.go) { const to = AI_GO[b.dataset.go][0]; aiClose(); setTimeout(() => to.startsWith('h:') ? go(to.split('?')[0], to.split('?')[1]) : go(to), 120); }
   });
 }
@@ -1044,7 +1062,10 @@ HS.cafes.mount = el => {
     CAF_MAP.on('zoomend', () => { const r = cafR(); CAF_LAYER.eachLayer(m => m.setStyle({ radius: r, weight: r < 5 ? 1 : 1.6 })); });
     if (s.loc) cafMeMarker();
     cafRefresh(true);
-    RT = null; RT_LINE = null; aiTip(el);
+    RT = null; RT_LINE = null;
+    if (window.__cafOpenId) { const id = window.__cafOpenId; window.__cafOpenId = null; cafOpen(id); }
+    else if (window.__cafAsk) { const q = window.__cafAsk; window.__cafAsk = null; XACT.aiopen(); cgAsk(q); }
+    else aiTip(el);
   }).catch(() => { list.innerHTML = `<div class="cf-empty">${esc(t('caf_err'))}</div>`; });
 };
 function cafRefresh(keepScroll) {
