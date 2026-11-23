@@ -28,7 +28,20 @@ export async function ensureDb(env) {
   await env.DB.batch([
     env.DB.prepare('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, tg_id INTEGER UNIQUE, phone TEXT, first_name TEXT, last_name TEXT, username TEXT, name TEXT, city INTEGER, lang TEXT, created INTEGER, last_login INTEGER)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS logins (nonce TEXT PRIMARY KEY, chat_id INTEGER, user_id INTEGER, status TEXT, created INTEGER)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS codes (code TEXT PRIMARY KEY, user_id INTEGER, nonce TEXT, created INTEGER)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS fails (ip TEXT, ts INTEGER)'),
   ]);
 }
 export const publicUser = u => u && ({ id: u.id, phone: u.phone, first_name: u.first_name || '', last_name: u.last_name || '', username: u.username || '', name: u.name || '', city: u.city, lang: u.lang || '', created: u.created });
 export const ready = env => !!(env.DB && env.TG_BOT_TOKEN);
+// 6-digit one-time code the bot sends; valid 10 minutes
+export async function newCode(env, uid, nonce) {
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare('DELETE FROM codes WHERE created < ?1 OR user_id = ?2').bind(now - 600, uid).run();
+  for (let i = 0; i < 5; i++) {
+    const a = new Uint32Array(1); crypto.getRandomValues(a); const code = String(a[0] % 1000000).padStart(6, '0');
+    const r = await env.DB.prepare('INSERT INTO codes (code, user_id, nonce, created) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(code) DO NOTHING').bind(code, uid, nonce || null, now).run();
+    if (!r.meta || r.meta.changes !== 0) return code;
+  }
+  throw new Error('code');
+}

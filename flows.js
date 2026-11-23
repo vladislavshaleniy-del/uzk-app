@@ -1934,10 +1934,10 @@ function drawInvest(layers) {
 
 // ======================= Sign-in via Telegram (@MyUzCity_bot) =======================
 const AUTH_I = {
-  ru: { tg_login: 'Войти через Telegram', tg_wait_t: 'Подтвердите номер в Telegram', tg_s1: 'Откроется бот @MyUzCity_bot — нажмите «Start» («Запустить»)', tg_s2: 'Нажмите «📱 Поделиться номером» и подтвердите', tg_s3: 'Вернитесь сюда — вход завершится сам', tg_open: 'Открыть Telegram', tg_waiting: 'Ждём подтверждения…', tg_ok: 'Вы вошли: {n}', tg_err: 'Вход через Telegram пока недоступен — попробуйте позже', tg_exp: 'Время ожидания истекло — попробуйте ещё раз', tg_guest: 'Гость', tg_guest_s: 'Войдите, чтобы у вас был свой профиль', tg_phone: 'Телефон' },
-  uz: { tg_login: 'Telegram orqali kirish', tg_wait_t: 'Raqamni Telegramda tasdiqlang', tg_s1: '@MyUzCity_bot ochiladi — «Start» («Boshlash») tugmasini bosing', tg_s2: '«📱 Raqamni yuborish» tugmasini bosing va tasdiqlang', tg_s3: 'Bu yerga qayting — kirish avtomatik yakunlanadi', tg_open: 'Telegramni ochish', tg_waiting: 'Tasdiqlash kutilmoqda…', tg_ok: 'Siz kirdingiz: {n}', tg_err: "Telegram orqali kirish hozircha ishlamayapti — keyinroq urinib ko'ring", tg_exp: "Kutish vaqti tugadi — qayta urinib ko'ring", tg_guest: 'Mehmon', tg_guest_s: "O'z profilingiz bo'lishi uchun kiring", tg_phone: 'Telefon' },
-  en: { tg_login: 'Sign in with Telegram', tg_wait_t: 'Confirm your number in Telegram', tg_s1: '@MyUzCity_bot will open — tap “Start”', tg_s2: 'Tap “📱 Share my number” and confirm', tg_s3: 'Come back here — sign-in finishes automatically', tg_open: 'Open Telegram', tg_waiting: 'Waiting for confirmation…', tg_ok: 'Signed in: {n}', tg_err: 'Telegram sign-in is not available yet — please try later', tg_exp: 'Timed out — please try again', tg_guest: 'Guest', tg_guest_s: 'Sign in to get your own profile', tg_phone: 'Phone' },
-  zh: { tg_login: '通过 Telegram 登录', tg_wait_t: '在 Telegram 中确认号码', tg_s1: '将打开 @MyUzCity_bot — 点击“开始”', tg_s2: '点击“📱 分享号码”并确认', tg_s3: '返回此处 — 登录将自动完成', tg_open: '打开 Telegram', tg_waiting: '等待确认…', tg_ok: '已登录：{n}', tg_err: '暂时无法通过 Telegram 登录，请稍后再试', tg_exp: '已超时，请重试', tg_guest: '访客', tg_guest_s: '登录以拥有个人资料', tg_phone: '电话' },
+  ru: { tg_login: 'Войти через Telegram', tg_wait_t: 'Подтвердите номер в Telegram', tg_s1: 'Откройте бота @MyUzCity_bot и нажмите «Start»', tg_s2: 'Нажмите «📱 Поделиться номером» — бот пришлёт код', tg_s3: 'Введите код из Telegram здесь', tg_code: 'Код из Telegram', tg_go: 'Войти', tg_wrong: 'Неверный или устаревший код', tg_limit: 'Слишком много попыток — подождите 10 минут', tg_open: 'Открыть Telegram', tg_waiting: 'Ждём подтверждения…', tg_ok: 'Вы вошли: {n}', tg_err: 'Вход через Telegram пока недоступен — попробуйте позже', tg_exp: 'Время ожидания истекло — попробуйте ещё раз', tg_guest: 'Гость', tg_guest_s: 'Войдите, чтобы у вас был свой профиль', tg_phone: 'Телефон' },
+  uz: { tg_login: 'Telegram orqali kirish', tg_wait_t: 'Raqamni Telegramda tasdiqlang', tg_s1: '@MyUzCity_bot ni oching va «Start» tugmasini bosing', tg_s2: '«📱 Raqamni yuborish» tugmasini bosing — bot kod yuboradi', tg_s3: 'Telegramdagi kodni shu yerga kiriting', tg_code: 'Telegramdagi kod', tg_go: 'Kirish', tg_wrong: 'Kod noto‘g‘ri yoki eskirgan', tg_limit: 'Urinishlar juda ko‘p — 10 daqiqa kuting', tg_open: 'Telegramni ochish', tg_waiting: 'Tasdiqlash kutilmoqda…', tg_ok: 'Siz kirdingiz: {n}', tg_err: "Telegram orqali kirish hozircha ishlamayapti — keyinroq urinib ko'ring", tg_exp: "Kutish vaqti tugadi — qayta urinib ko'ring", tg_guest: 'Mehmon', tg_guest_s: "O'z profilingiz bo'lishi uchun kiring", tg_phone: 'Telefon' },
+  en: { tg_login: 'Sign in with Telegram', tg_wait_t: 'Confirm your number in Telegram', tg_s1: 'Open @MyUzCity_bot and tap “Start”', tg_s2: 'Tap “📱 Share my number” — the bot sends a code', tg_s3: 'Enter the code from Telegram here', tg_code: 'Code from Telegram', tg_go: 'Sign in', tg_wrong: 'Wrong or expired code', tg_limit: 'Too many attempts — wait 10 minutes', tg_open: 'Open Telegram', tg_waiting: 'Waiting for confirmation…', tg_ok: 'Signed in: {n}', tg_err: 'Telegram sign-in is not available yet — please try later', tg_exp: 'Timed out — please try again', tg_guest: 'Guest', tg_guest_s: 'Sign in to get your own profile', tg_phone: 'Phone' },
+  zh: { tg_login: '通过 Telegram 登录', tg_wait_t: '在 Telegram 中确认号码', tg_s1: '打开 @MyUzCity_bot 并点击“开始”', tg_s2: '点击“📱 分享号码”— 机器人会发送验证码', tg_s3: '在此输入 Telegram 中的验证码', tg_code: 'Telegram 验证码', tg_go: '登录', tg_wrong: '验证码错误或已过期', tg_limit: '尝试次数过多，请等待 10 分钟', tg_open: '打开 Telegram', tg_waiting: '等待确认…', tg_ok: '已登录：{n}', tg_err: '暂时无法通过 Telegram 登录，请稍后再试', tg_exp: '已超时，请重试', tg_guest: '访客', tg_guest_s: '登录以拥有个人资料', tg_phone: '电话' },
 };
 for (const l in AUTH_I) Object.assign(I[l], AUTH_I[l]);
 const TG_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M21.4 4.2 2.9 11.3c-1.3.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.9-1.3-1.5Zm-3.3 3.6-8.6 7.8-.3 3.6-1.6-5.1 10.1-6.4c.5-.3.8 0 .4.1Z"/></svg>';
@@ -1953,13 +1953,35 @@ function tgSheet(n) {
   bsheet(`<div class="tr-hero"><span style="background:#229ED9">${TG_SVG.replace(/22/g, '28')}</span><div><b>${esc(t('tg_wait_t'))}</b><i>@MyUzCity_bot</i></div></div>
     <div class="pk-step"><span>1</span><div><b>${esc(t('tg_s1'))}</b></div></div><div class="pk-step"><span>2</span><div><b>${esc(t('tg_s2'))}</b></div></div><div class="pk-step"><span>3</span><div><b>${esc(t('tg_s3'))}</b></div></div>
     <a class="h-btn h-tgbtn cf-callbtn" href="${esc(tgLink(n))}" target="_blank" rel="noopener">${TG_SVG}<span>${esc(t('tg_open'))}</span></a>
-    <div class="tg-wait"><span class="h-spin"></span>${esc(t('tg_waiting'))}</div>`, 'bs-caf bs-tg');
+    <div class="tg-code"><input id="tgCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="${esc(t('tg_code'))}"><button class="h-btn h-primary" id="tgGo">${esc(t('tg_go'))}</button></div>
+    <div class="tg-err" id="tgErr"></div>`, 'bs-caf bs-tg');
+  const inp = document.getElementById('tgCode'), go = document.getElementById('tgGo'), err = document.getElementById('tgErr');
+  const send = async () => {
+    const c = inp.value.replace(/\D/g, ''); if (c.length !== 6) { inp.focus(); return; }
+    go.disabled = true; err.textContent = '';
+    try {
+      const r = await fetch(`${AUTH_API}/api/auth/code`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code: c }) });
+      const j = await r.json().catch(() => ({}));
+      if (j.ok && j.token) return tgDone(j);
+      err.textContent = t(r.status === 429 ? 'tg_limit' : r.status === 503 ? 'tg_err' : 'tg_wrong');
+    } catch (e) { err.textContent = t('tg_err'); }
+    go.disabled = false;
+  };
+  go.addEventListener('click', e => { e.preventDefault(); send(); });
+  inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 6); if (inp.value.length === 6) send(); });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+}
+function tgDone(j) {
+  clearInterval(TG_POLL);
+  try { localStorage.setItem('uzk-session', j.token); localStorage.setItem('uzk-user', JSON.stringify(j.user)); sessionStorage.removeItem('uzk-tg-n'); } catch (e) {}
+  bsheetClose(true); toast(t('tg_ok', { n: userName() }));
+  let authed = false; try { authed = localStorage.getItem('uzk-auth') === '1'; } catch (e) {}
+  if (!authed || current === 'h:welcome') doLogin(); else render(current, currentP);
 }
 function tgLogin() {
   const n = tgNonce();
   try { sessionStorage.setItem('uzk-tg-n', JSON.stringify({ n, at: Date.now() })); } catch (e) {}
-  tgSheet(n);
-  const w = window.open(tgLink(n), '_blank'); if (!w) setTimeout(() => { location.href = tgLink(n); }, 50);
+  tgSheet(n);   // Telegram opens from the button in the sheet (a real link tap) — the app page itself never navigates away
   tgPoll(n, Date.now());
 }
 function tgPoll(n, at) {
@@ -1969,22 +1991,17 @@ function tgPoll(n, at) {
     busy = true;
     try {
       const r = await fetch(`${AUTH_API}/api/auth/poll?n=${encodeURIComponent(n)}`, { cache: 'no-store' });
-      if (r.status === 503) { clearInterval(TG_POLL); bsheetClose(); toast(t('tg_err')); return; }
+      if (r.status === 503) { clearInterval(TG_POLL); return; }
       const j = await r.json();
-      if (j.status === 'ok' && j.token) {
-        clearInterval(TG_POLL);
-        try { localStorage.setItem('uzk-session', j.token); localStorage.setItem('uzk-user', JSON.stringify(j.user)); sessionStorage.removeItem('uzk-tg-n'); } catch (e) {}
-        bsheetClose(true); toast(t('tg_ok', { n: userName() }));
-        let authed = false; try { authed = localStorage.getItem('uzk-auth') === '1'; } catch (e) {}
-        if (!authed || current === 'h:welcome') doLogin(); else render(current, currentP);
-      }
+      if (j.status === 'ok' && j.token) tgDone(j);
     } catch (e) {} finally { busy = false; }
   };
-  TG_POLL = setInterval(tick, 2000); tick();
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+  TG_POLL = setInterval(tick, 2500); tick();
+  window.__tgTick = tick;
+  if (!window.__tgVis) { window.__tgVis = 1; document.addEventListener('visibilitychange', () => { if (!document.hidden && window.__tgTick && sessionStorage.getItem('uzk-tg-n')) window.__tgTick(); }); }
 }
 (function tgResume() {
-  try { const p = JSON.parse(sessionStorage.getItem('uzk-tg-n') || 'null'); if (p && Date.now() - p.at < 10 * 60e3) setTimeout(() => tgPoll(p.n, p.at), 800); } catch (e) {}
+  try { const p = JSON.parse(sessionStorage.getItem('uzk-tg-n') || 'null'); if (p && Date.now() - p.at < 10 * 60e3) setTimeout(() => { if (!authUser()) { tgSheet(p.n); tgPoll(p.n, p.at); } }, 1200); } catch (e) {}
   let tok = null; try { tok = localStorage.getItem('uzk-session'); } catch (e) {}
   if (tok) fetch(`${AUTH_API}/api/me`, { headers: { authorization: 'Bearer ' + tok }, cache: 'no-store' }).then(r => r.status === 401 ? null : r.json()).then(j => {
     try { if (j === null) { localStorage.removeItem('uzk-session'); localStorage.removeItem('uzk-user'); } else if (j && j.ok) localStorage.setItem('uzk-user', JSON.stringify(j.user)); } catch (e) {}
