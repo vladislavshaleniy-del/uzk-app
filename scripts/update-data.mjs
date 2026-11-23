@@ -91,7 +91,7 @@ async function news() {
 }
 
 // ---------------------------------------------------------------- places (OpenStreetMap)
-const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+const OVERPASS = ['https://overpass.kumi.systems/api/interpreter', 'https://overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
 const has = (s, re) => re.test(s || '');
 function cats(t) {
   const name = [t.name, t['name:ru'], t['name:uz'], t['name:en']].join(' ');
@@ -136,11 +136,11 @@ function place(e, ci) {
 async function overpass(q) {
   for (const base of OVERPASS) {
     try {
-      const r = await fetch(base, { method: 'POST', headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q) });
+      const r = await fetch(base, { method: 'POST', headers: { 'user-agent': UA, accept: 'application/json,*/*;q=0.8', 'content-type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q) });
       if (r.ok) return await r.json();
       console.log(`overpass ${base}: ${r.status}`);
     } catch (e) { console.log(`overpass ${base}: ${e.message}`); }
-    await new Promise(r => setTimeout(r, 5000));
+    await new Promise(r => setTimeout(r, 1500));
   }
   throw new Error('all overpass servers failed');
 }

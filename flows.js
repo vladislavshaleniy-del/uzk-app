@@ -580,7 +580,7 @@ const AI_GO = {
   gov: ['1:2573', 'Госуслуги', 'Davlat xizmatlari', 'Public services', '政务服务'], appeal: ['1:4597', 'Обращение к хокиму', 'Hokimga murojaat', 'Appeal to the Hokim', '向市长反映'],
   sos: ['1:4475', 'Тревожная кнопка', 'Xavf tugmasi', 'Panic button', '紧急按钮'], polls: ['1:4702', 'Опросы', "So'rovnomalar", 'Polls', '投票'],
   mahalla: ['1:996', 'Цифровая махалля', 'Raqamli mahalla', 'Digital Mahalla', '数字社区'], family: ['1:3042', 'Семья и образование', "Oila va ta'lim", 'Family and education', '家庭与教育'],
-  tickets: ['h:tickets', 'Билеты', 'Chiptalar', 'Tickets', '车票'], cafes: ['1:729', 'Кафе и рестораны', 'Kafe va restoranlar', 'Cafes and restaurants', '餐厅'],
+  tickets: ['h:tickets', 'Билеты', 'Chiptalar', 'Tickets', '车票'], cafes: ['h:cafes', 'Кафе и рестораны', 'Kafe va restoranlar', 'Cafes and restaurants', '餐厅'],
   sights: ['1:3249', 'Достопримечательности', 'Diqqatga sazovor joylar', 'Sights', '名胜古迹'], tourist: ['1:3757', 'Туристическая карта', 'Turistik karta', 'Tourist card', '旅游卡'],
   fairs: ['1:5424', 'Ярмарки и события', 'Yarmarka va tadbirlar', 'Fairs and events', '展会与活动'], realty: ['1:235', 'Недвижимость', "Ko'chmas mulk", 'Real estate', '房产'],
   ipo: ['1:332', 'Покупка акций IPO', 'IPO aksiyalari', 'Buy IPO shares', '购买 IPO 股票'], business: ['1:523', 'Для бизнеса', 'Biznes uchun', 'For business', '企业服务'],
@@ -812,4 +812,312 @@ Object.assign(XACT, {
   camview: (v) => { window.__camView = v; render(current, currentP); },
   camgo: (id) => { window.__camView = 'live'; history.replaceState(Object.assign({}, history.state, { p: id }), '', location.href); render('h:cam', id); },
   ext: (url) => { window.open(url, '_blank', 'noopener'); },
+});
+
+// ======================= Live data: city news on Home + «Кафе и рестораны» =======================
+// data/news.json and data/places/*.json are refreshed by .github/workflows/update-data.yml
+const LIVE_I = {
+  ru: { news_h: 'Новости', news_all: 'Все', news_t: 'Новости и афиша', news_f_all: 'Все', news_f_afisha: 'Афиша', news_f_news: 'Новости', news_read: 'Читать полностью', news_upd: 'Обновлено {t}', news_country: 'Новостей по этому городу пока нет — показываем новости Узбекистана',
+    nk_cinema: 'Кино', nk_city: 'Город', nk_sale: 'Акции', nk_food: 'Еда', nk_fashion: 'Мода', nk_concert: 'Концерты', nk_theatre: 'Театр', nk_kids: 'Детям', nk_art: 'Искусство', nk_sport: 'Спорт', nk_travel: 'Путешествия', nk_news: 'Новости',
+    caf_t: 'Кафе и рестораны', caf_q: 'Название, кухня или улица', caf_n: '{n} заведений', caf_more: 'Показать ещё', caf_none: 'Ничего не нашлось — попробуйте другой фильтр', caf_load: 'Загружаем заведения…', caf_err: 'Не удалось загрузить заведения. Проверьте интернет.',
+    caf_city_t: 'Выберите город', caf_open: 'Открыто', caf_closed: 'Закрыто', caf_until: 'Открыто до {t}', caf_h24: 'Круглосуточно', caf_hours: 'Часы работы', caf_addr: 'Адрес', caf_phone: 'Телефон', caf_call: 'Позвонить',
+    caf_route: 'Построить маршрут', caf_route_s: 'Откроется в приложении, которое вы выберете', caf_photos: 'Фото и отзывы в Яндекс Картах', caf_site: 'Сайт', caf_dl: 'Доставка', caf_halal: 'Халяль', caf_nophoto: 'Фото заведения пока нет',
+    caf_src: 'Данные о заведениях — OpenStreetMap, обновляются еженедельно', caf_me: 'Я здесь', caf_geo_err: 'Не удалось определить местоположение', caf_share: 'Поделиться', caf_cu: 'Кухня', caf_big: 'Развернуть карту', caf_small: 'Свернуть карту',
+    cat_all: 'Все', cat_open: 'Открыто сейчас', cat_plov: 'Плов', cat_hookah: 'Кальян', cat_national: 'Национальная кухня', cat_grill: 'Шашлык и гриль', cat_coffee: 'Кофейни', cat_europe: 'Европейская', cat_asia: 'Азиатская', cat_fast: 'Фастфуд', cat_bar: 'Бары', cat_terrace: 'Терраса', cat_cafe: 'Кафе',
+    am_restaurant: 'Ресторан', am_cafe: 'Кафе', am_fast_food: 'Фастфуд', am_bar: 'Бар', am_pub: 'Паб', am_hookah_lounge: 'Кальянная', am_food_court: 'Фудкорт', am_biergarten: 'Пивной сад' },
+  uz: { news_h: 'Yangiliklar', news_all: 'Barchasi', news_t: 'Yangiliklar va afisha', news_f_all: 'Barchasi', news_f_afisha: 'Afisha', news_f_news: 'Yangiliklar', news_read: "To'liq o'qish", news_upd: '{t} da yangilandi', news_country: "Bu shahar bo'yicha yangiliklar hozircha yo'q — O'zbekiston yangiliklarini ko'rsatamiz",
+    nk_cinema: 'Kino', nk_city: 'Shahar', nk_sale: 'Aksiyalar', nk_food: 'Taom', nk_fashion: 'Moda', nk_concert: 'Konsertlar', nk_theatre: 'Teatr', nk_kids: 'Bolalarga', nk_art: "San'at", nk_sport: 'Sport', nk_travel: 'Sayohat', nk_news: 'Yangiliklar',
+    caf_t: 'Kafe va restoranlar', caf_q: "Nomi, oshxona yoki ko'cha", caf_n: '{n} ta joy', caf_more: "Yana ko'rsatish", caf_none: 'Hech narsa topilmadi — boshqa filtrni tanlang', caf_load: 'Joylar yuklanmoqda…', caf_err: "Joylarni yuklab bo'lmadi. Internetni tekshiring.",
+    caf_city_t: 'Shaharni tanlang', caf_open: 'Ochiq', caf_closed: 'Yopiq', caf_until: '{t} gacha ochiq', caf_h24: 'Kecha-kunduz', caf_hours: 'Ish vaqti', caf_addr: 'Manzil', caf_phone: 'Telefon', caf_call: "Qo'ng'iroq qilish",
+    caf_route: "Yo'nalish qurish", caf_route_s: "Siz tanlagan ilovada ochiladi", caf_photos: 'Yandex Kartalarda rasmlar va sharhlar', caf_site: 'Sayt', caf_dl: 'Yetkazib berish', caf_halal: 'Halol', caf_nophoto: "Hozircha joy rasmi yo'q",
+    caf_src: "Joylar haqidagi ma'lumot — OpenStreetMap, har hafta yangilanadi", caf_me: 'Men shu yerda', caf_geo_err: "Joylashuvni aniqlab bo'lmadi", caf_share: 'Ulashish', caf_cu: 'Oshxona', caf_big: 'Xaritani kattalashtirish', caf_small: 'Xaritani kichraytirish',
+    cat_all: 'Barchasi', cat_open: 'Hozir ochiq', cat_plov: 'Palov', cat_hookah: 'Qalyan', cat_national: 'Milliy taomlar', cat_grill: 'Shashlik va grill', cat_coffee: 'Qahvaxonalar', cat_europe: 'Yevropa', cat_asia: 'Osiyo', cat_fast: 'Fastfud', cat_bar: 'Barlar', cat_terrace: 'Terrasa', cat_cafe: 'Kafe',
+    am_restaurant: 'Restoran', am_cafe: 'Kafe', am_fast_food: 'Fastfud', am_bar: 'Bar', am_pub: 'Pab', am_hookah_lounge: 'Qalyanxona', am_food_court: 'Fudkort', am_biergarten: "Pivo bog'i" },
+  en: { news_h: 'News', news_all: 'All', news_t: 'News & events', news_f_all: 'All', news_f_afisha: 'Events', news_f_news: 'News', news_read: 'Read full story', news_upd: 'Updated {t}', news_country: 'No news for this city yet — showing news from Uzbekistan',
+    nk_cinema: 'Cinema', nk_city: 'City', nk_sale: 'Deals', nk_food: 'Food', nk_fashion: 'Fashion', nk_concert: 'Concerts', nk_theatre: 'Theatre', nk_kids: 'Kids', nk_art: 'Art', nk_sport: 'Sport', nk_travel: 'Travel', nk_news: 'News',
+    caf_t: 'Cafes & restaurants', caf_q: 'Name, cuisine or street', caf_n: '{n} places', caf_more: 'Show more', caf_none: 'Nothing found — try another filter', caf_load: 'Loading places…', caf_err: "Couldn't load places. Check your connection.",
+    caf_city_t: 'Choose a city', caf_open: 'Open', caf_closed: 'Closed', caf_until: 'Open until {t}', caf_h24: 'Open 24/7', caf_hours: 'Opening hours', caf_addr: 'Address', caf_phone: 'Phone', caf_call: 'Call',
+    caf_route: 'Get directions', caf_route_s: 'Opens in the app you choose', caf_photos: 'Photos & reviews on Yandex Maps', caf_site: 'Website', caf_dl: 'Delivery', caf_halal: 'Halal', caf_nophoto: 'No photo of this place yet',
+    caf_src: 'Place data — OpenStreetMap, refreshed weekly', caf_me: "I'm here", caf_geo_err: "Couldn't get your location", caf_share: 'Share', caf_cu: 'Cuisine', caf_big: 'Expand map', caf_small: 'Collapse map',
+    cat_all: 'All', cat_open: 'Open now', cat_plov: 'Plov', cat_hookah: 'Hookah', cat_national: 'Uzbek cuisine', cat_grill: 'Grill & kebab', cat_coffee: 'Coffee', cat_europe: 'European', cat_asia: 'Asian', cat_fast: 'Fast food', cat_bar: 'Bars', cat_terrace: 'Terrace', cat_cafe: 'Cafe',
+    am_restaurant: 'Restaurant', am_cafe: 'Cafe', am_fast_food: 'Fast food', am_bar: 'Bar', am_pub: 'Pub', am_hookah_lounge: 'Hookah lounge', am_food_court: 'Food court', am_biergarten: 'Beer garden' },
+  zh: { news_h: '新闻', news_all: '全部', news_t: '新闻与活动', news_f_all: '全部', news_f_afisha: '活动', news_f_news: '新闻', news_read: '阅读全文', news_upd: '更新于 {t}', news_country: '该城市暂无新闻 — 显示乌兹别克斯坦新闻',
+    nk_cinema: '电影', nk_city: '城市', nk_sale: '优惠', nk_food: '美食', nk_fashion: '时尚', nk_concert: '音乐会', nk_theatre: '剧院', nk_kids: '儿童', nk_art: '艺术', nk_sport: '体育', nk_travel: '旅行', nk_news: '新闻',
+    caf_t: '咖啡馆与餐厅', caf_q: '名称、菜系或街道', caf_n: '{n} 家', caf_more: '显示更多', caf_none: '未找到 — 请尝试其他筛选', caf_load: '正在加载…', caf_err: '无法加载，请检查网络。',
+    caf_city_t: '选择城市', caf_open: '营业中', caf_closed: '已打烊', caf_until: '营业至 {t}', caf_h24: '24小时营业', caf_hours: '营业时间', caf_addr: '地址', caf_phone: '电话', caf_call: '拨打电话',
+    caf_route: '导航路线', caf_route_s: '在您选择的应用中打开', caf_photos: 'Yandex 地图上的照片和评价', caf_site: '网站', caf_dl: '外卖', caf_halal: '清真', caf_nophoto: '暂无该地点照片',
+    caf_src: '地点数据 — OpenStreetMap，每周更新', caf_me: '我的位置', caf_geo_err: '无法获取位置', caf_share: '分享', caf_cu: '菜系', caf_big: '展开地图', caf_small: '收起地图',
+    cat_all: '全部', cat_open: '营业中', cat_plov: '抓饭', cat_hookah: '水烟', cat_national: '乌兹别克菜', cat_grill: '烧烤', cat_coffee: '咖啡', cat_europe: '西餐', cat_asia: '亚洲菜', cat_fast: '快餐', cat_bar: '酒吧', cat_terrace: '露台', cat_cafe: '咖啡馆',
+    am_restaurant: '餐厅', am_cafe: '咖啡馆', am_fast_food: '快餐', am_bar: '酒吧', am_pub: '酒馆', am_hookah_lounge: '水烟馆', am_food_court: '美食广场', am_biergarten: '啤酒花园' },
+};
+for (const l in LIVE_I) Object.assign(I[l], LIVE_I[l]);
+const LOCALE = { ru: 'ru-RU', uz: 'uz-Latn-UZ', en: 'en-GB', zh: 'zh-CN' };
+function fmtDate(iso, withTime = true) {
+  const d = new Date(iso); if (isNaN(d)) return '';
+  try { return d.toLocaleString(LOCALE[LANG] || 'ru-RU', Object.assign({ day: 'numeric', month: 'long' }, withTime ? { hour: '2-digit', minute: '2-digit' } : {})); } catch (e) { return d.toISOString().slice(0, 10); }
+}
+// generic bottom sheet (rendered over the current screen, in design units like .hscreen)
+function bsheet(html, cls = '') {
+  bsheetClose(true);
+  const app = document.getElementById('app');
+  const w = document.createElement('div'); w.className = 'bs-wrap ' + cls; w.style.zoom = U; w.style.height = VH + 'px';
+  w.innerHTML = `<div class="bs-bg"></div><div class="bs"><div class="bs-grab"></div><button class="bs-x" data-act="bsclose" aria-label="close">${IC.close}</button><div class="bs-body vs">${html}</div></div>`;
+  app.appendChild(w);
+  requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('on')));
+  w.addEventListener('click', e => { if (e.target.classList.contains('bs-bg')) return bsheetClose(); const b = e.target.closest('[data-act]'); if (b) { e.preventDefault(); runAction(b.dataset.act); } });
+  const s = w.querySelector('.bs'), body = w.querySelector('.bs-body'); let y0 = null, dy = 0;
+  s.addEventListener('touchstart', e => { y0 = body.scrollTop <= 0 ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
+  s.addEventListener('touchmove', e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); if (dy > 0) s.style.transform = `translateY(${dy / U}px)`; }, { passive: true });
+  s.addEventListener('touchend', () => { if (y0 == null) return; s.style.transform = ''; if (dy > 90) bsheetClose(); y0 = null; });
+  return w;
+}
+function bsheetClose(now) { const w = document.querySelector('.bs-wrap'); if (!w) return; if (now === true) return w.remove(); w.classList.remove('on'); setTimeout(() => w.remove(), 260); }
+
+// ---------------------------------------------------------------- news
+let NEWS = null, NEWS_AT = 0, NEWS_P = null;
+function loadNews() {
+  if (NEWS_P && Date.now() - NEWS_AT < 15 * 60e3) return NEWS_P;
+  NEWS_AT = Date.now();
+  return (NEWS_P = fetch('data/news.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.cities) NEWS = j; return NEWS; }).catch(() => NEWS));
+}
+function cityNews(i = cityIdx()) { if (!NEWS) return null; const l = NEWS.cities[i]; return l && l.length ? { items: l, own: true } : { items: NEWS.all || [], own: false }; }
+const NEWS_GRAD = ['#1a4a28,#2f6b3d', '#3b2a5e,#6b4c9a', '#7c2d12,#c2410c', '#0f4c5c,#2a7f8f'];
+function newsTag(n) { return t('nk_' + (n.k || 'news')); }
+function newsCard(n, idx) {
+  const bg = n.i ? `background-image:url('${esc(n.i)}')` : `background:linear-gradient(135deg,${NEWS_GRAD[idx % 4]})`;
+  return `<button class="hn-card" data-nidx="${idx}"><span class="hn-img" style="${bg}"><span class="hn-tag">${esc(newsTag(n))}</span>${n.i ? '' : `<span class="hn-src">${esc(n.s)}</span>`}</span>
+    <span class="hn-meta">${esc(fmtDate(n.d))} · ${esc(n.s)}</span><span class="hn-title">${esc(n.t)}</span></button>`;
+}
+function openNews(n) {
+  bsheet(`${n.i ? `<div class="ns-img" style="background-image:url('${esc(n.i)}')"></div>` : ''}
+    <div class="ns-meta"><span class="ns-tag">${esc(newsTag(n))}</span>${esc(n.s)} · ${esc(fmtDate(n.d))}</div>
+    <div class="ns-title">${esc(n.t)}</div>${n.x ? `<div class="ns-text">${esc(n.x)}${n.x.length >= 255 ? '…' : ''}</div>` : ''}
+    ${btn(t('news_read'), 'ext:' + n.u)}`, 'bs-news');
+}
+const HN_TOP = 258, HN_STEP = 252;
+function drawHomeNews(inner) {
+  const cn = cityNews(); if (!cn || !cn.items.length) return;
+  const items = cn.items.slice(0, 6);
+  inner.querySelectorAll('.hn-wrap').forEach(e => e.remove());
+  const w = document.createElement('div'); w.className = 'hn-wrap';
+  w.style.top = P(HN_TOP); w.style.width = P(430); w.style.height = P(Math.max(1329 - HN_TOP, 54 + items.length * HN_STEP + 24));
+  w.innerHTML = `<div class="hn-z" style="zoom:${U}"><div class="hn-head"><b>${esc(t('news_h'))}</b><button data-hn="all">${esc(t('news_all'))} ›</button></div>${items.map(newsCard).join('')}</div>`;
+  inner.appendChild(w);
+  inner.style.height = P(HN_TOP + 54 + items.length * HN_STEP + 24);
+  w.addEventListener('click', e => {
+    const c = e.target.closest('[data-nidx],[data-hn]'); if (!c) return; e.preventDefault(); e.stopPropagation();
+    if (c.dataset.hn) go('h:news'); else openNews(items[+c.dataset.nidx]);
+  });
+}
+function afterRender(id, layers) {
+  if (id !== '1:1909') return;
+  const inner = layers['s:1:1910']; if (!inner) return;
+  const draw = () => { if (current === '1:1909' && document.body.contains(inner)) drawHomeNews(inner); };
+  if (NEWS) draw();
+  loadNews().then(draw);
+}
+HS.news = () => {
+  const cn = cityNews(); const f = window.__newsF || 'all';
+  let list = cn ? cn.items : [];
+  if (f === 'afisha') list = list.filter(n => n.k !== 'news'); else if (f === 'news') list = list.filter(n => n.k === 'news');
+  window.__newsList = list;
+  const chips = ['all', 'afisha', 'news'].map(k => `<button class="h-chip ${f === k ? 'on' : ''}" data-act="newsf:${k}">${esc(t('news_f_' + k))}</button>`).join('');
+  return `${hdr(t('news_t') + ' · ' + cityName())}<div class="h-body">
+    <div class="cam-chips">${chips}</div>
+    ${cn && !cn.own ? `<div class="h-muted small" style="margin:0 2px 14px">${esc(t('news_country'))}</div>` : ''}
+    ${cn ? list.map((n, i) => newsCard(n, i)).join('') : `<div class="h-muted" style="text-align:center;margin-top:40px">${esc(t('caf_load'))}</div>`}
+    ${NEWS ? `<div class="h-muted small cam-note">${esc(t('news_upd', { t: fmtDate(NEWS.updated) }))} · Afisha.uz, Gazeta.uz, Kun.uz, Podrobno.uz</div>` : ''}</div>`;
+};
+HS.news.mount = el => {
+  if (!NEWS) loadNews().then(() => { if (current === 'h:news') render(current, currentP); });
+  el.addEventListener('click', e => { const c = e.target.closest('[data-nidx]'); if (!c) return; e.preventDefault(); openNews(window.__newsList[+c.dataset.nidx]); });
+};
+
+// ---------------------------------------------------------------- cafes & restaurants
+const CAF_CATS = ['plov', 'hookah', 'national', 'grill', 'coffee', 'europe', 'asia', 'fast', 'bar', 'terrace'];
+const CAF_COL = { plov: '#C2410C', hookah: '#7C3AED', national: '#15803D', grill: '#DC2626', coffee: '#92400E', europe: '#2563EB', asia: '#DB2777', fast: '#D97706', bar: '#0F766E', terrace: '#0891B2', cafe: '#6B7280' };
+const CAF_PRI = ['plov', 'hookah', 'national', 'grill', 'asia', 'europe', 'coffee', 'bar', 'fast', 'terrace', 'cafe'];
+const CUIS = { uzbek: ['узбекская', "o'zbek", 'Uzbek', '乌兹别克'], regional: ['местная', 'mahalliy', 'local', '本地'], central_asian: ['среднеазиатская', 'Markaziy Osiyo', 'Central Asian', '中亚'], uyghur: ['уйгурская', 'uyg‘ur', 'Uyghur', '维吾尔'],
+  russian: ['русская', 'rus', 'Russian', '俄餐'], italian: ['итальянская', 'italyan', 'Italian', '意大利菜'], pizza: ['пицца', 'pitsa', 'pizza', '披萨'], european: ['европейская', 'yevropa', 'European', '西餐'], international: ['интернациональная', 'xalqaro', 'international', '国际'],
+  georgian: ['грузинская', 'gruzin', 'Georgian', '格鲁吉亚菜'], turkish: ['турецкая', 'turk', 'Turkish', '土耳其菜'], japanese: ['японская', 'yapon', 'Japanese', '日料'], sushi: ['суши', 'sushi', 'sushi', '寿司'], korean: ['корейская', 'koreys', 'Korean', '韩餐'],
+  chinese: ['китайская', 'xitoy', 'Chinese', '中餐'], asian: ['азиатская', 'osiyo', 'Asian', '亚洲菜'], indian: ['индийская', 'hind', 'Indian', '印度菜'], burger: ['бургеры', 'burger', 'burgers', '汉堡'], chicken: ['курица', 'tovuq', 'chicken', '炸鸡'],
+  kebab: ['шашлык, кебаб', 'kabob', 'kebab', '烤肉'], shashlik: ['шашлык', 'shashlik', 'shashlik', '烤串'], steak_house: ['стейки', 'steyk', 'steak', '牛排'], barbecue: ['барбекю', 'barbekyu', 'BBQ', '烧烤'], coffee_shop: ['кофейня', 'qahvaxona', 'coffee', '咖啡'],
+  dessert: ['десерты', 'shirinliklar', 'desserts', '甜点'], cake: ['торты', 'tort', 'cakes', '蛋糕'], ice_cream: ['мороженое', 'muzqaymoq', 'ice cream', '冰淇淋'], breakfast: ['завтраки', 'nonushta', 'breakfast', '早餐'], seafood: ['морепродукты', 'dengiz mahsulotlari', 'seafood', '海鲜'],
+  french: ['французская', 'fransuz', 'French', '法餐'], american: ['американская', 'amerika', 'American', '美式'], shawarma: ['шаурма', 'shaurma', 'shawarma', '沙威玛'], doner: ['донер', 'donar', 'doner', '土耳其烤肉'], sandwich: ['сэндвичи', 'sendvich', 'sandwiches', '三明治'], plov: ['плов', 'palov', 'plov', '抓饭'] };
+const CAF_IC = '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
+const caf = () => (window.__caf = window.__caf || { city: null, cat: 'all', q: '', more: 0, loc: null, big: false });
+let CAF_INDEX = null; const CAF_DATA = {};
+function cafCity() { const s = caf(); if (s.city == null) { const c = cityIdx(); s.city = CAF_INDEX && !CAF_INDEX.cities[c] ? 0 : c; } return s.city; }
+function cafLoad(i) {
+  const idx = CAF_INDEX ? Promise.resolve(CAF_INDEX) : fetch('data/places/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : { cities: {} }).then(j => (CAF_INDEX = j));
+  return idx.then(() => CAF_DATA[i] || (CAF_INDEX.cities[i] ? fetch(`data/places/${i}.json`, { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).then(j => (CAF_DATA[i] = j)) : (CAF_DATA[i] = [])));
+}
+function cafPri(p) { for (const c of CAF_PRI) if (p.c.includes(c)) return c; return 'cafe'; }
+function cafCuis(p) { return (p.cu || '').split(';').map(c => { const k = c.trim().toLowerCase(); return CUIS[k] ? CUIS[k][LI[LANG]] : k.replace(/_/g, ' '); }).filter(Boolean).slice(0, 3).join(', '); }
+function cafKind(p) { return t('am_' + p.a) || ''; }
+const OH_D = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+function ohState(oh, now = new Date()) {
+  if (!oh) return null; const s = oh.trim(); if (s === '24/7') return { open: true, h24: true };
+  const rules = s.split(';').map(x => x.trim()).filter(Boolean); let parsed = false;
+  const ranges = d => { let r = null; for (const rule of rules) {
+    const m = rule.match(/^((?:(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:-(?:Mo|Tu|We|Th|Fr|Sa|Su))?,?)+)?\s*(.*)$/); const dp = m[1], tp = (m[2] || '').trim();
+    let ap = !dp; if (dp) for (const seg of dp.split(',').filter(Boolean)) { const [a, b] = seg.split('-'); let k = OH_D.indexOf(a); const e = b ? OH_D.indexOf(b) : k; for (let n = 0; n < 7; n++) { if (k === d) ap = true; if (k === e) break; k = (k + 1) % 7; } }
+    if (!ap) continue; if (/^(off|closed)$/i.test(tp)) { r = []; parsed = true; continue; }
+    const tr = [...tp.matchAll(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/g)].map(x => [+x[1] * 60 + +x[2], +x[3] * 60 + +x[4]]); if (tr.length) { r = tr; parsed = true; } } return r; };
+  const d = now.getDay(), mn = now.getHours() * 60 + now.getMinutes(), td = ranges(d), yd = ranges((d + 6) % 7);
+  if (!parsed) return null;
+  if (yd) for (const [a, b] of yd) if (b < a && mn < b) return { open: true, until: b };
+  if (td) for (const [a, b] of td) { const e = b <= a ? b + 1440 : b; if (mn >= a && mn < e) return { open: true, until: b % 1440 }; }
+  return { open: false };
+}
+const hm = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+function ohLabel(p) { const st = ohState(p.h); if (!st) return ''; if (!st.open) return `<em class="cf-st off">${esc(t('caf_closed'))}</em>`; return `<em class="cf-st on">${esc(st.h24 ? t('caf_h24') : st.until != null ? t('caf_until', { t: hm(st.until) }) : t('caf_open'))}</em>`; }
+function ohPretty(oh) {
+  const D = { ru: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'], uz: ['Ya', 'Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], zh: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'] }[LANG] || [];
+  if (oh.trim() === '24/7') return t('caf_h24');
+  return oh.split(';').map(s => s.trim().replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su)\b/g, m => D[OH_D.indexOf(m)] || m).replace(/-/g, '–').replace(/\boff\b/g, '—').replace(/\bPH\b/g, LANG === 'ru' ? 'праздники' : 'PH')).join('<br>');
+}
+function cafDist(p) { const l = caf().loc; if (!l) return null; const R = 6371, r = Math.PI / 180, dLa = (p.la - l[0]) * r, dLo = (p.lo - l[1]) * r; const a = Math.sin(dLa / 2) ** 2 + Math.cos(l[0] * r) * Math.cos(p.la * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(a)); }
+function fmtDist(k) { return k == null ? '' : k < 1 ? Math.round(k * 1000 / 10) * 10 + (LANG === 'ru' ? ' м' : ' m') : k.toFixed(k < 10 ? 1 : 0) + (LANG === 'ru' ? ' км' : ' km'); }
+function cafFiltered() {
+  const s = caf(), list = CAF_DATA[cafCity()] || [], q = s.q.trim().toLowerCase();
+  let r = list.filter(p => (s.cat === 'all' || (s.cat === 'open' ? (ohState(p.h) || {}).open : p.c.includes(s.cat))) && (!q || (p.n + ' ' + (p.n2 || '') + ' ' + (p.cu || '') + ' ' + cafCuis(p) + ' ' + (p.ad || '')).toLowerCase().includes(q)));
+  const score = p => (p.ph ? 2 : 0) + (p.h ? 2 : 0) + (p.ad ? 1 : 0) + (p.w || p.ig ? 1 : 0) + (p.im || p.wc ? 2 : 0);
+  if (s.loc) r = r.map(p => [cafDist(p), p]).sort((a, b) => a[0] - b[0]).map(x => x[1]); else r = r.slice().sort((a, b) => score(b) - score(a) || a.n.localeCompare(b.n));
+  return r;
+}
+function cafItem(p) {
+  const col = CAF_COL[cafPri(p)], cu = cafCuis(p), dist = fmtDist(cafDist(p));
+  return `<button class="cf-item" data-act="cfopen:${p.id}"><span class="cf-ic" style="background:${col}">${CAF_IC.replace(/\{s\}/g, 18)}</span>
+    <span class="cf-it"><b>${esc(p.n)}</b><i>${esc([cafKind(p), cu].filter(Boolean).join(' · '))}</i>${p.ad ? `<i>${esc(p.ad)}</i>` : ''}${ohLabel(p)}</span>${dist ? `<span class="cf-dist">${esc(dist)}</span>` : ''}</button>`;
+}
+const CAF_MAP_TOP = 236;
+function cafMapH() { return caf().big ? Math.max(260, VH - CAF_MAP_TOP) : Math.min(300, Math.max(200, Math.round(VH * .33))); }
+HS.cafes = () => {
+  const s = caf(), ci = cafCity(), list = CAF_DATA[ci];
+  const counts = {}; if (list) for (const p of list) for (const c of p.c) counts[c] = (counts[c] || 0) + 1;
+  const openN = list ? list.filter(p => (ohState(p.h) || {}).open).length : 0;
+  const chips = ['all', 'open', ...CAF_CATS].filter(c => !list || c === 'all' || (c === 'open' ? openN : counts[c])).map(c =>
+    `<button class="h-chip ${s.cat === c ? 'on' : ''}" data-act="cfcat:${c}">${c !== 'all' && c !== 'open' ? `<span class="cf-dot" style="background:${CAF_COL[c]}"></span>` : ''}${esc(t('cat_' + c))}${list ? ` <i>${c === 'all' ? list.length : c === 'open' ? openN : counts[c]}</i>` : ''}</button>`).join('');
+  return `<div class="h-hdr"><button class="h-back" data-act="back">${IC.back}</button><div class="h-title">${esc(t('caf_t'))}</div><button class="cf-city" data-act="cfcity">${esc(cityName(ci))}<svg viewBox="0 0 20 20" width="16" height="16">${CHEV_DOWN}</svg></button></div>
+    <div class="cf-bar"><label class="cf-search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="cfQ" type="search" enterkeyhint="search" autocomplete="off" placeholder="${esc(t('caf_q'))}" value="${esc(s.q)}"></label></div>
+    <div class="cf-chips hs" id="cfChips">${chips}</div>
+    <div class="cf-mapph" style="height:${cafMapH()}px"></div>
+    <div class="h-body cf-body" id="cfList">${list ? '' : `<div class="cf-empty">${esc(t('caf_load'))}</div>`}</div>`;
+};
+let CAF_MAP = null, CAF_LAYER = null, CAF_SEL = null, CAF_ME = null;
+function leafletReady() {
+  if (window.L) return Promise.resolve();
+  if (!window.__lfP) window.__lfP = new Promise((ok, no) => {
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'vendor/leaflet/leaflet.css'; document.head.appendChild(l);
+    const s = document.createElement('script'); s.src = 'vendor/leaflet/leaflet.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s);
+  });
+  return window.__lfP;
+}
+HS.cafes.mount = el => {
+  const s = caf(), ci = cafCity();
+  const chips = el.querySelector('#cfChips'); if (window.__cfChipX) chips.scrollLeft = window.__cfChipX;
+  chips.addEventListener('scroll', () => { window.__cfChipX = chips.scrollLeft; }, { passive: true });
+  const q = el.querySelector('#cfQ'); let tm;
+  q.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(() => { s.q = q.value; s.more = 0; cafRefresh(); }, 220); });
+  q.addEventListener('keydown', e => { if (e.key === 'Enter') q.blur(); });
+  // the map lives outside the zoomed screen so Leaflet works in real pixels
+  const app = document.getElementById('app');
+  const mw = document.createElement('div'); mw.className = 'cf-map'; mw.style.top = P(CAF_MAP_TOP); mw.style.height = P(cafMapH()); mw.style.width = P(430);
+  mw.innerHTML = `<div id="cfMap"></div><div class="cf-mbtns" style="zoom:${U}"><button data-cf="me" aria-label="${esc(t('caf_me'))}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#143C20" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.2" fill="#143C20"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg></button><button data-cf="big" aria-label="${esc(t(s.big ? 'caf_small' : 'caf_big'))}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#143C20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${s.big ? '<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>' : '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>'}</svg></button></div>`;
+  app.appendChild(mw);
+  mw.addEventListener('click', e => { const b = e.target.closest('[data-cf]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.cf === 'big') { s.big = !s.big; render(current, currentP); } else cafLocate(); });
+  const list = el.querySelector('#cfList');
+  list.addEventListener('scroll', () => { window.__cfListY = list.scrollTop; }, { passive: true });
+  Promise.all([leafletReady(), cafLoad(ci)]).then(() => {
+    if (!document.body.contains(mw)) return;
+    if (!CAF_INDEX.cities[ci] && ci !== 0) { caf().city = 0; return render(current, currentP); }
+    if (!el.querySelector('.cf-chips .h-chip i')) return render(current, currentP);   // first load: redraw with counts
+    CAF_SEL = null; CAF_ME = null;
+    const c = CITIES[ci]; const v = window.__cfView && window.__cfView.city === ci ? window.__cfView : null;
+    CAF_MAP = L.map(mw.querySelector('#cfMap'), { zoomControl: false, attributionControl: true, preferCanvas: true }).setView(v ? v.c : [c[5], c[6]], v ? v.z : (ci === 0 ? 12 : 13));
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd', attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>' }).addTo(CAF_MAP);
+    CAF_MAP.attributionControl.setPrefix(false);
+    CAF_MAP.on('moveend', () => { window.__cfView = { city: ci, c: CAF_MAP.getCenter(), z: CAF_MAP.getZoom() }; });
+    CAF_LAYER = L.layerGroup().addTo(CAF_MAP);
+    if (s.loc) cafMeMarker();
+    cafRefresh(true);
+  }).catch(() => { list.innerHTML = `<div class="cf-empty">${esc(t('caf_err'))}</div>`; });
+};
+function cafRefresh(keepScroll) {
+  const r = cafFiltered(), s = caf(), list = document.getElementById('cfList'); if (!list) return;
+  const shown = r.slice(0, 40 + s.more);
+  list.innerHTML = `<div class="cf-count">${esc(t('caf_n', { n: r.length }))}</div>${shown.map(cafItem).join('') || `<div class="cf-empty">${esc(t('caf_none'))}</div>`}
+    ${r.length > shown.length ? btn(t('caf_more'), 'cfmore', 'ghostd') : ''}<div class="h-muted small cam-note">${esc(t('caf_src'))}</div>`;
+  if (keepScroll && window.__cfListY) list.scrollTop = window.__cfListY; else list.scrollTop = 0;
+  if (!CAF_LAYER || !window.L) return;
+  CAF_LAYER.clearLayers();
+  for (const p of r) {
+    const m = L.circleMarker([p.la, p.lo], { radius: 6.5, color: '#fff', weight: 1.6, fillColor: CAF_COL[cafPri(p)], fillOpacity: .95 });
+    m.on('click', () => cafOpen(p.id, true)); m.addTo(CAF_LAYER);
+  }
+}
+function cafMeMarker() {
+  const l = caf().loc; if (!CAF_MAP || !l) return;
+  if (CAF_ME) CAF_ME.remove();
+  CAF_ME = L.circleMarker(l, { radius: 8, color: '#fff', weight: 3, fillColor: '#2563EB', fillOpacity: 1 }).addTo(CAF_MAP);
+}
+function cafLocate() {
+  if (!navigator.geolocation) return toast(t('caf_geo_err'));
+  navigator.geolocation.getCurrentPosition(pos => {
+    caf().loc = [pos.coords.latitude, pos.coords.longitude]; cafMeMarker();
+    if (CAF_MAP) CAF_MAP.flyTo(caf().loc, 15, { duration: .6 });
+    cafRefresh();
+  }, () => toast(t('caf_geo_err')), { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+}
+function cafSelect(p) {
+  if (!CAF_MAP) return;
+  if (CAF_SEL) CAF_SEL.remove();
+  CAF_SEL = L.circleMarker([p.la, p.lo], { radius: 11, color: '#fff', weight: 3, fillColor: CAF_COL[cafPri(p)], fillOpacity: 1 }).addTo(CAF_MAP);
+  CAF_MAP.panTo([p.la, p.lo], { animate: true });
+}
+function cafOpen(id) {
+  const p = (CAF_DATA[cafCity()] || []).find(x => x.id === id); if (!p) return;
+  cafSelect(p);
+  const col = CAF_COL[cafPri(p)], cu = cafCuis(p), st = ohState(p.h), city = cityName(cafCity());
+  const photo = p.im || (p.wc ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(p.wc.replace(/^File:/, ''))}?width=900` : '');
+  const yq = encodeURIComponent(p.n + ' ' + (CITIES[cafCity()][0]));
+  const links = [
+    ['Яндекс Карты', `https://yandex.uz/maps/?rtext=~${p.la},${p.lo}&rtt=auto`, '#FC3F1D', 'Я'],
+    ['Google Maps', `https://www.google.com/maps/dir/?api=1&destination=${p.la},${p.lo}`, '#1A73E8', 'G'],
+    ['2ГИС', `https://2gis.uz/directions/points/%7C${p.lo}%2C${p.la}`, '#29A746', '2'],
+  ];
+  const row = (k, v, extra = '') => `<div class="cf-row"><span>${esc(k)}</span><div>${v}</div>${extra}</div>`;
+  bsheet(`<div class="cf-photo" style="${photo ? `background-image:url('${esc(photo)}')` : `background:linear-gradient(135deg,${col},${col}cc)`}">${photo ? '' : `<span class="cf-ph-ic">${CAF_IC.replace(/\{s\}/g, 44)}</span><span class="cf-ph-t">${esc(t('caf_nophoto'))}</span>`}</div>
+    <div class="cf-name">${esc(p.n)}</div>${p.n2 ? `<div class="cf-n2">${esc(p.n2)}</div>` : ''}
+    <div class="cf-tags"><span style="background:${col}1a;color:${col}">${esc(cafKind(p))}</span>${p.c.filter(c => c !== 'cafe').slice(0, 3).map(c => `<span>${esc(t('cat_' + c))}</span>`).join('')}${p.dl ? `<span>${esc(t('caf_dl'))}</span>` : ''}${p.hl ? `<span>${esc(t('caf_halal'))}</span>` : ''}</div>
+    ${st ? `<div class="cf-open ${st.open ? 'on' : 'off'}">${esc(st.open ? (st.h24 ? t('caf_h24') : st.until != null ? t('caf_until', { t: hm(st.until) }) : t('caf_open')) : t('caf_closed'))}</div>` : ''}
+    <div class="h-card cf-info">
+      ${p.ad ? row(t('caf_addr'), esc(p.ad + ', ' + city)) : row(t('caf_addr'), esc(city))}
+      ${cu ? row(t('caf_cu'), esc(cu)) : ''}
+      ${p.h ? row(t('caf_hours'), ohPretty(esc(p.h))) : ''}
+      ${p.ph ? row(t('caf_phone'), `<a href="tel:${esc(p.ph.replace(/[^\d+]/g, ''))}">${esc(p.ph)}</a>`) : ''}
+      ${p.ig ? row('Instagram', `<a href="https://instagram.com/${esc(p.ig)}" target="_blank" rel="noopener">@${esc(p.ig)}</a>`) : ''}
+      ${p.tg ? row('Telegram', `<a href="https://t.me/${esc(p.tg)}" target="_blank" rel="noopener">@${esc(p.tg)}</a>`) : ''}
+      ${p.w ? row(t('caf_site'), `<a href="${esc(/^https?:/.test(p.w) ? p.w : 'https://' + p.w)}" target="_blank" rel="noopener">${esc(p.w.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a>`) : ''}
+    </div>
+    ${p.ph ? `<a class="h-btn h-primary cf-callbtn" href="tel:${esc(p.ph.replace(/[^\d+]/g, ''))}">${esc(t('caf_call'))}</a>` : ''}
+    <div class="cf-sec">${esc(t('caf_route'))}</div><div class="cf-sub">${esc(t('caf_route_s'))}</div>
+    <div class="cf-routes">${links.map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>
+    <a class="cf-ya" href="https://yandex.uz/maps/?text=${yq}&ll=${p.lo},${p.la}&z=17" target="_blank" rel="noopener">${esc(t('caf_photos'))} ›</a>
+    <div class="h-muted small cam-note">${esc(t('caf_src'))}</div>`, 'bs-caf');
+}
+function cafCitySheet() {
+  const ix = CAF_INDEX ? CAF_INDEX.cities : {};
+  const ids = Object.keys(ix).map(Number).sort((a, b) => (a === 0 ? -1 : b === 0 ? 1 : ix[b] - ix[a]));
+  bsheet(`<div class="cf-sec" style="margin-top:4px">${esc(t('caf_city_t'))}</div><div class="h-card np">${ids.map(i => `<button class="h-row cam-orow" data-act="cfsetcity:${i}"><span class="h-rt"><b>${esc(cityName(i))}</b><i>${esc(t('caf_n', { n: ix[i] }))}</i></span>${i === cafCity() ? '<span class="cf-chk">✓</span>' : IC.chev}</button>`).join('')}</div>`);
+}
+Object.assign(XACT, {
+  bsclose: () => bsheetClose(),
+  newsf: k => { window.__newsF = k; render(current, currentP); },
+  cfcat: c => { const s = caf(); s.cat = c; s.more = 0; document.querySelectorAll('#cfChips .h-chip').forEach(b => b.classList.toggle('on', b.dataset.act === 'cfcat:' + c)); cafRefresh(); },
+  cfmore: () => { caf().more += 40; const y = document.getElementById('cfList').scrollTop; cafRefresh(); document.getElementById('cfList').scrollTop = y; },
+  cfopen: id => cafOpen(id),
+  cfcity: () => { (CAF_INDEX ? Promise.resolve() : cafLoad(cafCity())).then(cafCitySheet); },
+  cfsetcity: i => { const s = caf(); s.city = +i; s.cat = 'all'; s.q = ''; s.more = 0; window.__cfListY = 0; window.__cfChipX = 0; bsheetClose(true); render(current, currentP); },
 });
