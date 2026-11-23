@@ -704,6 +704,7 @@ function updateFab() {
 // Only cameras whose owners opened them for public viewing. Each one was checked by hand (22.11.2026).
 // To add a camera, append an entry to CAMS:
 //   ipeye: device code from an IPEYE embed (…/iframe.php?…&dev=XXXX)  → live video + auto-refreshing preview
+//   hevc: true if the camera streams H.265 — phones can't decode it, so they get the Windy timelapse instead
 //   windy: webcam id from windy.com/webcams/ID                         → 24-hour timelapse (public Windy player)
 //   region: index in REGIONS (0 Tashkent city, 1 Tashkent region, 8 Samarkand, …)
 const CAM_OWNERS = { amirsoy: ['Amirsoy Resort', 'https://www.amirsoy.com/ru/webcams.html'] };
@@ -712,10 +713,10 @@ const CAMS = [
   { id: 'amirsoy-prima', region: 1, place: 'amirsoy', owner: 'amirsoy', ipeye: '3d01802be4b544c8b4e64aea00e76e6e',
     name: ['Канатная дорога Prima', "Prima kanat yo'li", 'Prima cable car', 'Prima 缆车'],
     sub: ['Нижняя станция и вход на курорт', 'Quyi bekat va kurort kirishi', 'Base station and resort entrance', '缆车下站 · 度假村入口'] },
-  { id: 'amirsoy-2290-west', region: 1, place: 'amirsoy', owner: 'amirsoy', ipeye: '7c8231e409fe4d5f9450384993720b5e', windy: '1611899491',
+  { id: 'amirsoy-2290-west', region: 1, place: 'amirsoy', owner: 'amirsoy', ipeye: '7c8231e409fe4d5f9450384993720b5e', hevc: true, windy: '1611899491',
     name: ['Вершина 2290 м · запад', "Cho'qqi 2290 m · g'arb", 'Summit 2290 m · west', '2290 米山顶 · 西'],
     sub: ['Вид на долину и склоны', "Vodiy va yonbag'irlar manzarasi", 'View of the valley and slopes', '山谷与雪道景观'] },
-  { id: 'amirsoy-2290-south', region: 1, place: 'amirsoy', owner: 'amirsoy', ipeye: 'b65cb31c58e44e308d6807c45db86520', windy: '1642432667',
+  { id: 'amirsoy-2290-south', region: 1, place: 'amirsoy', owner: 'amirsoy', ipeye: 'b65cb31c58e44e308d6807c45db86520', hevc: true, windy: '1642432667',
     name: ['Вершина 2290 м · юг', "Cho'qqi 2290 m · janub", 'Summit 2290 m · south', '2290 米山顶 · 南'],
     sub: ['Площадка у верхней станции', 'Yuqori bekat maydoni', 'Terrace at the top station', '缆车上站平台'] },
 ];
@@ -723,25 +724,27 @@ const CAMI = {
   ru: { cams_t: 'Видеокамеры', cams_all: 'Все', cams_live: '{n} в эфире', cams_upd: 'Превью обновлено в {t}',
     cams_empty_t: 'Открытых камер пока нет', cams_empty_s: 'В регионе «{r}» нет камер, которые владельцы открыли для всех. Как только они появятся, они будут здесь.', cams_show_all: 'Показать все камеры',
     cams_note: 'Здесь собраны только камеры, которые их владельцы открыли для публичного просмотра. Городские камеры безопасности и дорожные камеры служебные — их трансляции закрыты.', cams_checked: 'Проверено 22 ноября 2026',
-    cam_live: 'Прямой эфир', cam_tl: 'Таймлапс за сутки', cam_where: 'Место', cam_region: 'Регион', cam_owner: 'Камера', cam_src: 'Трансляция', cam_more: 'Другие камеры', cam_site: 'Все камеры на сайте владельца', live: 'LIVE' },
+    cam_tl_note: 'Эта камера передаёт видео в формате H.265, телефоны его не воспроизводят. Здесь кадры с камеры, они обновляются каждые 10 минут.', cam_live: 'Прямой эфир', cam_tl: 'Таймлапс за сутки', cam_where: 'Место', cam_region: 'Регион', cam_owner: 'Камера', cam_src: 'Трансляция', cam_more: 'Другие камеры', cam_site: 'Все камеры на сайте владельца', live: 'LIVE' },
   uz: { cams_t: 'Videokameralar', cams_all: 'Barchasi', cams_live: '{n} ta efirda', cams_upd: 'Rasmlar {t} da yangilandi',
     cams_empty_t: "Hozircha ochiq kameralar yo'q", cams_empty_s: "«{r}» hududida egalari hamma uchun ochgan kameralar yo'q. Ular paydo bo'lishi bilan shu yerda ko'rinadi.", cams_show_all: "Barcha kameralarni ko'rsatish",
     cams_note: "Bu yerda faqat egalari ommaviy ko'rish uchun ochgan kameralar jamlangan. Shahar xavfsizlik va yo'l kameralari xizmat kameralari — ularning translyatsiyasi yopiq.", cams_checked: '2026-yil 22-noyabrda tekshirildi',
-    cam_live: 'Jonli efir', cam_tl: 'Bir kunlik taymlaps', cam_where: 'Joy', cam_region: 'Hudud', cam_owner: 'Kamera', cam_src: 'Translyatsiya', cam_more: 'Boshqa kameralar', cam_site: 'Egasining saytidagi barcha kameralar', live: 'LIVE' },
+    cam_tl_note: "Bu kamera videoni H.265 formatida uzatadi, telefonlar uni o'ynata olmaydi. Bu yerda kameradan olingan kadrlar, ular har 10 daqiqada yangilanadi.", cam_live: 'Jonli efir', cam_tl: 'Bir kunlik taymlaps', cam_where: 'Joy', cam_region: 'Hudud', cam_owner: 'Kamera', cam_src: 'Translyatsiya', cam_more: 'Boshqa kameralar', cam_site: 'Egasining saytidagi barcha kameralar', live: 'LIVE' },
   en: { cams_t: 'Live cameras', cams_all: 'All', cams_live: '{n} live now', cams_upd: 'Previews updated at {t}',
     cams_empty_t: 'No open cameras yet', cams_empty_s: 'There are no cameras in “{r}” that their owners have opened to the public. As soon as one appears, it will show up here.', cams_show_all: 'Show all cameras',
     cams_note: 'Only cameras whose owners opened them for public viewing are listed here. City security and traffic cameras are for official use and their feeds are closed.', cams_checked: 'Checked on November 22, 2026',
-    cam_live: 'Live', cam_tl: '24-hour timelapse', cam_where: 'Location', cam_region: 'Region', cam_owner: 'Camera', cam_src: 'Stream', cam_more: 'Other cameras', cam_site: "All cameras on the owner's website", live: 'LIVE' },
+    cam_tl_note: "This camera streams H.265 video, which phones can't play. Here are frames from the camera, refreshed every 10 minutes.", cam_live: 'Live', cam_tl: '24-hour timelapse', cam_where: 'Location', cam_region: 'Region', cam_owner: 'Camera', cam_src: 'Stream', cam_more: 'Other cameras', cam_site: "All cameras on the owner's website", live: 'LIVE' },
   zh: { cams_t: '实时摄像头', cams_all: '全部', cams_live: '{n} 个直播中', cams_upd: '预览更新于 {t}',
     cams_empty_t: '暂无公开摄像头', cams_empty_s: '“{r}”目前没有向公众开放的摄像头。一旦出现，就会显示在这里。', cams_show_all: '显示全部摄像头',
     cams_note: '这里只收录所有者向公众开放的摄像头。城市安防和交通摄像头仅供公务使用，不公开直播。', cams_checked: '2026年11月22日核实',
-    cam_live: '直播', cam_tl: '24小时延时', cam_where: '位置', cam_region: '地区', cam_owner: '摄像头', cam_src: '直播来源', cam_more: '其他摄像头', cam_site: '所有者网站上的全部摄像头', live: 'LIVE' },
+    cam_tl_note: '该摄像头以 H.265 格式传输视频，手机无法播放。这里显示摄像头画面，每 10 分钟更新一次。', cam_live: '直播', cam_tl: '24小时延时', cam_where: '位置', cam_region: '地区', cam_owner: '摄像头', cam_src: '直播来源', cam_more: '其他摄像头', cam_site: '所有者网站上的全部摄像头', live: 'LIVE' },
 };
 for (const l in CAMI) Object.assign(I[l], CAMI[l]);
 AI_HIDE.add('h:cam');
 
 const CAM_IC = (s, c = '#fff') => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>`;
 const PLAY_IC = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5.5v13l10.5-6.5z" fill="#fff"/></svg>';
+const CAM_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function camLiveOK(c) { return !!c.ipeye && !(c.hevc && CAM_MOBILE); }
 function camL(arr) { return arr[LI[LANG]] || arr[0]; }
 function camRegion(c) { return (REGIONS[LANG] || REGIONS.ru)[c.region]; }
 function camRu(n) { const a = n % 10, b = n % 100; return n + ' ' + (a === 1 && b !== 11 ? 'камера' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'камеры' : 'камер'); }
@@ -789,12 +792,14 @@ HS.cams.mount = el => {
 
 HS.cam = (p) => {
   const c = CAMS.find(x => x.id === p) || CAMS[0];
-  const view = c.windy && window.__camView === 'tl' ? 'tl' : 'live';
+  const liveOK = camLiveOK(c);
+  const view = !liveOK || (c.windy && window.__camView === 'tl') ? 'tl' : 'live';
   const owner = CAM_OWNERS[c.owner];
   const others = CAMS.filter(x => x !== c);
   return `${hdr(camL(c.name))}<div class="h-body">
     <div class="cam-player"><iframe src="${esc(camSrc(c, view))}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin" title="${esc(camL(c.name))}"></iframe></div>
-    ${c.windy && c.ipeye ? `<div class="cam-tabs"><button class="h-chip ${view === 'live' ? 'on' : ''}" data-act="camview:live"><span class="cam-rec"></span>${esc(t('cam_live'))}</button><button class="h-chip ${view === 'tl' ? 'on' : ''}" data-act="camview:tl">${esc(t('cam_tl'))}</button></div>` : ''}
+    ${!liveOK ? `<div class="h-muted small cam-tlnote">${esc(t('cam_tl_note'))}</div>` : ''}
+    ${liveOK && c.windy ? `<div class="cam-tabs"><button class="h-chip ${view === 'live' ? 'on' : ''}" data-act="camview:live"><span class="cam-rec"></span>${esc(t('cam_live'))}</button><button class="h-chip ${view === 'tl' ? 'on' : ''}" data-act="camview:tl">${esc(t('cam_tl'))}</button></div>` : ''}
     <div class="h-card h-kv">${kv(t('cam_where'), camL(CAM_PLACE[c.place]))}${kv(t('cam_region'), camRegion(c))}${kv(t('cam_owner'), owner[0])}${kv(t('cam_src'), view === 'tl' ? 'Windy Webcams' : 'IPEYE')}</div>
     ${btn(t('cam_site'), 'ext:' + owner[1], 'ghostd')}
     ${others.length ? `<div class="h-sec" style="margin-top:22px">${esc(t('cam_more'))}</div><div class="h-card np">${others.map(o => `<button class="h-row cam-orow" data-act="camgo:${o.id}"><span class="cam-mini" style="background-image:url('${camPoster(o)}')"></span><span class="h-rt"><b>${esc(camL(o.name))}</b><i>${esc(camL(o.sub))}</i></span>${IC.chev}</button>`).join('')}</div>` : ''}
