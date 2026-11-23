@@ -1003,7 +1003,8 @@ HS.cafes = () => {
     <div class="cf-bar"><label class="cf-search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="cfQ" type="search" enterkeyhint="search" autocomplete="off" placeholder="${esc(t('caf_q'))}" value="${esc(s.q)}"></label></div>
     <div class="cf-chips hs" id="cfChips">${chips}</div>
     <div class="cf-mapph" style="height:${cafMapH()}px"></div>
-    <div class="h-body cf-body" id="cfList">${list ? '' : `<div class="cf-empty">${esc(t('caf_load'))}</div>`}</div>`;
+    <div class="h-body cf-body" id="cfList">${list ? '' : `<div class="cf-empty">${esc(t('caf_load'))}</div>`}</div>
+    <button class="cf-aibtn" data-act="aiopen">${SPARK(18)}<span>${esc(t('ai_btn'))}</span></button>`;
 };
 let CAF_MAP = null, CAF_LAYER = null, CAF_SEL = null, CAF_ME = null;
 function leafletReady() {
@@ -1043,6 +1044,7 @@ HS.cafes.mount = el => {
     CAF_MAP.on('zoomend', () => { const r = cafR(); CAF_LAYER.eachLayer(m => m.setStyle({ radius: r, weight: r < 5 ? 1 : 1.6 })); });
     if (s.loc) cafMeMarker();
     cafRefresh(true);
+    RT = null; RT_LINE = null; aiTip(el);
   }).catch(() => { list.innerHTML = `<div class="cf-empty">${esc(t('caf_err'))}</div>`; });
 };
 function cafRefresh(keepScroll) {
@@ -1103,7 +1105,8 @@ function cafOpen(id) {
       ${p.tg ? row('Telegram', `<a href="https://t.me/${esc(p.tg)}" target="_blank" rel="noopener">@${esc(p.tg)}</a>`) : ''}
       ${p.w ? row(t('caf_site'), `<a href="${esc(/^https?:/.test(p.w) ? p.w : 'https://' + p.w)}" target="_blank" rel="noopener">${esc(p.w.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a>`) : ''}
     </div>
-    ${p.ph ? `<a class="h-btn h-primary cf-callbtn" href="tel:${esc(p.ph.replace(/[^\d+]/g, ''))}">${esc(t('caf_call'))}</a>` : ''}
+    ${p.ph ? `<a class="h-btn h-ghostd cf-callbtn" href="tel:${esc(p.ph.replace(/[^\d+]/g, ''))}">${esc(t('caf_call'))}</a>` : ''}
+    <button class="h-btn h-primary cf-rtbtn" data-act="cfroute:${p.id}">${esc(t('rt_t'))}</button>
     <div class="cf-sec">${esc(t('caf_route'))}</div><div class="cf-sub">${esc(t('caf_route_s'))}</div>
     <div class="cf-routes">${links.map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>
     <a class="cf-ya" href="https://yandex.uz/maps/?text=${yq}&ll=${p.lo},${p.la}&z=17" target="_blank" rel="noopener">${esc(t('caf_photos'))} ›</a>
@@ -1122,4 +1125,173 @@ Object.assign(XACT, {
   cfopen: id => cafOpen(id),
   cfcity: () => { (CAF_INDEX ? Promise.resolve() : cafLoad(cafCity())).then(cafCitySheet); },
   cfsetcity: i => { const s = caf(); s.city = +i; s.cat = 'all'; s.q = ''; s.more = 0; window.__cfListY = 0; window.__cfChipX = 0; bsheetClose(true); render(current, currentP); },
+});
+
+// ---------------------------------------------------------------- cafes: route + taxi + AI guide
+const RT_I = {
+  ru: { rt_t: 'Маршрут и такси', rt_car: 'Авто', rt_foot: 'Пешком', rt_taxi: 'Вызвать такси', rt_taxi_s: 'Цена по тарифу Yandex Go без повышающего коэффициента, точная — в приложении', rt_open: 'Открыть маршрут в навигаторе', rt_geo: 'Чтобы построить маршрут, разрешите доступ к местоположению', rt_min: 'мин', rt_h: 'ч', rt_sum: 'сум', rt_start: 'Старт', rt_comfort: 'Комфорт', rt_from: 'от',
+    ai_btn: 'Подобрать с ИИ', ai_t: 'ИИ-гид по кафе', ai_hi: 'Расскажите, что хочется — подберу место и построю маршрут. Например: «плов недалеко и чтобы было открыто» или «тихая кофейня с террасой».', ai_tip: 'Подсказать, где поесть? Что хочется?', ai_ph: 'Что хочется? Плов, кальян, кофе…', ai_think: 'Подбираю…', ai_none: 'Под такой запрос ничего не нашлось. Попробуйте сформулировать иначе.', ai_here: 'Вот что подходит:', ai_open: 'Открыть', ai_route: 'Маршрут',
+    aq_plov: 'Плов', aq_coffee: 'Кофе', aq_hookah: 'Кальян', aq_grill: 'Шашлык', aq_terrace: 'С террасой', aq_near: 'Открыто рядом' },
+  uz: { rt_t: "Yo'nalish va taksi", rt_car: 'Avto', rt_foot: 'Piyoda', rt_taxi: 'Taksi chaqirish', rt_taxi_s: "Yandex Go tarifi bo'yicha narx, oshiruvchi koeffitsientsiz; aniq narx — ilovada", rt_open: "Yo'nalishni navigatorda ochish", rt_geo: "Yo'nalish qurish uchun joylashuvga ruxsat bering", rt_min: 'daq', rt_h: 'soat', rt_sum: "so'm", rt_start: 'Start', rt_comfort: 'Komfort', rt_from: '',
+    ai_btn: 'AI bilan tanlash', ai_t: 'Kafe bo‘yicha AI-gid', ai_hi: "Nima xohlayotganingizni yozing — joy topib, yo'nalish quraman. Masalan: «yaqin atrofda palov, hozir ochiq» yoki «terrasali tinch qahvaxona».", ai_tip: 'Qayerda ovqatlanishni maslahat beraymi?', ai_ph: 'Nima xohlaysiz? Palov, qalyan, qahva…', ai_think: 'Tanlayapman…', ai_none: "Bunday so'rov bo'yicha hech narsa topilmadi. Boshqacha yozib ko'ring.", ai_here: 'Mana mos joylar:', ai_open: 'Ochish', ai_route: "Yo'nalish",
+    aq_plov: 'Palov', aq_coffee: 'Qahva', aq_hookah: 'Qalyan', aq_grill: 'Shashlik', aq_terrace: 'Terrasali', aq_near: 'Yaqinda ochiq' },
+  en: { rt_t: 'Route & taxi', rt_car: 'Car', rt_foot: 'Walk', rt_taxi: 'Call a taxi', rt_taxi_s: 'Yandex Go tariff price without surge; the exact price is in the app', rt_open: 'Open the route in', rt_geo: 'Allow location access to build a route', rt_min: 'min', rt_h: 'h', rt_sum: 'UZS', rt_start: 'Start', rt_comfort: 'Comfort', rt_from: 'from',
+    ai_btn: 'Pick with AI', ai_t: 'AI food guide', ai_hi: 'Tell me what you feel like — I’ll pick a place and build a route. For example: “plov nearby, open now” or “a quiet coffee shop with a terrace”.', ai_tip: 'Need a place to eat? What do you feel like?', ai_ph: 'What do you feel like? Plov, hookah, coffee…', ai_think: 'Picking…', ai_none: 'Nothing matches that. Try asking differently.', ai_here: 'Here’s what fits:', ai_open: 'Open', ai_route: 'Route',
+    aq_plov: 'Plov', aq_coffee: 'Coffee', aq_hookah: 'Hookah', aq_grill: 'Kebab', aq_terrace: 'Terrace', aq_near: 'Open nearby' },
+  zh: { rt_t: '路线与打车', rt_car: '驾车', rt_foot: '步行', rt_taxi: '叫车', rt_taxi_s: '按 Yandex Go 价目估算，不含加价系数；准确价格以应用为准', rt_open: '在导航中打开路线', rt_geo: '请允许定位以规划路线', rt_min: '分钟', rt_h: '小时', rt_sum: '苏姆', rt_start: 'Start', rt_comfort: '舒适', rt_from: '约',
+    ai_btn: 'AI 推荐', ai_t: 'AI 美食向导', ai_hi: '告诉我您想吃什么，我来推荐地点并规划路线。例如：“附近的抓饭，现在营业”或“有露台的安静咖啡馆”。', ai_tip: '想找地方吃饭吗？想吃什么？', ai_ph: '想吃什么？抓饭、水烟、咖啡…', ai_think: '正在挑选…', ai_none: '没有找到合适的地点，请换个说法。', ai_here: '为您推荐：', ai_open: '打开', ai_route: '路线',
+    aq_plov: '抓饭', aq_coffee: '咖啡', aq_hookah: '水烟', aq_grill: '烧烤', aq_terrace: '露台', aq_near: '附近营业' },
+};
+for (const l in RT_I) Object.assign(I[l], RT_I[l]);
+AI_HIDE.add('h:cafes');
+const SPARK_S = s => SPARK(s);
+// Yandex Go Tashkent tariff caps (taxi.yandex.uz, valid to 24.11.2026): min fare incl. 1 km + 3 min, then per km / per min
+const TAXI = { start: [4600, 1, 3, 1050, 500], comfort: [5400, 1, 3, 1400, 550] };
+function taxiPrice(k, km, min) { const [b, ik, im, pk, pm] = TAXI[k]; const v = b + Math.max(0, km - ik) * pk + Math.max(0, min - im) * pm; return Math.round(v / 500) * 500; }
+const fmtSum = v => v.toLocaleString('ru-RU').replace(/ /g, ' ');
+const fmtDur = s => { const m = Math.max(1, Math.round(s / 60)); return m < 60 ? `${m} ${t('rt_min')}` : `${Math.floor(m / 60)} ${t('rt_h')} ${m % 60} ${t('rt_min')}`; };
+const fmtKm = m => (m / 1000).toFixed(m < 10000 ? 1 : 0).replace('.', LANG === 'en' || LANG === 'zh' ? '.' : ',') + (LANG === 'ru' ? ' км' : ' km');
+function geo() {
+  const l = caf().loc; if (l) return Promise.resolve(l);
+  return new Promise((ok, no) => { if (!navigator.geolocation) return no(); navigator.geolocation.getCurrentPosition(p => { caf().loc = [p.coords.latitude, p.coords.longitude]; cafMeMarker(); ok(caf().loc); }, no, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }); });
+}
+async function osrm(prof, a, b) {
+  const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 9000);
+  try {
+    const r = await fetch(`https://routing.openstreetmap.de/routed-${prof}/route/v1/driving/${a[1]},${a[0]};${b[1]},${b[0]}?overview=full&geometries=geojson`, { signal: ctl.signal });
+    const j = await r.json(); const x = j.routes && j.routes[0]; if (!x) throw 0;
+    return { d: x.distance, s: prof === 'car' ? x.duration * 1.35 + 120 : x.duration, g: x.geometry.coordinates.map(c => [c[1], c[0]]) };
+  } catch (e) { const k = cafDistRaw(a, b) * (prof === 'car' ? 1.35 : 1.2); return { d: k * 1000, s: prof === 'car' ? k / 24 * 3600 + 120 : k / 4.8 * 3600, g: [a, b], est: 1 }; }
+  finally { clearTimeout(tm); }
+}
+function cafDistRaw(a, b) { const R = 6371, r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); }
+let RT = null, RT_LINE = null;
+function rtClear() { if (RT_LINE) { RT_LINE.remove(); RT_LINE = null; } const p = document.querySelector('.rt-panel'); if (p) p.remove(); RT = null; }
+function navLinks(p, from, mode) {
+  const a = from ? `${from[0]},${from[1]}` : '';
+  return [
+    ['Яндекс Карты', `https://yandex.uz/maps/?rtext=${a}~${p.la},${p.lo}&rtt=${mode === 'foot' ? 'pd' : 'auto'}`, '#FC3F1D', 'Я'],
+    ['Google Maps', `https://www.google.com/maps/dir/?api=1${from ? `&origin=${a}` : ''}&destination=${p.la},${p.lo}&travelmode=${mode === 'foot' ? 'walking' : 'driving'}`, '#1A73E8', 'G'],
+    ['2ГИС', `https://2gis.uz/directions/points/${from ? `${from[1]}%2C${from[0]}` : ''}%7C${p.lo}%2C${p.la}`, '#29A746', '2'],
+  ];
+}
+function taxiLink(p, from) { return `https://3.redirect.appmetrica.yandex.com/route?${from ? `start-lat=${from[0]}&start-lon=${from[1]}&` : ''}end-lat=${p.la}&end-lon=${p.lo}&ref=myuzcity&appmetrica_tracking_id=1178268795219780156&lang=${LANG}`; }
+async function cafRoute(id) {
+  const p = (CAF_DATA[cafCity()] || []).find(x => x.id === id); if (!p) return;
+  bsheetClose(true);
+  let from; try { from = await geo(); } catch (e) { toast(t('rt_geo')); return; }
+  rtClear(); cafSelect(p);
+  RT = { p, from, mode: 'car', car: null, foot: null };
+  rtPanel();
+  const [car, foot] = await Promise.all([osrm('car', from, [p.la, p.lo]), osrm('foot', from, [p.la, p.lo])]);
+  if (!RT || RT.p !== p) return;
+  RT.car = car; RT.foot = foot; rtDraw(); rtPanel();
+}
+function rtDraw() {
+  if (!CAF_MAP || !RT) return; const r = RT[RT.mode]; if (!r) return;
+  if (RT_LINE) RT_LINE.remove();
+  RT_LINE = L.polyline(r.g, RT.mode === 'car' ? { color: '#143C20', weight: 5, opacity: .9 } : { color: '#2563EB', weight: 4, dashArray: '2 8', lineCap: 'round' }).addTo(CAF_MAP);
+  CAF_MAP.fitBounds(RT_LINE.getBounds(), { padding: [36, 36] });
+}
+function rtPanel() {
+  if (!RT) return; const { p, from, mode, car, foot } = RT;
+  const app = document.getElementById('app'); let w = app.querySelector('.rt-panel');
+  if (!w) { w = document.createElement('div'); w.className = 'rt-panel'; w.style.zoom = U; app.appendChild(w);
+    w.addEventListener('click', e => { const b = e.target.closest('[data-rt]'); if (!b) return; e.preventDefault(); const a = b.dataset.rt; if (a === 'x') rtClear(); else if (a === 'car' || a === 'foot') { RT.mode = a; rtDraw(); rtPanel(); } else if (a === 'open') cafOpen(RT.p.id); }); }
+  const tab = (k, r) => `<button class="rt-tab ${mode === k ? 'on' : ''}" data-rt="${k}">${k === 'car' ? '🚗' : '🚶'} <b>${r ? fmtDur(r.s) : '…'}</b><i>${r ? (r.est ? '≈ ' : '') + fmtKm(r.d) : t(k === 'car' ? 'rt_car' : 'rt_foot')}</i></button>`;
+  const km = car ? car.d / 1000 : null, mn = car ? car.s / 60 : null;
+  w.innerHTML = `<div class="rt-head"><button class="rt-name" data-rt="open"><span class="rt-ic" style="background:${CAF_COL[cafPri(p)]}">${CAF_IC.replace(/\{s\}/g, 16)}</span><b>${esc(p.n)}</b></button><button class="rt-x" data-rt="x">${IC.close}</button></div>
+    <div class="rt-tabs">${tab('car', car)}${tab('foot', foot)}</div>
+    <div class="rt-taxi"><span class="rt-go">Go</span><span class="rt-tt"><b>${car ? `≈ ${fmtSum(taxiPrice('start', km, mn))} ${t('rt_sum')}` : 'Yandex Go'}</b><i>${car ? `Yandex Go · ${t('rt_start')}; ${t('rt_comfort')} ≈ ${fmtSum(taxiPrice('comfort', km, mn))}` : '…'}</i></span><a class="rt-call" href="${esc(taxiLink(p, from))}" target="_blank" rel="noopener">${esc(t('rt_taxi'))}</a></div>
+    <div class="rt-note">${esc(t('rt_taxi_s'))}</div>
+    <div class="rt-nav">${navLinks(p, from, mode).map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>`;
+}
+
+// AI guide: rule-based shortlist from the open data, then the assistant picks and explains
+const AI_KW = [[/плов|palov|plov|osh\b|抓饭/i, 'plov'], [/кальян|qalyan|hookah|shisha|水烟/i, 'hookah'], [/коф|qahva|coffee|кофейн|咖啡/i, 'coffee'], [/шашлык|кебаб|гриль|мяс|стейк|shashlik|kabob|kebab|grill|steak|烧烤|烤/i, 'grill'],
+  [/суши|роллы|азиат|корей|китай|япон|рамен|вок|sushi|asian|korean|chinese|japan|ramen|wok|亚洲|寿司/i, 'asia'], [/пицц|итал|европ|паст|pizza|italian|europe|pasta|西餐|披萨/i, 'europe'], [/бургер|фаст|быстро|перекус|burger|fast|snack|快餐|汉堡/i, 'fast'],
+  [/бар|пиво|вино|коктейл|bar|beer|wine|cocktail|酒/i, 'bar'], [/террас|летн|на улице|вид|terrace|outdoor|view|露台/i, 'terrace'], [/национ|узбек|чайхан|milliy|o'zbek|uzbek|national|乌兹别克/i, 'national']];
+function aiIntent(q) {
+  const cats = AI_KW.filter(([re]) => re.test(q)).map(([, c]) => c);
+  return { cats, open: /открыт|сейчас|ochiq|hozir|open|now|营业/i.test(q), near: /рядом|близко|недалеко|поблизост|yaqin|near|close|附近/i.test(q),
+    dl: /доставк|yetkaz|deliver|外卖/i.test(q), halal: /халял|halol|halal|清真/i.test(q), words: q.toLowerCase().split(/[^a-zа-яё0-9'ʻ]+/i).filter(w => w.length > 3) };
+}
+function aiShortlist(q) {
+  const it = aiIntent(q), list = CAF_DATA[cafCity()] || [];
+  const loc = caf().loc;
+  const sc = p => {
+    let s = 0; for (const c of it.cats) if (p.c.includes(c)) s += 6;
+    const hay = (p.n + ' ' + (p.n2 || '') + ' ' + (p.cu || '') + ' ' + cafCuis(p)).toLowerCase();
+    for (const w of it.words) if (hay.includes(w)) s += 3;
+    const st = ohState(p.h); if (st && st.open) s += it.open ? 4 : 1.5; else if (st && !st.open && it.open) s -= 20;
+    if (it.dl && p.dl) s += 3; if (it.halal && p.hl) s += 3;
+    s += (p.ph ? .6 : 0) + (p.h ? .8 : 0) + (p.ad ? .4 : 0) + (p.w || p.ig ? .4 : 0);
+    if (loc) s -= cafDistRaw(loc, [p.la, p.lo]) * (it.near ? 1.2 : .35);
+    return s;
+  };
+  const need = it.cats.length || it.words.length;
+  return list.map(p => [sc(p), p]).filter(([s, p]) => !it.cats.length || it.cats.some(c => p.c.includes(c)) || s > 6).sort((a, b) => b[0] - a[0]).slice(0, 14).map(x => x[1]).filter(() => need || true);
+}
+const AIC = () => (window.__aic = window.__aic || { msgs: [], busy: false });
+function aiSheetHTML() {
+  const S = AIC();
+  const chips = ['plov', 'coffee', 'hookah', 'grill', 'terrace', 'near'].map(k => `<button class="ai-q" data-act="aiq:${k}">${esc(t('aq_' + k))}</button>`).join('');
+  const msgs = S.msgs.map(m => m.role === 'user' ? `<div class="ai-m me">${esc(m.text)}</div>` : `<div class="ai-m bot">${esc(m.text)}</div>${(m.picks || []).map(([id, why]) => { const p = (CAF_DATA[cafCity()] || []).find(x => x.id === id); if (!p) return ''; const d = caf().loc ? fmtDist(cafDistRaw(caf().loc, [p.la, p.lo])) : '';
+      return `<div class="ai-pick"><span class="cf-ic" style="background:${CAF_COL[cafPri(p)]}">${CAF_IC.replace(/\{s\}/g, 18)}</span><div class="ai-pt"><b>${esc(p.n)}</b><i>${esc([cafKind(p), cafCuis(p), d].filter(Boolean).join(' · '))}</i>${ohLabel(p)}${why ? `<p>${esc(why)}</p>` : ''}<div class="ai-pb"><button data-act="cfopen:${p.id}">${esc(t('ai_open'))}</button><button class="pr" data-act="cfroute:${p.id}">${esc(t('ai_route'))}</button></div></div></div>`; }).join('')}`).join('');
+  return `<div class="ai-hd"><span class="ai-av">${SPARK_S(18)}</span><b>${esc(t('ai_t'))}</b></div>
+    <div class="ai-m bot">${esc(t('ai_hi'))}</div><div class="ai-qs">${chips}</div>${msgs}${S.busy ? `<div class="ai-m bot typing">${esc(t('ai_think'))}</div>` : ''}
+    <form class="ai-in" onsubmit="return false"><input id="aiCafQ" placeholder="${esc(t('ai_ph'))}" autocomplete="off" enterkeyhint="send"><button type="submit" data-act="aisend" aria-label="send"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>`;
+}
+function aiSheet() {
+  const w = document.querySelector('.bs-wrap.bs-ai');
+  if (w) { const b = w.querySelector('.bs-body'); const keep = b.querySelector('#aiCafQ') ? b.querySelector('#aiCafQ').value : ''; b.innerHTML = aiSheetHTML(); b.querySelector('#aiCafQ').value = keep; b.scrollTop = b.scrollHeight; aiBind(w); return; }
+  const n = bsheet(aiSheetHTML(), 'bs-ai'); aiBind(n);
+}
+function aiBind(w) { const i = w.querySelector('#aiCafQ'); if (!i || i._b) return; i._b = 1; i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); aiAsk(i.value); } }); }
+async function aiAsk(q) {
+  q = String(q || '').trim(); const S = AIC(); if (!q || S.busy) return;
+  S.msgs.push({ role: 'user', text: q }); S.busy = true; aiSheet();
+  const inp = document.getElementById('aiCafQ'); if (inp) inp.value = '';
+  const it = aiIntent(q);
+  if ((it.near || /рядом|near|yaqin/i.test(q)) && !caf().loc) { try { await geo(); } catch (e) {} }
+  await cafLoad(cafCity());
+  const list = aiShortlist(q);
+  let text = '', picks = [];
+  if (list.length) {
+    const loc = caf().loc, now = new Date();
+    const lines = list.map(p => { const st = ohState(p.h); return `${p.id} | ${p.n} | ${cafKind(p)} | ${cafCuis(p) || '—'} | ${st ? (st.open ? 'открыто' + (st.until != null ? ' до ' + hm(st.until) : '') : 'закрыто') : 'часы неизвестны'} | ${loc ? fmtDist(cafDistRaw(loc, [p.la, p.lo])) : '—'}`; }).join('\n');
+    const lang = { ru: 'русском', uz: 'узбекском (латиница)', en: 'английском', zh: 'китайском' }[LANG];
+    const prompt = `Ты — гид по кафе в приложении MyUzCity. Пользователь просит: «${q}». Город: ${CITIES[cafCity()][0]}. Сейчас ${hm(now.getHours() * 60 + now.getMinutes())}.\nПодходящие заведения из открытых данных (id | название | тип | кухня | часы | расстояние):\n${lines}\nВыбери до 3 лучших под запрос. Ответь на ${lang} языке. Формат строго:\nпервая строка — короткий ответ (до 15 слов);\nзатем по строке на заведение: ID | почему подходит (до 12 слов).\nНе придумывай заведения, цены, рейтинги и факты, которых нет в списке.`;
+    try {
+      const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 20000);
+      const r = await fetch(AI_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctl.signal, body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], lang: LANG, name: { ru: 'Владислав', uz: 'Vladislav', en: 'Vladislav', zh: 'Vladislav' }[LANG], city: cityName(), date: liveText('date'), screen: t('caf_t') }) });
+      clearTimeout(tm);
+      const j = await r.json(); const rep = String(j.reply || '').replace(/\[\[[^\]]*\]\]/g, '').trim();
+      const ids = new Set(list.map(p => p.id));
+      for (const ln of rep.split('\n')) { const m = ln.match(/^\s*[-*•]?\s*([nwr]\d+)\s*[|:—-]\s*(.+)$/); if (m && ids.has(m[1]) && picks.length < 3) picks.push([m[1], m[2].trim()]); else if (!picks.length && ln.trim() && !text) text = ln.trim(); }
+    } catch (e) {}
+    if (!picks.length) picks = list.slice(0, 3).map(p => [p.id, '']);
+    if (!text) text = t('ai_here');
+  } else text = t('ai_none');
+  S.busy = false; S.msgs.push({ role: 'bot', text, picks }); aiSheet();
+  if (CAF_MAP && picks.length) { const pts = picks.map(([id]) => (CAF_DATA[cafCity()] || []).find(x => x.id === id)).filter(Boolean).map(p => [p.la, p.lo]); if (pts.length) CAF_MAP.fitBounds(pts, { padding: [50, 50], maxZoom: 15 }); }
+}
+function aiTip(el) {
+  try { if (sessionStorage.getItem('cf-ai-tip')) return; sessionStorage.setItem('cf-ai-tip', '1'); } catch (e) {}
+  setTimeout(() => {
+    if (current !== 'h:cafes' || document.querySelector('.bs-wrap')) return;
+    const app = document.getElementById('app');
+    const b = document.createElement('div'); b.className = 'ai-tip'; b.style.zoom = U; b.style.top = (CAF_MAP_TOP + cafMapH() - 128) + 'px';
+    b.innerHTML = `<span class="ai-av">${SPARK_S(16)}</span><div><b>${esc(t('ai_tip'))}</b><div class="ai-tq">${['plov', 'coffee', 'hookah', 'near'].map(k => `<button data-tq="${k}">${esc(t('aq_' + k))}</button>`).join('')}</div></div><button class="ai-tx" data-tq="x">${IC.close}</button>`;
+    app.appendChild(b); requestAnimationFrame(() => b.classList.add('on'));
+    const kill = () => { b.classList.remove('on'); setTimeout(() => b.remove(), 250); };
+    b.addEventListener('click', e => { const x = e.target.closest('[data-tq]'); if (!x) return; e.preventDefault(); kill(); if (x.dataset.tq !== 'x') XACT.aiq(x.dataset.tq); });
+    setTimeout(kill, 12000);
+  }, 1400);
+}
+Object.assign(XACT, {
+  cfroute: id => cafRoute(id),
+  aiopen: () => aiSheet(),
+  aiq: k => { aiSheet(); aiAsk(t('aq_' + k) + (k === 'near' ? '' : (LANG === 'ru' ? ' рядом' : ''))); },
+  aisend: () => { const i = document.getElementById('aiCafQ'); if (i) aiAsk(i.value); },
 });
