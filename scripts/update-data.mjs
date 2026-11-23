@@ -1,6 +1,7 @@
 // Refreshes the app's live data (run by .github/workflows/update-data.yml).
 //   data/news.json          — city news + Tashkent afisha from public RSS feeds (every run)
 //   data/places/<city>.json — cafes & restaurants from OpenStreetMap (weekly, or FORCE_PLACES=1)
+//   data/poi/<kind>/<city>.json — parking, mosques, medicine (hospitals, clinics, pharmacies) from OpenStreetMap (weekly)
 // City list, names and coordinates come from CITIES in flows.js (index = city id in the app).
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 
@@ -146,36 +147,117 @@ async function overpass(q) {
   }
   throw new Error('all overpass servers failed');
 }
-async function places() {
-  // each run refreshes the cities whose data is older than 6 days, within a time budget
-  const dir = ROOT + 'data/places/';
-  mkdirSync(dir, { recursive: true });
-  const marker = dir + 'index.json';
-  const prev = existsSync(marker) ? JSON.parse(readFileSync(marker, 'utf8')) : {};
+// ---------------------------------------------------------------- city maps: parking, mosques, medicine (OpenStreetMap)
+const yes = v => v === 'yes' || v === 'only';
+const addr = t => t['addr:street'] ? t['addr:street'] + (t['addr:housenumber'] ? ', ' + t['addr:housenumber'] : '') : (t['addr:full'] || '');
+function base(e) {
+  const t = e.tags || {}; const lat = e.lat ?? e.center?.lat, lon = e.lon ?? e.center?.lon;
+  if (lat == null) return null;
+  const p = { id: e.type[0] + e.id, la: +lat.toFixed(6), lo: +lon.toFixed(6) };
+  const n = t['name:ru'] || t.name; if (n) p.n = n; if (t.name && t.name !== n) p.n2 = t.name;
+  const a = addr(t); if (a) p.ad = a;
+  const ph = t.phone || t['contact:phone']; if (ph) p.ph = ph.split(';')[0].trim();
+  if (t.opening_hours) p.h = t.opening_hours;
+  const w = t.website || t['contact:website']; if (w) p.w = w;
+  return p;
+}
+const POI = {
+  parking: {
+    r: [12000, 6000],
+    q: (r, la, lo) => `nwr["amenity"="parking"]["access"!~"^(private|no|permit|employees)$"](around:${r},${la},${lo});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p) return null;
+      const k = { 'multi-storey': 'm', underground: 'u', rooftop: 'm', street_side: 's', lane: 's', on_street: 's' }[t.parking] || 'g';
+      p.k = k;
+      if (yes(t.fee)) p.f = 1; else if (t.fee === 'no') p.f = 0;
+      const c = parseInt(t.capacity, 10); if (c > 0 && c < 20000) p.c = c;
+      if (t.operator) p.op = t.operator;
+      if (t.access === 'customers') p.cu = 1;
+      if (/^(yes|designated|\d+)$/.test(t['capacity:disabled'] || '')) p.ds = 1;
+      // skip anonymous tiny surface lots: no name, no fee info, no capacity
+      if (!p.n && p.f == null && !p.c && k === 'g' && e.type === 'n') return null;
+      return p;
+    },
+  },
+  mosque: {
+    r: [16000, 8000],
+    q: (r, la, lo) => `nwr["amenity"="place_of_worship"]["religion"="muslim"](around:${r},${la},${lo});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p) return null;
+      if (t.historic || t.heritage || t['heritage:operator'] || t.wikipedia || t.wikidata && t.tourism) p.hi = 1;
+      if (t.image && /^https:\/\/upload\.wikimedia\.org\//.test(t.image)) p.im = t.image;
+      else if (t.wikimedia_commons && /^File:/.test(t.wikimedia_commons)) p.wc = t.wikimedia_commons;
+      if (t.wikipedia) p.wp = t.wikipedia;
+      if (yes(t['female'])) p.fe = 1;
+      return p;
+    },
+  },
+  med: {
+    r: [16000, 8000],
+    q: (r, la, lo) => `nwr["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"](around:${r},${la},${lo});nwr["healthcare"~"^(laboratory|centre|blood_donation|rehabilitation)$"](around:${r},${la},${lo});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p) return null;
+      const hc = t.healthcare || '';
+      p.a = t.amenity === 'pharmacy' || hc === 'pharmacy' ? 'pharmacy' : t.amenity === 'hospital' || hc === 'hospital' ? 'hospital'
+        : t.amenity === 'dentist' || hc === 'dentist' ? 'dentist' : hc === 'laboratory' || hc === 'blood_donation' ? 'lab' : 'clinic';
+      if (!p.n && p.a !== 'pharmacy') return null;
+      if (yes(t.emergency)) p.em = 1;
+      const sp = t['healthcare:speciality']; if (sp) p.sp = sp.split(';').slice(0, 4).join(';');
+      if (yes(t.dispensing)) p.ds = 1;
+      return p;
+    },
+  },
+};
+
+async function cityData() {
+  // each run refreshes the oldest data (older than 6 days) within a time budget, Tashkent first
+  const pdir = ROOT + 'data/places/'; mkdirSync(pdir, { recursive: true });
+  const pmark = pdir + 'index.json';
+  const prev = existsSync(pmark) ? JSON.parse(readFileSync(pmark, 'utf8')) : {};
   const index = { v: 3, updated: new Date().toISOString(), cities: prev.cities || {}, at: prev.at || {} };
+  const qdir = ROOT + 'data/poi/'; mkdirSync(qdir, { recursive: true });
+  const qmark = qdir + 'index.json';
+  const qprev = existsSync(qmark) ? JSON.parse(readFileSync(qmark, 'utf8')) : {};
+  const qindex = { v: 1, updated: new Date().toISOString(), n: qprev.n || {}, at: qprev.at || {} };
+  for (const k of Object.keys(POI)) { qindex.n[k] = qindex.n[k] || {}; qindex.at[k] = qindex.at[k] || {}; mkdirSync(qdir + k, { recursive: true }); }
+
   const BIG = ['Ташкент', 'Самарканд', 'Бухара', 'Хива', 'Ургенч', 'Наманган', 'Андижан', 'Фергана', 'Коканд', 'Маргилан', 'Нукус', 'Карши', 'Шахрисабз', 'Термез', 'Джизак', 'Навои', 'Гулистан', 'Чирчик'];
   const order = CITIES.map((c, i) => i).filter(i => BIG.includes(CITIES[i][0])).sort((a, b) => BIG.indexOf(CITIES[a][0]) - BIG.indexOf(CITIES[b][0]));
-  const stale = i => process.env.FORCE_PLACES || !index.at[i] || Date.now() - Date.parse(index.at[i]) > 6 * 864e5;
-  const t0 = Date.now();
+  const old = iso => process.env.FORCE_PLACES || !iso || Date.now() - Date.parse(iso) > 6 * 864e5;
+  const jobs = [];
   for (const i of order) {
-    if (!stale(i)) continue;
-    if (Date.now() - t0 > 9 * 60e3) { console.log('places: time budget used, the rest next run'); break; }
+    if (old(index.at[i])) jobs.push(['places', i]);
+    for (const k of Object.keys(POI)) if (old(qindex.at[k][i])) jobs.push([k, i]);
+  }
+  const t0 = Date.now();
+  for (const [kind, i] of jobs) {
+    if (Date.now() - t0 > 11 * 60e3) { console.log('city data: time budget used, the rest next run'); break; }
     const [, , , , , lat, lon] = CITIES[i];
-    const r = i === 0 ? 16000 : 6000;
-    const q = `[out:json][timeout:90];nwr["amenity"~"^(restaurant|cafe|fast_food|bar|pub|hookah_lounge|food_court|biergarten)$"]["name"](around:${r},${lat},${lon});out center tags;`;
     try {
-      const j = await overpass(q);
-      const items = j.elements.map(e => place(e, i)).filter(Boolean);
-      const seen = new Set(); const list = items.filter(p => { const k = p.n.toLowerCase() + Math.round(p.la * 2000) + Math.round(p.lo * 2000); return !seen.has(k) && seen.add(k); });
-      if (list.length) { writeFileSync(dir + i + '.json', JSON.stringify(list)); index.cities[i] = list.length; }
-      index.at[i] = new Date().toISOString();
-      writeFileSync(marker, JSON.stringify(index));
-      console.log(`places ${CITIES[i][0]}: ${list.length}`);
-    } catch (e) { console.log(`places ${CITIES[i][0]} failed: ${e.message}`); }
+      if (kind === 'places') {
+        const r = i === 0 ? 16000 : 6000;
+        const j = await overpass(`[out:json][timeout:90];nwr["amenity"~"^(restaurant|cafe|fast_food|bar|pub|hookah_lounge|food_court|biergarten)$"]["name"](around:${r},${lat},${lon});out center tags;`);
+        const items = j.elements.map(e => place(e, i)).filter(Boolean);
+        const seen = new Set(); const list = items.filter(p => { const k = p.n.toLowerCase() + Math.round(p.la * 2000) + Math.round(p.lo * 2000); return !seen.has(k) && seen.add(k); });
+        if (list.length) { writeFileSync(pdir + i + '.json', JSON.stringify(list)); index.cities[i] = list.length; }
+        index.at[i] = new Date().toISOString();
+        writeFileSync(pmark, JSON.stringify(index));
+        console.log(`places ${CITIES[i][0]}: ${list.length}`);
+      } else {
+        const P = POI[kind], r = P.r[i === 0 ? 0 : 1];
+        const j = await overpass(`[out:json][timeout:120];(${P.q(r, lat, lon)});out center tags;`);
+        const seen = new Set();
+        const list = j.elements.map(e => P.map(e)).filter(Boolean).filter(p => { const k = (p.n || '').toLowerCase() + Math.round(p.la * 3000) + Math.round(p.lo * 3000); return !seen.has(k) && seen.add(k); });
+        if (list.length) { writeFileSync(qdir + kind + '/' + i + '.json', JSON.stringify(list)); qindex.n[kind][i] = list.length; }
+        qindex.at[kind][i] = new Date().toISOString();
+        writeFileSync(qmark, JSON.stringify(qindex));
+        console.log(`${kind} ${CITIES[i][0]}: ${list.length}`);
+      }
+    } catch (e) { console.log(`${kind} ${CITIES[i][0]} failed: ${e.message}`); }
     await new Promise(r => setTimeout(r, 1500));
   }
-  writeFileSync(marker, JSON.stringify(index));
+  writeFileSync(pmark, JSON.stringify(index)); writeFileSync(qmark, JSON.stringify(qindex));
 }
 
 await news();
-await places();
+await cityData();
