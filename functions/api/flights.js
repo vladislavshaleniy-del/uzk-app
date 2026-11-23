@@ -26,7 +26,7 @@ export async function onRequestGet({ request, waitUntil }) {
   const lg = ['ru', 'uz', 'en'].includes(u.searchParams.get('lang')) ? u.searchParams.get('lang') : 'ru';
   const key = new Request(`https://cache.myuzcity.local/flights/${ap}/${dir}/${lg}`);
   const cache = caches.default;
-  const hit = await cache.match(key);
+  const hit = u.searchParams.get('debug') ? null : await cache.match(key);
   if (hit) return new Response(hit.body, { headers: { 'content-type': 'application/json; charset=utf-8', ...CORS } });
   let cookie = '';
   if (lg !== 'uz') {
@@ -40,6 +40,7 @@ export async function onRequestGet({ request, waitUntil }) {
   try { r = await fetch(`https://uzairports.com/flights/${dir}?airport=${ap}`, { headers: { 'user-agent': UA, 'accept-language': lg, ...(cookie ? { cookie } : {}) } }); }
   catch (e) { return json({ ok: false, error: 'source unavailable' }, 502); }
   if (!r.ok || !r.body) return json({ ok: false, error: 'source ' + r.status }, 502);
+  if (u.searchParams.get('debug') === '1') return json({ url: r.url, redirected: r.redirected, status: r.status, cookie: cookie ? cookie.split('; ').map(c => c.split('=')[0]) : [] });
   const rows = []; let cur = null;
   const add = k => ({ text(t) { if (cur) cur[k] = (cur[k] || '') + t.text; } });
   const rw = new HTMLRewriter()
