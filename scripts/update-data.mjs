@@ -202,7 +202,7 @@ const POI = {
   },
   med: {
     r: [16000, 8000],
-    q: b => `nw["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"](${b});nw["healthcare"~"^(laboratory|centre|blood_donation|rehabilitation)$"](${b});`,
+    q: b => ['hospital', 'clinic', 'doctors', 'dentist', 'pharmacy'].map(v => `nw["amenity"="${v}"](${b});`).join('') + ['laboratory', 'centre', 'blood_donation'].map(v => `nw["healthcare"="${v}"](${b});`).join(''),
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       const hc = t.healthcare || '';
@@ -217,11 +217,13 @@ const POI = {
   },
   build: {
     r: [14000, 7000],
-    q: b => `nwr["landuse"="construction"]["name"](${b});nwr["building"="construction"](${b});nwr["construction"~"^(apartments|residential|commercial|office|retail|mixed)$"](${b});nwr["name"~"^(ЖК|Жилой комплекс|ЖМ|TJM)[ «]|turar.?joy majmua|residen[ct]",i]["building"](${b});nwr["name"~"^(ЖК|Жилой комплекс)[ «]|turar.?joy majmua|residence$",i]["landuse"="residential"](${b});`,
+    // equality filters only (regex on names is too slow for the public servers); names are checked below
+    q: b => `nwr["landuse"="construction"](${b});nw["building"="construction"](${b});nw["construction"~"^(apartments|residential|commercial|office|mixed)$"](${b});nwr["building"="apartments"]["name"](${b});nwr["landuse"="residential"]["name"](${b});`,
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       const con = t.landuse === 'construction' || t.building === 'construction' || !!t.construction;
       if (!p.n && !(con && /apartments|residential|commercial|office|mixed/.test(t.construction || ''))) return null;
+      if (!con && !/^(ЖК|Жилой комплекс|ЖМ|TJM)[\s«"]|^(Residence|Residential)\b|turar.?joy|жилой комплекс|residen|complex|tower|city\b|сити|резиденц|комплекс/i.test(p.n || '')) return null;
       p.s = con ? 'c' : 'r';
       const kind = t.construction || t.building || '';
       p.k = /commercial|office|retail/.test(kind) ? 'o' : 'h';
