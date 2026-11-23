@@ -2216,7 +2216,10 @@ function flRender() {
   const list = document.getElementById('flList'); if (!list) return;
   const j = FL_DATA[flKey()]; if (!j) return;
   const q = fls().q.trim().toLowerCase();
-  const rows = j.rows.filter(r => !q || (r.c + ' ' + r.i + ' ' + r.f + ' ' + r.a).toLowerCase().includes(q));
+  // hide flights that left or landed more than 40 minutes ago
+  const nz = new Date(Date.now() + 5 * 3600e3), now = nz.getUTCHours() * 60 + nz.getUTCMinutes();
+  const mins = h => +h.slice(0, 2) * 60 + +h.slice(3, 5);
+  const rows = j.rows.filter(r => !(r.d === 0 && (r.st === 'dp' || r.st === 'ld' || r.st === 'cx') && mins(r.e || r.t) < now - 40)).filter(r => !q || (r.c + ' ' + r.i + ' ' + r.f + ' ' + r.a).toLowerCase().includes(q));
   const at = new Date(j.at), hhmm = String(at.getHours()).padStart(2, '0') + ':' + String(at.getMinutes()).padStart(2, '0');
   list.innerHTML = `<div class="cf-count">${esc(apName(j.ap))} · ${esc(t(j.dir === 'arr' ? 'fl_arr' : 'fl_dep'))} · ${esc(t('fl_upd', { t: hhmm }))}</div>`
     + (rows.length ? rows.slice(0, 120).map(r => {
