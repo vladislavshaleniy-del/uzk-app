@@ -2,7 +2,7 @@
 //   data/news.json          — city news + Tashkent afisha from public RSS feeds (every run)
 //   data/places/<city>.json — cafes & restaurants from OpenStreetMap (weekly, or FORCE_PLACES=1)
 //   data/transit/0.json — Tashkent metro lines/stations and bus, trolleybus, minibus stops with routes (weekly)
-//   data/poi/<kind>/<city>.json — parking, mosques, medicine (hospitals, clinics, pharmacies) from OpenStreetMap (weekly)
+//   data/poi/<kind>/<city>.json — parking, mosques, medicine (hospitals, clinics, pharmacies), new buildings from OpenStreetMap (weekly)
 // City list, names and coordinates come from CITIES in flows.js (index = city id in the app).
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 
@@ -212,6 +212,23 @@ const POI = {
       if (yes(t.emergency)) p.em = 1;
       const sp = t['healthcare:speciality']; if (sp) p.sp = sp.split(';').slice(0, 4).join(';');
       if (yes(t.dispensing)) p.ds = 1;
+      return p;
+    },
+  },
+  build: {
+    r: [14000, 7000],
+    q: b => `nwr["landuse"="construction"]["name"](${b});nwr["building"="construction"](${b});nwr["construction"~"^(apartments|residential|commercial|office|retail|mixed)$"](${b});nwr["name"~"^(ЖК|Жилой комплекс|ЖМ|TJM)[ «]|turar.?joy majmua|residen[ct]",i]["building"](${b});nwr["name"~"^(ЖК|Жилой комплекс)[ «]|turar.?joy majmua|residence$",i]["landuse"="residential"](${b});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p) return null;
+      const con = t.landuse === 'construction' || t.building === 'construction' || !!t.construction;
+      if (!p.n && !(con && /apartments|residential|commercial|office|mixed/.test(t.construction || ''))) return null;
+      p.s = con ? 'c' : 'r';
+      const kind = t.construction || t.building || '';
+      p.k = /commercial|office|retail/.test(kind) ? 'o' : 'h';
+      const lv = parseInt(t['building:levels'] || t['construction:building:levels'], 10); if (lv > 0 && lv < 120) p.lv = lv;
+      const dv = t.developer || t['construction:developer'] || t.operator || t.brand; if (dv) p.dv = dv;
+      const sd = t.start_date || t['construction:start_date']; if (sd) p.sd = sd.slice(0, 10);
+      const ed = t.opening_date || t['construction:end_date'] || t.end_date; if (ed) p.ed = ed.slice(0, 10);
       return p;
     },
   },

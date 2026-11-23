@@ -595,6 +595,7 @@ const AI_GO = {
   home: ['1:5285', 'Электронный дом', 'Elektron uy', 'E-home', '智慧家庭'],
   med: ['h:poi?med', 'Аптеки и клиники рядом', 'Yaqin dorixona va klinikalar', 'Pharmacies & clinics nearby', '附近药店和诊所'], parking_map: ['h:poi?parking', 'Карта парковок', 'Avtoturargohlar xaritasi', 'Parking map', '停车地图'],
   metro: ['h:transit?metro', 'Схема метро', 'Metro sxemasi', 'Metro map', '地铁线路图'], bus: ['h:transit?bus', 'Автобусы и остановки', 'Avtobuslar va bekatlar', 'Buses & stops', '公交与车站'],
+  newbuild: ['h:poi?build', 'Новостройки на карте', 'Yangi uylar xaritada', 'New buildings map', '新楼盘地图'],
   mosque_map: ['h:poi?mosque', 'Мечети на карте', 'Masjidlar xaritada', 'Mosques on the map', '清真寺地图'],
   cams: ['h:cams', 'Видеокамеры', 'Videokameralar', 'Live cameras', '实时摄像头'], news: ['h:news', 'Новости и афиша', 'Yangiliklar va afisha', 'News & events', '新闻与活动'],
 };
@@ -936,6 +937,7 @@ function afterRender(id, layers) {
   if (id === '1:5032') return drawHealth(layers);
   if (id === '1:996') return drawMahalla(layers);
   if (id === '1:2379') return drawTransit(layers);
+  if (id === '1:140') return drawInvest(layers);
   if (id !== '1:1909') return;
   const inner = layers['s:1:1910']; if (!inner) return;
   const draw = () => { if (current === '1:1909' && document.body.contains(inner)) drawHomeNews(inner); };
@@ -1349,7 +1351,8 @@ const PO_I = {
     pr_0: 'Фаджр', pr_1: 'Восход', pr_2: 'Зухр', pr_3: 'Аср', pr_4: 'Магриб', pr_5: 'Иша',
     mdc_pharmacy: 'Аптеки', mdc_hospital: 'Больницы', mdc_clinic: 'Клиники', mdc_dentist: 'Стоматологии', mdc_lab: 'Анализы', mdc_h24: 'Круглосуточно',
     mdk_pharmacy: 'Аптека', mdk_hospital: 'Больница', mdk_clinic: 'Клиника', mdk_dentist: 'Стоматология', mdk_lab: 'Лаборатория', md_em: 'Приёмное отделение', md_sp: 'Направления', md_103: 'Скорая', md_112: 'Экстренная',
-    md_near: 'Рядом с вами', md_n: '{n} на карте', md_open_of: 'открыто {o} из {n}', pk_pay_l: 'Как оплатить' },
+    md_near: 'Рядом с вами', md_n: '{n} на карте', md_open_of: 'открыто {o} из {n}', pk_pay_l: 'Как оплатить',
+    bd_t: 'Новостройки', po_q_build: 'ЖК, застройщик или улица', bdc_c: 'Строятся', bdc_r: 'Жилые комплексы', bdc_hi: 'Высотки 12+', bdc_o: 'Бизнес-центры', bdk_c: 'Строится', bdk_r: 'Жилой комплекс', bdk_o: 'Коммерческая недвижимость', bd_lv_n: '{n} этажей', bd_dv: 'Застройщик', bd_lv: 'Этажей', bd_sd: 'Начало стройки', bd_ed: 'Сдача', bd_olx: 'Квартиры в продаже на OLX', bd_note: 'Данные OpenStreetMap: отмечены не все новостройки. Перед покупкой проверяйте документы застройщика.', bd_map: 'Новостройки на карте' },
   uz: { pk_t: 'Avtoturargohlar', mq_t: 'Masjidlar', md_t: 'Yaqin atrofdagi tibbiyot', po_q_parking: "Ko'cha yoki avtoturargoh nomi", po_q_mosque: "Masjid nomi yoki ko'cha", po_q_med: 'Dorixona, klinika, shifoxona…',
     po_n: 'Topildi: {n}', po_load: 'Xarita yuklanmoqda…', po_err: "Ma'lumotlarni yuklab bo'lmadi. Internetni tekshiring.", po_none: "Hech narsa topilmadi — boshqa filtrni sinab ko'ring", po_src: "Ma'lumotlar — OpenStreetMap, har hafta yangilanadi", po_soon: "Bu shahar bo'yicha ma'lumotlar tez orada — Toshkentni ko'rsatamiz", po_open_map: 'Xaritani ochish', po_near: 'yaqinda', po_all_m: 'Barchasi ›',
     pkc_paid: 'Pullik', pkc_free: 'Bepul', pkc_m: "Ko'p qavatli", pkc_u: 'Yer osti', pkc_s: "Ko'cha bo'yi",
@@ -1367,7 +1370,8 @@ const PO_I = {
     pr_0: 'Bomdod', pr_1: 'Quyosh', pr_2: 'Peshin', pr_3: 'Asr', pr_4: 'Shom', pr_5: 'Xufton',
     mdc_pharmacy: 'Dorixonalar', mdc_hospital: 'Shifoxonalar', mdc_clinic: 'Klinikalar', mdc_dentist: 'Stomatologiya', mdc_lab: 'Tahlillar', mdc_h24: 'Kecha-kunduz',
     mdk_pharmacy: 'Dorixona', mdk_hospital: 'Shifoxona', mdk_clinic: 'Klinika', mdk_dentist: 'Stomatologiya', mdk_lab: 'Laboratoriya', md_em: "Qabul bo'limi", md_sp: "Yo'nalishlar", md_103: 'Tez yordam', md_112: 'Favqulodda',
-    md_near: 'Yaqin atrofda', md_n: 'xaritada {n} ta', md_open_of: '{n} tadan {o} tasi ochiq', pk_pay_l: "Qanday to'lash" },
+    md_near: 'Yaqin atrofda', md_n: 'xaritada {n} ta', md_open_of: '{n} tadan {o} tasi ochiq', pk_pay_l: "Qanday to'lash",
+    bd_t: 'Yangi uylar', po_q_build: "TJM, quruvchi yoki ko'cha", bdc_c: 'Qurilmoqda', bdc_r: 'Turar joy majmualari', bdc_hi: 'Baland 12+', bdc_o: 'Biznes markazlar', bdk_c: 'Qurilmoqda', bdk_r: 'Turar joy majmuasi', bdk_o: 'Tijorat ko‘chmas mulki', bd_lv_n: '{n} qavat', bd_dv: 'Quruvchi', bd_lv: 'Qavatlar', bd_sd: 'Qurilish boshlangan', bd_ed: 'Topshirish', bd_olx: 'OLX’da sotuvdagi kvartiralar', bd_note: "OpenStreetMap ma'lumotlari: barcha yangi uylar belgilanmagan. Sotib olishdan oldin quruvchi hujjatlarini tekshiring.", bd_map: 'Yangi uylar xaritada' },
   en: { pk_t: 'Parking', mq_t: 'Mosques', md_t: 'Medical care nearby', po_q_parking: 'Street or parking name', po_q_mosque: 'Mosque name or street', po_q_med: 'Pharmacy, clinic, hospital…',
     po_n: 'Found: {n}', po_load: 'Loading the map…', po_err: 'Could not load the data. Check your connection.', po_none: 'Nothing found — try another filter', po_src: 'Data — OpenStreetMap, updated weekly', po_soon: 'Data for this city is coming soon — showing Tashkent', po_open_map: 'Open map', po_near: 'nearby', po_all_m: 'All ›',
     pkc_paid: 'Paid', pkc_free: 'Free', pkc_m: 'Multi-storey', pkc_u: 'Underground', pkc_s: 'Street-side',
@@ -1385,7 +1389,8 @@ const PO_I = {
     pr_0: 'Fajr', pr_1: 'Sunrise', pr_2: 'Dhuhr', pr_3: 'Asr', pr_4: 'Maghrib', pr_5: 'Isha',
     mdc_pharmacy: 'Pharmacies', mdc_hospital: 'Hospitals', mdc_clinic: 'Clinics', mdc_dentist: 'Dentists', mdc_lab: 'Labs', mdc_h24: 'Open 24/7',
     mdk_pharmacy: 'Pharmacy', mdk_hospital: 'Hospital', mdk_clinic: 'Clinic', mdk_dentist: 'Dentist', mdk_lab: 'Laboratory', md_em: 'Emergency department', md_sp: 'Specialities', md_103: 'Ambulance', md_112: 'Emergency',
-    md_near: 'Near you', md_n: '{n} on the map', md_open_of: '{o} of {n} open', pk_pay_l: 'How to pay' },
+    md_near: 'Near you', md_n: '{n} on the map', md_open_of: '{o} of {n} open', pk_pay_l: 'How to pay',
+    bd_t: 'New buildings', po_q_build: 'Complex, developer or street', bdc_c: 'Under construction', bdc_r: 'Residential complexes', bdc_hi: 'High-rise 12+', bdc_o: 'Business centres', bdk_c: 'Under construction', bdk_r: 'Residential complex', bdk_o: 'Commercial property', bd_lv_n: '{n} floors', bd_dv: 'Developer', bd_lv: 'Floors', bd_sd: 'Construction start', bd_ed: 'Completion', bd_olx: 'Flats for sale on OLX', bd_note: 'OpenStreetMap data: not every new building is mapped. Check the developer’s documents before buying.', bd_map: 'New buildings map' },
   zh: { pk_t: '停车场', mq_t: '清真寺', md_t: '附近医疗', po_q_parking: '街道或停车场名称', po_q_mosque: '清真寺名称或街道', po_q_med: '药店、诊所、医院…',
     po_n: '找到：{n}', po_load: '正在加载地图…', po_err: '无法加载数据，请检查网络。', po_none: '未找到，请换个筛选条件', po_src: '数据来自 OpenStreetMap，每周更新', po_soon: '该城市数据即将上线 — 现显示塔什干', po_open_map: '打开地图', po_near: '附近', po_all_m: '全部 ›',
     pkc_paid: '收费', pkc_free: '免费', pkc_m: '立体停车楼', pkc_u: '地下停车场', pkc_s: '路边',
@@ -1403,7 +1408,8 @@ const PO_I = {
     pr_0: '晨礼', pr_1: '日出', pr_2: '晌礼', pr_3: '晡礼', pr_4: '昏礼', pr_5: '宵礼',
     mdc_pharmacy: '药店', mdc_hospital: '医院', mdc_clinic: '诊所', mdc_dentist: '牙科', mdc_lab: '化验', mdc_h24: '24 小时',
     mdk_pharmacy: '药店', mdk_hospital: '医院', mdk_clinic: '诊所', mdk_dentist: '牙科', mdk_lab: '化验室', md_em: '急诊', md_sp: '科室', md_103: '急救', md_112: '紧急',
-    md_near: '您附近', md_n: '地图上 {n} 处', md_open_of: '{n} 处中 {o} 处营业', pk_pay_l: '如何支付' },
+    md_near: '您附近', md_n: '地图上 {n} 处', md_open_of: '{n} 处中 {o} 处营业', pk_pay_l: '如何支付',
+    bd_t: '新楼盘', po_q_build: '楼盘、开发商或街道', bdc_c: '在建', bdc_r: '住宅小区', bdc_hi: '12 层以上', bdc_o: '商务中心', bdk_c: '在建', bdk_r: '住宅小区', bdk_o: '商业地产', bd_lv_n: '{n} 层', bd_dv: '开发商', bd_lv: '层数', bd_sd: '开工', bd_ed: '交付', bd_olx: 'OLX 在售房源', bd_note: 'OpenStreetMap 数据：并非所有新楼盘都已标注。购房前请核实开发商文件。', bd_map: '新楼盘地图' },
 };
 for (const l in PO_I) Object.assign(I[l], PO_I[l]);
 
@@ -1440,6 +1446,7 @@ const PO_SVG = {
   hospital: '<path d="M12 6v12M6 12h12" stroke-width="2.8"/>', clinic: '<path d="M12 6v12M6 12h12" stroke-width="2.8"/>',
   dentist: '<path d="M7.5 3.5c-2.2 0-4 1.6-4 4.3 0 1.9 1 3.3 1.4 5.2.5 2 .6 4.9 1.6 6.8.5 1 1.5 1 1.9 0 .6-1.6.6-4.1 2.1-5 .7-.4 1.3-.4 2 0 1.5.9 1.5 3.4 2.1 5 .4 1 1.4 1 1.9 0 1-1.9 1.1-4.8 1.6-6.8.4-1.9 1.4-3.3 1.4-5.2 0-2.7-1.8-4.3-4-4.3-2 0-2.8 1-4.5 1s-2.5-1-4.5-1Z"/>',
   lab: '<path d="M9 3h6M10 3v6.5L4.6 18.8A1.5 1.5 0 0 0 5.9 21h12.2a1.5 1.5 0 0 0 1.3-2.2L14 9.5V3"/><path d="M7 15h10"/>',
+  build: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2M10 6h4M10 10h4M10 14h4M10 18h4"/>',
 };
 const poIc = (k, s) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${PO_SVG[k] || PO_SVG.clinic}</svg>`;
 const PO_K = {
@@ -1464,8 +1471,14 @@ const PO_K = {
     sub: p => [t('mdk_' + p.a), p.em ? t('md_em') : ''].filter(Boolean).join(' · '),
   },
 };
+PO_K.build = {
+  title: 'bd_t', cats: ['c', 'r', 'hi', 'o'], extraH: 0, foot: false,
+  has: (p, c) => c === 'hi' ? p.lv >= 12 : c === 'o' ? p.k === 'o' : p.s === c,
+  col: p => p.k === 'o' ? '#7C3AED' : p.s === 'c' ? '#D97706' : '#2563EB', ic: () => 'build', name: p => p.n || t('bdk_' + p.s),
+  sub: p => [t(p.k === 'o' ? 'bdk_o' : 'bdk_' + p.s), p.lv ? t('bd_lv_n', { n: p.lv }) : '', p.dv || ''].filter(Boolean).join(' · '),
+};
 const poH24 = p => p.h === '24/7' || !!(ohState(p.h) || {}).h24;
-let PO_INDEX = null; const PO_DATA = { parking: {}, mosque: {}, med: {} };
+let PO_INDEX = null; const PO_DATA = { parking: {}, mosque: {}, med: {}, build: {} };
 function poIndex() { return PO_INDEX ? Promise.resolve(PO_INDEX) : fetch('data/poi/index.json', { cache: 'no-cache' }).then(r => r.json()).then(j => (PO_INDEX = j)); }
 function poLoad(k, ci) {
   if (PO_DATA[k][ci]) return Promise.resolve(PO_DATA[k][ci]);
@@ -1492,6 +1505,7 @@ function prayStrip(ci, cls = '') {
 function poExtra(k, ci) {
   if (k === 'parking') return `<button class="po-x pk" data-act="pkpay"><span class="po-xi"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></span><span class="po-xt"><b>${esc(t('pk_pay'))}</b><i>${esc(t('pk_pay_s'))}</i></span>${IC.chev}</button>`;
   if (k === 'mosque') return `<div class="po-x mq">${prayStrip(ci)}</div>`;
+  if (k === 'build') return '';
   return `<div class="po-x md"><a href="tel:103" class="md-sos"><b>103</b><span>${esc(t('md_103'))}</span></a><a href="tel:112" class="md-sos"><b>112</b><span>${esc(t('md_112'))}</span></a></div>`;
 }
 const PO_MAP_TOP = 236;
@@ -1503,8 +1517,8 @@ HS.poi = (arg) => {
   const ci = poCity(k), list = PO_DATA[k][ci];
   const counts = {}; if (list) for (const c of K.cats) counts[c] = list.filter(p => K.has(p, c)).length;
   const chips = ['all', ...K.cats].filter(c => !list || c === 'all' || counts[c]).map(c => {
-    const lab = c === 'all' ? t('cat_all') : t((k === 'parking' ? 'pkc_' : k === 'mosque' ? 'mqc_' : c === 'open' ? 'cat_' : 'mdc_') + c);
-    const col = k === 'med' && PO_COL[c] ? PO_COL[c] : k === 'parking' ? { paid: '#1D4ED8', free: '#15803D', m: '#7C3AED', u: '#7C3AED' }[c] : k === 'mosque' && c === 'hist' ? '#B45309' : '';
+    const lab = c === 'all' ? t('cat_all') : t((k === 'parking' ? 'pkc_' : k === 'mosque' ? 'mqc_' : k === 'build' ? 'bdc_' : c === 'open' ? 'cat_' : 'mdc_') + c);
+    const col = k === 'med' && PO_COL[c] ? PO_COL[c] : k === 'parking' ? { paid: '#1D4ED8', free: '#15803D', m: '#7C3AED', u: '#7C3AED' }[c] : k === 'mosque' && c === 'hist' ? '#B45309' : k === 'build' ? { c: '#D97706', r: '#2563EB', o: '#7C3AED' }[c] || '' : '';
     return `<button class="h-chip ${s.cat === c ? 'on' : ''}" data-act="pocat:${k}:${c}">${col ? `<span class="cf-dot" style="background:${col}"></span>` : ''}${esc(lab)}${list ? ` <i>${c === 'all' ? list.length : counts[c]}</i>` : ''}</button>`;
   }).join('');
   return `<div class="h-hdr"><button class="h-back" data-act="back">${IC.back}</button><div class="h-title">${esc(t(K.title))}</div><button class="cf-city" data-act="pocity:${k}">${esc(cityName(ci))}<svg viewBox="0 0 20 20" width="16" height="16">${CHEV_DOWN}</svg></button></div>
@@ -1582,7 +1596,7 @@ function poOpen(k, id) {
   const photo = p.im || (p.wc ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(p.wc.replace(/^File:/, ''))}?width=900` : '');
   const row = (a, v) => `<div class="cf-row"><span>${esc(a)}</span><div>${v}</div></div>`;
   const tel = p.ph ? p.ph.replace(/[^\d+]/g, '') : '';
-  const tags = k === 'parking' ? [t('pkk_' + p.k), p.f === 1 ? t('pk_paid') : p.f === 0 ? t('pk_free') : '', p.cu ? t('pk_cust') : ''] : k === 'mosque' ? [t('mq_kind'), p.hi ? t('mq_hist') : ''] : [t('mdk_' + p.a), p.em ? t('md_em') : '', poH24(p) ? t('mdc_h24') : ''];
+  const tags = k === 'build' ? [t('bdk_' + p.s), p.k === 'o' ? t('bdk_o') : '', p.lv ? t('bd_lv_n', { n: p.lv }) : ''] : k === 'parking' ? [t('pkk_' + p.k), p.f === 1 ? t('pk_paid') : p.f === 0 ? t('pk_free') : '', p.cu ? t('pk_cust') : ''] : k === 'mosque' ? [t('mq_kind'), p.hi ? t('mq_hist') : ''] : [t('mdk_' + p.a), p.em ? t('md_em') : '', poH24(p) ? t('mdc_h24') : ''];
   const wp = p.wp ? p.wp.match(/^([a-z-]+):(.+)$/) : null;
   bsheet(`<div class="cf-photo${photo ? '' : ' po-ph'}" style="${photo ? `background-image:url('${esc(photo)}')` : `background:linear-gradient(135deg,${col},${col}c4)`}">${photo ? '' : `<span class="cf-ph-ic">${poIc(K.ic(p), 46)}</span>`}</div>
     <div class="cf-name">${esc(K.name(p))}</div>${p.n2 ? `<div class="cf-n2">${esc(p.n2)}</div>` : ''}
@@ -1593,6 +1607,10 @@ function poOpen(k, id) {
       ${row(t('caf_addr'), esc(p.ad ? p.ad + ', ' + city : city))}
       ${k === 'parking' && p.c ? row(t('pk_cap'), esc(String(p.c)) + (p.ds ? ` · ${esc(t('pk_dis'))}` : '')) : ''}
       ${k === 'parking' && p.op ? row(t('pk_op'), esc(p.op)) : ''}
+      ${k === 'build' && p.dv ? row(t('bd_dv'), esc(p.dv)) : ''}
+      ${k === 'build' && p.lv ? row(t('bd_lv'), esc(String(p.lv))) : ''}
+      ${k === 'build' && p.sd ? row(t('bd_sd'), esc(p.sd)) : ''}
+      ${k === 'build' && p.ed ? row(t('bd_ed'), esc(p.ed)) : ''}
       ${k === 'med' && p.sp ? row(t('md_sp'), esc(p.sp.split(';').map(x => x.replace(/_/g, ' ')).join(', '))) : ''}
       ${p.h ? row(t('caf_hours'), ohPretty(esc(p.h))) : ''}
       ${p.ph ? row(t('caf_phone'), `<a href="tel:${esc(tel)}">${esc(p.ph)}</a>`) : ''}
@@ -1601,10 +1619,12 @@ function poOpen(k, id) {
     </div>
     ${tel ? `<a class="h-btn h-ghostd cf-callbtn" href="tel:${esc(tel)}">${esc(t('caf_call'))}</a>` : ''}
     ${k === 'parking' ? `<button class="h-btn h-ghostd cf-rtbtn" data-act="pkpay">${esc(t('pk_pay'))}</button>` : ''}
+    ${k === 'build' && p.n ? `<a class="h-btn h-ghostd cf-callbtn cf-rtbtn" href="https://www.olx.uz/list/q-${esc(encodeURIComponent(p.n.replace(/[«»"]/g, '')))}/" target="_blank" rel="noopener">${esc(t('bd_olx'))}</a>` : ''}
     <button class="h-btn h-primary cf-rtbtn" data-act="poroute:${k}:${p.id}">${esc(t(k === 'parking' ? 'route' : 'rt_t'))}</button>
     <div class="cf-sec">${esc(t('caf_route'))}</div><div class="cf-sub">${esc(t('caf_route_s'))}</div>
     <div class="cf-routes">${navLinks(p, null, 'car').map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>
-    <div class="h-muted small cam-note">${esc(t('po_src'))}</div>`, 'bs-caf');
+    ${k === 'build' || k === 'mosque' ? `<a class="cf-ya" href="https://yandex.uz/maps/?text=${esc(encodeURIComponent(K.name(p) + ' ' + CITIES[poCity(k)][0]))}&ll=${p.lo},${p.la}&z=16" target="_blank" rel="noopener">${esc(t('caf_photos'))} ›</a>` : ''}
+    <div class="h-muted small cam-note">${esc(t(k === 'build' ? 'bd_note' : 'po_src'))}</div>`, 'bs-caf');
 }
 async function poRoute(k, id) {
   const p = poFind(k, id); if (!p) return; const K = PO_K[k];
@@ -1902,4 +1922,10 @@ function drawTransit(layers) {
     <button data-tr="bus"><span class="hv-ic" style="background:#2563EB">${trIc('bus', 22)}</span><b>${esc(t('tr_bus'))}</b><i>${esc(t('tr_b_s'))}</i></button></div>
     <button class="hv-btn tr-livebtn" data-tr="live">${trIc('bus', 18)} ${esc(t('tr_live'))}</button>`);
   w.addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.tr === 'live') trLive(); else go('h:transit', b.dataset.tr); });
+}
+function drawInvest(layers) {
+  const r = layers.r; if (!r) return;
+  const h = hoverlay(r, 24, 562, 382, 28, `<div class="hv-h" style="margin:0">${esc(t('bd_map'))}<button>${esc(t('po_all_m'))}</button></div>`);
+  h.addEventListener('click', e => { if (!e.target.closest('button')) return; e.preventDefault(); e.stopPropagation(); go('h:poi', 'build'); });
+  miniMap(r, [24, 604, 382, 220], 'build', () => go('h:poi', 'build'));
 }
