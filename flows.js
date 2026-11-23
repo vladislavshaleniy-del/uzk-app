@@ -2019,3 +2019,27 @@ function drawProfile(layers) {
   h.appendChild(tx);
   if (!u) [av, tx].forEach(e => e.addEventListener('click', ev => { ev.preventDefault(); ev.stopPropagation(); tgLogin(); }));
 }
+
+// ======================= On-screen keyboard: keep the field being typed in visible =======================
+// Phones shrink only the *visual* viewport when the keyboard opens; bottom sheets (code entry, search)
+// are moved into the visible part so the keyboard never covers what is being typed.
+(function kbFit() {
+  const vv = window.visualViewport; if (!vv) return;
+  let raf = 0;
+  const fit = () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const kb = window.innerHeight - vv.height > 80;
+      document.documentElement.classList.toggle('kb-open', kb);
+      const w = document.querySelector('.bs-wrap'); if (!w) return;
+      if (!kb) { w.style.top = '0px'; w.style.height = VH + 'px'; return; }
+      const ar = document.getElementById('app').getBoundingClientRect();
+      w.style.top = ((vv.offsetTop - ar.top) / U) + 'px'; w.style.height = (vv.height / U) + 'px';
+      const a = document.activeElement; if (a && w.contains(a)) a.scrollIntoView({ block: 'center' });
+    });
+  };
+  vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit);
+  document.addEventListener('focusin', e => { if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) { [120, 350, 700].forEach(ms => setTimeout(() => { fit(); const p = document.getElementById('aiPanel'); if (p && p._fit) p._fit(); }, ms)); } });
+  document.addEventListener('focusout', () => setTimeout(fit, 150));
+  window.__kbFit = fit;
+})();
