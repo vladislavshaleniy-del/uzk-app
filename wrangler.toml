@@ -5,3 +5,9 @@ compatibility_date = "2026-11-01"
 
 [ai]
 binding = "AI"
+
+# user profiles and Telegram sign-in (tables are created by the functions on first use)
+[[d1_databases]]
+binding = "DB"
+database_name = "myuzcity-users"
+database_id = "5e0053cf-4833-4e13-9e89-314241ad4754"

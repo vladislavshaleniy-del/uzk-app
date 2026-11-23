@@ -186,7 +186,7 @@ const HS = {};
 HS.welcome = () => `<div class="h-welcome">
   <div class="h-wtop"><img src="icon-192.png" alt="" class="h-wlogo"><div class="h-wname">MyUzCity</div><div class="h-wt">${esc(t('welcome_t'))}</div><div class="h-ws">${esc(t('welcome_s'))}</div></div>
   <div class="h-wlangs">${Object.keys(LANGS).map(l => `<button class="h-chip ${l === LANG ? 'on' : ''}" data-act="lang:${l}">${LANGS[l]}</button>`).join('')}</div>
-  <div class="h-wbtns">${btn(t('oneid'), 'go:h:oneid', 'white')}${btn(t('myid'), 'go:h:myid', 'ghost')}</div>
+  <div class="h-wbtns"><button class="h-btn h-tgbtn" data-act="tglogin">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>${btn(t('oneid'), 'go:h:oneid', 'white')}${btn(t('myid'), 'go:h:myid', 'ghost')}</div>
   <div class="h-demo light">${esc(t('demo'))}</div></div>`;
 HS.oneid = () => `${hdr(t('oneid_t'))}<div class="h-body">
   <div class="h-card h-center"><div class="h-badge">${IC.shield}</div><div class="h-big">OneID</div><div class="h-muted">${esc(t('oneid_req'))}</div>
@@ -336,7 +336,8 @@ function runAction(a) {
     case 'lang': setLang(arg); render(current, currentP); break;
     case 'langsheet': langSheet(); break;
     case 'login': render('h:loading'); setTimeout(doLogin, 600); break;
-    case 'logout': sheet(t('logout_q'), '', [[t('logout'), () => { try { localStorage.removeItem('uzk-auth'); } catch (e) {} history.replaceState({ id: 'h:welcome', depth: 0 }, '', location.pathname); render('h:welcome'); }], [t('cancel'), null]]); break;
+    case 'tglogin': tgLogin(); break;
+    case 'logout': sheet(t('logout_q'), '', [[t('logout'), () => { try { localStorage.removeItem('uzk-auth'); localStorage.removeItem('uzk-user'); localStorage.removeItem('uzk-session'); } catch (e) {} history.replaceState({ id: 'h:welcome', depth: 0 }, '', location.pathname); render('h:welcome'); }], [t('cancel'), null]]); break;
     case 'toast': { const [k, m] = arg.split(':'); toast(t(k, { m })); break; }
     case 'call': sheet(t('call_q', { n: arg }), t('call_demo'), [[t('call'), () => toast(t('calling', { n: arg }))], [t('cancel'), null]]); break;
     case 'cancelappt': sheet(t('cancel_q'), '', [[t('confirm'), () => toast(t('cancelled'))], [t('cancel'), null]]); break;
@@ -563,13 +564,13 @@ async function aiFetch(body, signal) {
   return {};
 }
 const AIX = {
-  ru: { as_t: 'ИИ ассистент', as_s: 'Отвечу на любой вопрос', as_hi: 'Здравствуйте, Владислав! Я ИИ ассистент MyUzCity. Спросите о чём угодно — госуслуги, платежи, транспорт, здоровье или любой другой вопрос.', as_ph: 'Напишите вопрос…', as_err: 'Не удалось получить ответ. Проверьте интернет и попробуйте ещё раз.', as_retry: 'Повторить', as_new: 'Новый диалог',
+  ru: { as_t: 'ИИ ассистент', as_s: 'Отвечу на любой вопрос', as_hi: 'Здравствуйте{n}! Я ИИ ассистент MyUzCity. Спросите о чём угодно — госуслуги, платежи, транспорт, здоровье или любой другой вопрос.', as_ph: 'Напишите вопрос…', as_err: 'Не удалось получить ответ. Проверьте интернет и попробуйте ещё раз.', as_retry: 'Повторить', as_new: 'Новый диалог',
     as_q: 'Как оформить загранпаспорт?|Сколько стоит проезд в метро?|Какие документы нужны для детского сада?|Что посмотреть в городе {c}?' },
-  uz: { as_t: 'AI yordamchi', as_s: 'Har qanday savolga javob beraman', as_hi: "Assalomu alaykum, Vladislav! Men MyUzCity AI yordamchisiman. Istalgan savolni bering — davlat xizmatlari, to'lovlar, transport, sog'liq va boshqalar.", as_ph: 'Savolingizni yozing…', as_err: "Javob olinmadi. Internetni tekshirib, qayta urinib ko'ring.", as_retry: 'Qayta urinish', as_new: 'Yangi suhbat',
+  uz: { as_t: 'AI yordamchi', as_s: 'Har qanday savolga javob beraman', as_hi: "Assalomu alaykum{n}! Men MyUzCity AI yordamchisiman. Istalgan savolni bering — davlat xizmatlari, to'lovlar, transport, sog'liq va boshqalar.", as_ph: 'Savolingizni yozing…', as_err: "Javob olinmadi. Internetni tekshirib, qayta urinib ko'ring.", as_retry: 'Qayta urinish', as_new: 'Yangi suhbat',
     as_q: 'Xorijga chiqish pasportini qanday olish mumkin?|Metroda yo\'l haqi qancha?|Bog\'cha uchun qanday hujjatlar kerak?|{c}da nimalarni ko\'rish mumkin?' },
-  en: { as_t: 'AI assistant', as_s: 'Ask me anything', as_hi: 'Hello, Vladislav! I am the MyUzCity AI assistant. Ask me anything — public services, payments, transport, health or any other question.', as_ph: 'Type your question…', as_err: 'Could not get an answer. Check your connection and try again.', as_retry: 'Retry', as_new: 'New chat',
+  en: { as_t: 'AI assistant', as_s: 'Ask me anything', as_hi: 'Hello{n}! I am the MyUzCity AI assistant. Ask me anything — public services, payments, transport, health or any other question.', as_ph: 'Type your question…', as_err: 'Could not get an answer. Check your connection and try again.', as_retry: 'Retry', as_new: 'New chat',
     as_q: 'How do I get an international passport?|How much is a metro ride?|What documents are needed for kindergarten?|What to see in {c}?' },
-  zh: { as_t: 'AI 助手', as_s: '有问必答', as_hi: '您好，Vladislav！我是 MyUzCity 的 AI 助手。任何问题都可以问我：政务服务、支付、交通、医疗等。', as_ph: '输入您的问题…', as_err: '未能获取回答，请检查网络后重试。', as_retry: '重试', as_new: '新对话',
+  zh: { as_t: 'AI 助手', as_s: '有问必答', as_hi: '您好{n}！我是 MyUzCity 的 AI 助手。任何问题都可以问我：政务服务、支付、交通、医疗等。', as_ph: '输入您的问题…', as_err: '未能获取回答，请检查网络后重试。', as_retry: '重试', as_new: '新对话',
     as_q: '如何办理出国护照？|地铁票价是多少？|上幼儿园需要哪些材料？|{c}有什么值得参观的？' },
 };
 for (const l in AIX) Object.assign(I[l], AIX[l]);
@@ -627,7 +628,7 @@ function aiFmt(s) {
 }
 function aiRender() {
   const box = document.getElementById('aiMsgs'); if (!box) return;
-  const hi = `<div class="ai-b l">${esc(t('as_hi'))}</div>`;
+  const hi = `<div class="ai-b l">${esc(t('as_hi', { n: userFirst() ? (LANG === 'zh' ? '，' : ', ') + userFirst() : '' }))}</div>`;
   const chips = AIS.msgs.length ? '' : `<div class="ai-chips">${t('as_q', { c: cityName() }).split('|').map(q => `<button data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`;
   box.innerHTML = hi + chips + AIS.msgs.map(m => m.role === 'user' ? `<div class="ai-b r">${esc(m.content)}</div>` : m.role === 'error' ? `<div class="ai-b l err">${esc(t('as_err'))}<button data-retry="1">${esc(t('as_retry'))}</button></div>` : `<div class="ai-b l">${aiFmt(m.content)}</div>`).join('')
     + (AIS.busy ? '<div class="ai-b l typing"><i></i><i></i><i></i></div>' : '');
@@ -641,7 +642,7 @@ async function aiAsk(q) {
   let reply = '', ok = false;
   try {
     const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 45000);
-    const j = await aiFetch({ messages: AIS.msgs.filter(m => m.role === 'user' || m.role === 'assistant').slice(-14), lang: LANG, name: { ru: 'Владислав', uz: 'Vladislav', en: 'Vladislav', zh: 'Vladislav' }[LANG], city: cityName(), date: liveText('date'), screen: AIS.screen || '',
+    const j = await aiFetch({ messages: AIS.msgs.filter(m => m.role === 'user' || m.role === 'assistant').slice(-14), lang: LANG, name: userFirst() || '—', city: cityName(), date: liveText('date'), screen: AIS.screen || '',
       ctx: { cityIdx: cityIdx(), loc: (window.__caf && window.__caf.loc) || null, pray: (() => { try { const P0 = prayNow(); return P0.tm.map((m, i) => I.ru['pr_' + i] + ' ' + hm(m)).join(', ') + '; следующий — ' + I.ru['pr_' + P0.next]; } catch (e) { return ''; } })() } }, ctl.signal).catch(() => ({}));
     clearTimeout(tm); reply = j.reply || ''; ok = !!j.ok && !!reply;
     if (!ok && j.error) { reply = j.error; ok = true; }
@@ -932,6 +933,7 @@ function drawHomeNews(inner) {
   });
 }
 function afterRender(id, layers) {
+  if (id === '1:1332') return drawProfile(layers);
   if (id === '1:4858') return drawParking(layers);
   if (id === '1:3529') return drawMosques(layers);
   if (id === '1:5032') return drawHealth(layers);
@@ -1928,4 +1930,75 @@ function drawInvest(layers) {
   const h = hoverlay(r, 24, 562, 382, 28, `<div class="hv-h" style="margin:0">${esc(t('bd_map'))}<button>${esc(t('po_all_m'))}</button></div>`);
   h.addEventListener('click', e => { if (!e.target.closest('button')) return; e.preventDefault(); e.stopPropagation(); go('h:poi', 'build'); });
   miniMap(r, [24, 604, 382, 220], 'build', () => go('h:poi', 'build'));
+}
+
+// ======================= Sign-in via Telegram (@MyUzCity_bot) =======================
+const AUTH_I = {
+  ru: { tg_login: 'Войти через Telegram', tg_wait_t: 'Подтвердите номер в Telegram', tg_s1: 'Откроется бот @MyUzCity_bot — нажмите «Start» («Запустить»)', tg_s2: 'Нажмите «📱 Поделиться номером» и подтвердите', tg_s3: 'Вернитесь сюда — вход завершится сам', tg_open: 'Открыть Telegram', tg_waiting: 'Ждём подтверждения…', tg_ok: 'Вы вошли: {n}', tg_err: 'Вход через Telegram пока недоступен — попробуйте позже', tg_exp: 'Время ожидания истекло — попробуйте ещё раз', tg_guest: 'Гость', tg_guest_s: 'Войдите, чтобы у вас был свой профиль', tg_phone: 'Телефон' },
+  uz: { tg_login: 'Telegram orqali kirish', tg_wait_t: 'Raqamni Telegramda tasdiqlang', tg_s1: '@MyUzCity_bot ochiladi — «Start» («Boshlash») tugmasini bosing', tg_s2: '«📱 Raqamni yuborish» tugmasini bosing va tasdiqlang', tg_s3: 'Bu yerga qayting — kirish avtomatik yakunlanadi', tg_open: 'Telegramni ochish', tg_waiting: 'Tasdiqlash kutilmoqda…', tg_ok: 'Siz kirdingiz: {n}', tg_err: "Telegram orqali kirish hozircha ishlamayapti — keyinroq urinib ko'ring", tg_exp: "Kutish vaqti tugadi — qayta urinib ko'ring", tg_guest: 'Mehmon', tg_guest_s: "O'z profilingiz bo'lishi uchun kiring", tg_phone: 'Telefon' },
+  en: { tg_login: 'Sign in with Telegram', tg_wait_t: 'Confirm your number in Telegram', tg_s1: '@MyUzCity_bot will open — tap “Start”', tg_s2: 'Tap “📱 Share my number” and confirm', tg_s3: 'Come back here — sign-in finishes automatically', tg_open: 'Open Telegram', tg_waiting: 'Waiting for confirmation…', tg_ok: 'Signed in: {n}', tg_err: 'Telegram sign-in is not available yet — please try later', tg_exp: 'Timed out — please try again', tg_guest: 'Guest', tg_guest_s: 'Sign in to get your own profile', tg_phone: 'Phone' },
+  zh: { tg_login: '通过 Telegram 登录', tg_wait_t: '在 Telegram 中确认号码', tg_s1: '将打开 @MyUzCity_bot — 点击“开始”', tg_s2: '点击“📱 分享号码”并确认', tg_s3: '返回此处 — 登录将自动完成', tg_open: '打开 Telegram', tg_waiting: '等待确认…', tg_ok: '已登录：{n}', tg_err: '暂时无法通过 Telegram 登录，请稍后再试', tg_exp: '已超时，请重试', tg_guest: '访客', tg_guest_s: '登录以拥有个人资料', tg_phone: '电话' },
+};
+for (const l in AUTH_I) Object.assign(I[l], AUTH_I[l]);
+const TG_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M21.4 4.2 2.9 11.3c-1.3.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.4.8.8.8.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.9-1.3-1.5Zm-3.3 3.6-8.6 7.8-.3 3.6-1.6-5.1 10.1-6.4c.5-.3.8 0 .4.1Z"/></svg>';
+const AUTH_API = AI_OWN.replace(/\/api\/assistant$/, '');
+function authUser() { try { return JSON.parse(localStorage.getItem('uzk-user') || 'null'); } catch (e) { return null; } }
+function userFirst() { const u = authUser(); return u ? (u.name || u.first_name || '').split(' ')[0] : ''; }
+function userName() { const u = authUser(); return u ? (u.name || [u.first_name, u.last_name].filter(Boolean).join(' ') || u.phone) : ''; }
+function fmtPhone(p) { const d = String(p || '').replace(/\D/g, ''); return d.length === 12 && d.startsWith('998') ? `+998 ${d.slice(3, 5)} ${d.slice(5, 8)} ${d.slice(8, 10)} ${d.slice(10)}` : (d ? '+' + d : ''); }
+let TG_POLL = null;
+function tgNonce() { const a = new Uint8Array(24); crypto.getRandomValues(a); return btoa(String.fromCharCode(...a)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function tgLink(n) { return `https://t.me/MyUzCity_bot?start=login_${n}`; }
+function tgSheet(n) {
+  bsheet(`<div class="tr-hero"><span style="background:#229ED9">${TG_SVG.replace(/22/g, '28')}</span><div><b>${esc(t('tg_wait_t'))}</b><i>@MyUzCity_bot</i></div></div>
+    <div class="pk-step"><span>1</span><div><b>${esc(t('tg_s1'))}</b></div></div><div class="pk-step"><span>2</span><div><b>${esc(t('tg_s2'))}</b></div></div><div class="pk-step"><span>3</span><div><b>${esc(t('tg_s3'))}</b></div></div>
+    <a class="h-btn h-tgbtn cf-callbtn" href="${esc(tgLink(n))}" target="_blank" rel="noopener">${TG_SVG}<span>${esc(t('tg_open'))}</span></a>
+    <div class="tg-wait"><span class="h-spin"></span>${esc(t('tg_waiting'))}</div>`, 'bs-caf bs-tg');
+}
+function tgLogin() {
+  const n = tgNonce();
+  try { sessionStorage.setItem('uzk-tg-n', JSON.stringify({ n, at: Date.now() })); } catch (e) {}
+  tgSheet(n);
+  const w = window.open(tgLink(n), '_blank'); if (!w) setTimeout(() => { location.href = tgLink(n); }, 50);
+  tgPoll(n, Date.now());
+}
+function tgPoll(n, at) {
+  clearInterval(TG_POLL); let busy = false;
+  const tick = async () => {
+    if (busy) return; if (Date.now() - at > 10 * 60e3) { clearInterval(TG_POLL); try { sessionStorage.removeItem('uzk-tg-n'); } catch (e) {} if (document.querySelector('.bs-tg')) { bsheetClose(); toast(t('tg_exp')); } return; }
+    busy = true;
+    try {
+      const r = await fetch(`${AUTH_API}/api/auth/poll?n=${encodeURIComponent(n)}`, { cache: 'no-store' });
+      if (r.status === 503) { clearInterval(TG_POLL); bsheetClose(); toast(t('tg_err')); return; }
+      const j = await r.json();
+      if (j.status === 'ok' && j.token) {
+        clearInterval(TG_POLL);
+        try { localStorage.setItem('uzk-session', j.token); localStorage.setItem('uzk-user', JSON.stringify(j.user)); sessionStorage.removeItem('uzk-tg-n'); } catch (e) {}
+        bsheetClose(true); toast(t('tg_ok', { n: userName() }));
+        let authed = false; try { authed = localStorage.getItem('uzk-auth') === '1'; } catch (e) {}
+        if (!authed || current === 'h:welcome') doLogin(); else render(current, currentP);
+      }
+    } catch (e) {} finally { busy = false; }
+  };
+  TG_POLL = setInterval(tick, 2000); tick();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+}
+(function tgResume() {
+  try { const p = JSON.parse(sessionStorage.getItem('uzk-tg-n') || 'null'); if (p && Date.now() - p.at < 10 * 60e3) setTimeout(() => tgPoll(p.n, p.at), 800); } catch (e) {}
+  let tok = null; try { tok = localStorage.getItem('uzk-session'); } catch (e) {}
+  if (tok) fetch(`${AUTH_API}/api/me`, { headers: { authorization: 'Bearer ' + tok }, cache: 'no-store' }).then(r => r.status === 401 ? null : r.json()).then(j => {
+    try { if (j === null) { localStorage.removeItem('uzk-session'); localStorage.removeItem('uzk-user'); } else if (j && j.ok) localStorage.setItem('uzk-user', JSON.stringify(j.user)); } catch (e) {}
+  }).catch(() => {});
+})();
+function drawProfile(layers) {
+  const h = layers['f:1:1388']; if (!h) return;
+  const u = authUser();
+  const ini = u ? (userName().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '🙂') : '';
+  const av = document.createElement('div'); av.className = 'pf-av'; av.style.left = P(22); av.style.top = P(70); av.style.width = P(78); av.style.height = P(78);
+  av.innerHTML = `<div style="zoom:${U}">${u ? esc(ini) : TG_SVG.replace(/22/g, '34')}</div>`; if (!u) av.classList.add('tg');
+  h.appendChild(av);
+  const tx = document.createElement('div'); tx.className = 'pf-tx'; tx.style.left = P(108); tx.style.top = P(78); tx.style.width = P(300); tx.style.height = P(72);
+  tx.innerHTML = `<div class="pf-z" style="zoom:${U}">${u ? `<b>${esc(userName())}</b><i>${esc(fmtPhone(u.phone))}${u.username ? ' · @' + esc(u.username) : ''}</i>` : `<b>${esc(t('tg_guest'))}</b><button class="pf-tg">${esc(t('tg_login'))}</button>`}</div>`;
+  h.appendChild(tx);
+  if (!u) [av, tx].forEach(e => e.addEventListener('click', ev => { ev.preventDefault(); ev.stopPropagation(); tgLogin(); }));
 }
