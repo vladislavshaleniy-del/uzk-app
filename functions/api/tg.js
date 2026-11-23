@@ -2,7 +2,7 @@
 // the bot replies with a 6-digit code that is entered in the app (POST /api/auth/code).
 // Registered users get a fresh code on /start without sharing the number again.
 // GET /api/tg?setup=1 registers this URL as the bot's webhook (the token stays on the server).
-import { json, CORS, ensureDb, hookSecret, ready, BOT, newCode, displayName } from '../_lib/auth.js';
+import { json, CORS, ensureDb, hookSecret, ready, BOT, newCode, displayName, REPORT_KINDS, REPORT_ST } from '../_lib/auth.js';
 
 const TXT = {
   ru: { hi: 'Здравствуйте! Это вход в приложение MyUzCity.\n\nНажмите кнопку «📱 Поделиться номером» внизу — подтвердим номер и пришлём код для входа.', btn: '📱 Поделиться номером',
@@ -34,8 +34,8 @@ export async function onRequestGet({ request, env }) {
   if (url.searchParams.get('setup') !== '1') return json({ ok: true, bot: BOT });
   await ensureDb(env);
   const hook = `${url.origin}/api/tg`;
-  const r = await tg(env, 'setWebhook', { url: hook, secret_token: await hookSecret(env), allowed_updates: ['message'], drop_pending_updates: true });
-  await tg(env, 'setMyCommands', { commands: [{ command: 'start', description: 'Код для входа в MyUzCity' }] });
+  const r = await tg(env, 'setWebhook', { url: hook, secret_token: await hookSecret(env), allowed_updates: ['message', 'callback_query'], drop_pending_updates: true });
+  await tg(env, 'setMyCommands', { commands: [{ command: 'start', description: 'Код для входа в MyUzCity' }, { command: 'admin', description: 'Получать сообщения жителей (для администрации)' }] });
   return json({ ok: !!r.ok, webhook: hook, telegram: r.description || '' });
 }
 
@@ -43,8 +43,16 @@ export async function onRequestPost({ request, env }) {
   if (!ready(env)) return new Response('not configured', { status: 503 });
   if (request.headers.get('x-telegram-bot-api-secret-token') !== await hookSecret(env)) return new Response('forbidden', { status: 403 });
   let u; try { u = await request.json(); } catch { return new Response('ok'); }
+  if (u.callback_query) { await ensureDb(env); await onButton(env, u.callback_query); return new Response('ok'); }
   const m = u.message; if (!m || !m.from || m.chat.type !== 'private') return new Response('ok');
   await ensureDb(env);
+  if (/^\/admin\b/.test(m.text || '')) {
+    const has = await env.DB.prepare('SELECT COUNT(*) AS n FROM admins').first(), me = await env.DB.prepare('SELECT tg_id FROM admins WHERE tg_id = ?1').bind(m.from.id).first();
+    if (me) await tg(env, 'sendMessage', { chat_id: m.chat.id, text: '✅ Вы уже администратор MyUzCity: сюда приходят сообщения о проблемах и обращения жителей.' });
+    else if (!has || !has.n) { await env.DB.prepare('INSERT INTO admins (tg_id, created) VALUES (?1, ?2)').bind(m.from.id, Math.floor(Date.now() / 1000)).run(); await tg(env, 'sendMessage', { chat_id: m.chat.id, text: '✅ Готово: вы администратор MyUzCity.\n\nСюда будут приходить новые сообщения о проблемах (с фото и точкой на карте) и обращения в поддержку. Кнопками под сообщением меняйте статус — житель получит уведомление.' }); }
+    else await tg(env, 'sendMessage', { chat_id: m.chat.id, text: 'Администратор уже назначен.' });
+    return new Response('ok');
+  }
   const T = L(m.from.language_code), now = Math.floor(Date.now() / 1000), chat = m.chat.id;
   const askPhone = text => tg(env, 'sendMessage', { chat_id: chat, text, reply_markup: { keyboard: [[{ text: T.btn, request_contact: true }]], resize_keyboard: true, one_time_keyboard: true } });
   const giveCode = async (uid, phone, fresh) => {
@@ -85,4 +93,19 @@ export async function onRequestPost({ request, env }) {
   if (known && known.phone) { await giveCode(known.id, known.phone, false); return new Response('ok'); }
   await askPhone(start ? T.hi : T.help);
   return new Response('ok');
+}
+// Status buttons under a report (admins only): the resident is told about the change.
+async function onButton(env, q) {
+  if (q.data === 'noop') { await tg(env, 'answerCallbackQuery', { callback_query_id: q.id }); return; }
+  const m = String(q.data || '').match(/^rs:(\d+):(work|done|rej)$/);
+  const adm = await env.DB.prepare('SELECT tg_id FROM admins WHERE tg_id = ?1').bind(q.from.id).first();
+  if (!m || !adm) { await tg(env, 'answerCallbackQuery', { callback_query_id: q.id, text: 'Нет доступа' }); return; }
+  const id = +m[1], st = m[2];
+  const r = await env.DB.prepare('SELECT r.id, r.kind, r.text, r.status, u.tg_id FROM reports r LEFT JOIN users u ON u.id = r.user_id WHERE r.id = ?1').bind(id).first();
+  if (!r) { await tg(env, 'answerCallbackQuery', { callback_query_id: q.id, text: 'Сообщение не найдено' }); return; }
+  await env.DB.prepare('UPDATE reports SET status = ?1 WHERE id = ?2').bind(st, id).run();
+  await tg(env, 'answerCallbackQuery', { callback_query_id: q.id, text: 'Статус: ' + REPORT_ST[st] });
+  if (q.message) await tg(env, 'editMessageReplyMarkup', { chat_id: q.message.chat.id, message_id: q.message.message_id, reply_markup: { inline_keyboard: [[{ text: '🛠 В работу', callback_data: `rs:${id}:work` }, { text: '✅ Решено', callback_data: `rs:${id}:done` }, { text: '✖️ Отклонить', callback_data: `rs:${id}:rej` }], [{ text: '• Сейчас: ' + REPORT_ST[st], callback_data: 'noop' }]] } });
+  const pf = r.tg_id ? await env.DB.prepare('SELECT p.reports FROM prefs p JOIN users u ON u.id = p.user_id WHERE u.tg_id = ?1').bind(r.tg_id).first() : null;
+  if (r.tg_id && r.status !== st && (!pf || pf.reports)) await tg(env, 'sendMessage', { chat_id: r.tg_id, text: `${st === 'done' ? '✅' : st === 'work' ? '🛠' : 'ℹ️'} Ваше сообщение №${id} (${REPORT_KINDS[r.kind] || r.kind}): статус — «${REPORT_ST[st]}».${r.text ? '\n\n«' + r.text.slice(0, 200) + '»' : ''}` });
 }

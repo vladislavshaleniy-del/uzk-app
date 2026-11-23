@@ -1,6 +1,6 @@
 // Residents' reports about city problems (potholes, garbage, broken lights…) with a photo and a point on the map.
-import { json, CORS, ready, ensureDb, readSession, sessionUser, tgSend } from '../../_lib/auth.js';
-const KINDS = ['road', 'light', 'clean', 'water', 'park', 'transport', 'other'];
+import { json, CORS, ready, ensureDb, readSession, sessionUser, tgSend, notifyAdmins, REPORT_KINDS } from '../../_lib/auth.js';
+const KINDS = ['road', 'light', 'clean', 'water', 'park', 'transport', 'appeal', 'other'];
 export const onRequestOptions = () => new Response(null, { headers: CORS });
 export async function onRequestGet({ request, env }) {
   if (!ready(env)) return json({ ok: false }, 503);
@@ -37,5 +37,9 @@ export async function onRequestPost({ request, env }) {
   const r = await env.DB.prepare("INSERT INTO reports (user_id, kind, text, la, lo, city, photo, status, created) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'new', ?8) RETURNING id")
     .bind(u.id, kind, text, la, lo, Number.isInteger(b.city) ? b.city : 0, photo, now).first();
   if (u.tg_id) await tgSend(env, 'sendMessage', { chat_id: u.tg_id, text: `📝 Ваше сообщение №${r.id} принято и уже видно на карте MyUzCity. Другие жители могут его поддержать.` });
+  const cap = `${REPORT_KINDS[kind] || kind} · №${r.id}\n${text}\n\n📍 https://yandex.uz/maps/?pt=${lo},${la}&z=17&l=map\n👤 ${u.first_name || ''} ${u.phone || ''}`.slice(0, 1000);
+  const kb = { inline_keyboard: [[{ text: '🛠 В работу', callback_data: `rs:${r.id}:work` }, { text: '✅ Решено', callback_data: `rs:${r.id}:done` }, { text: '✖️ Отклонить', callback_data: `rs:${r.id}:rej` }]] };
+  if (photo) await notifyAdmins(env, 'sendPhoto', { photo: `${new URL(request.url).origin}/api/reports/photo?id=${r.id}`, caption: cap, reply_markup: kb });
+  else await notifyAdmins(env, 'sendMessage', { text: cap, reply_markup: kb, disable_web_page_preview: true });
   return json({ ok: true, id: r.id });
 }

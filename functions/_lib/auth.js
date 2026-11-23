@@ -38,6 +38,13 @@ export async function ensureDb(env) {
     env.DB.prepare('CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, kind TEXT, text TEXT, la REAL, lo REAL, city INTEGER, photo BLOB, status TEXT, ups INTEGER DEFAULT 0, created INTEGER)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS report_ups (report_id INTEGER, user_id INTEGER, PRIMARY KEY (report_id, user_id))'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS docs (user_id INTEGER, kind TEXT, title TEXT, expires TEXT, notified INTEGER DEFAULT 0, PRIMARY KEY (user_id, kind, title))'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS chat (id INTEGER PRIMARY KEY AUTOINCREMENT, room TEXT, user_id INTEGER, name TEXT, text TEXT, created INTEGER)'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS chat_room ON chat (room, id)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, text TEXT, created INTEGER)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS prefs (user_id INTEGER PRIMARY KEY, docs INTEGER DEFAULT 1, air INTEGER DEFAULT 0, reports INTEGER DEFAULT 1, mahalla TEXT)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS admins (tg_id INTEGER PRIMARY KEY, created INTEGER)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS flags (k TEXT PRIMARY KEY, v TEXT)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS cars (user_id INTEGER, plate TEXT, model TEXT, color TEXT, created INTEGER, PRIMARY KEY (user_id, plate))'),
   ]);
 }
 export const publicUser = u => u && ({ id: u.id, phone: u.phone, first_name: u.first_name || '', last_name: u.last_name || '', username: u.username || '', name: u.name || '', city: u.city, lang: u.lang || '', created: u.created });
@@ -65,3 +72,14 @@ export async function tgSend(env, method, body) {
 }
 export const fmtPhone = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 12 && d.startsWith('998') ? `+998 ${d.slice(3, 5)} ${d.slice(5, 8)} ${d.slice(8, 10)} ${d.slice(10)}` : (d ? '+' + d : ''); };
 export const displayName = u => (u.name || [u.first_name, u.last_name].filter(Boolean).join(' ') || fmtPhone(u.phone)).slice(0, 80);
+// Messages for the people who run the service (they become admins with /admin in the bot)
+export async function notifyAdmins(env, method, body) {
+  const r = await env.DB.prepare('SELECT tg_id FROM admins').all();
+  for (const a of r.results || []) await tgSend(env, method, { ...body, chat_id: a.tg_id });
+  return (r.results || []).length;
+}
+export async function userPrefs(env, uid) {
+  return (await env.DB.prepare('SELECT * FROM prefs WHERE user_id = ?1').bind(uid).first()) || { docs: 1, air: 0, reports: 1, mahalla: '' };
+}
+export const REPORT_KINDS = { road: '🕳 Дороги', light: '💡 Освещение', clean: '🗑 Мусор', water: '🚰 Вода/канализация', park: '🌳 Парки/дворы', transport: '🚌 Транспорт', other: '📌 Другое', appeal: '🏛 Обращение к хокиму' };
+export const REPORT_ST = { new: 'Новое', work: 'В работе', done: 'Решено', rej: 'Отклонено' };

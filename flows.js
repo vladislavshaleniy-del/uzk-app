@@ -583,17 +583,17 @@ const AI_GO = {
   transit: ['h:pay?transit', 'Пополнить транспортную карту', "Transport kartasini to'ldirish", 'Top up transit card', '交通卡充值'],
   fines: ['1:2649', 'Штрафы', 'Jarimalar', 'Fines', '罚款'], parking: ['1:4858', 'Парковка', 'Avtoturargoh', 'Parking', '停车'],
   ev: ['h:poi?ev', 'Зарядка электромобилей', 'Elektromobil quvvatlash', 'EV charging', '电动车充电'],
-  doctor: ['h:doctor', 'Запись к врачу', 'Shifokor qabuli', 'Book a doctor', '预约医生'], health: ['1:5032', 'Здоровье', "Sog'liq", 'Health', '医疗健康'],
-  docs: ['1:19', 'Мои документы', 'Mening hujjatlarim', 'My documents', '我的证件'], queue: ['h:queue', 'Электронная очередь', 'Elektron navbat', 'E-queue', '电子排队'],
+  doctor: ['a:dmed:dm', 'Запись к врачу', 'Shifokor qabuli', 'Book a doctor', '预约医生'], health: ['1:5032', 'Здоровье', "Sog'liq", 'Health', '医疗健康'],
+  docs: ['1:19', 'Мои документы', 'Mening hujjatlarim', 'My documents', '我的证件'], queue: ['a:cgu', 'Электронная очередь', 'Elektron navbat', 'E-queue', '电子排队'],
   gov: ['1:2573', 'Госуслуги', 'Davlat xizmatlari', 'Public services', '政务服务'], appeal: ['h:reports?appeal', 'Обращение к хокиму', 'Hokimga murojaat', 'Appeal to the Hokim', '向市长反映'],
   sos: ['1:4475', 'Тревожная кнопка', 'Xavf tugmasi', 'Panic button', '紧急按钮'], polls: ['h:polls?city', 'Опросы', "So'rovnomalar", 'Polls', '投票'],
   mahalla: ['1:996', 'Цифровая махалля', 'Raqamli mahalla', 'Digital Mahalla', '数字社区'], family: ['1:3042', 'Семья и образование', "Oila va ta'lim", 'Family and education', '家庭与教育'],
   tickets: ['h:tickets', 'Билеты', 'Chiptalar', 'Tickets', '车票'], cafes: ['h:cafes', 'Кафе и рестораны', 'Kafe va restoranlar', 'Cafes and restaurants', '餐厅'],
-  sights: ['h:poi?sight', 'Достопримечательности', 'Diqqatga sazovor joylar', 'Sights', '名胜古迹'], tourist: ['1:3757', 'Туристическая карта', 'Turistik karta', 'Tourist card', '旅游卡'],
-  fairs: ['1:5424', 'Ярмарки и события', 'Yarmarka va tadbirlar', 'Fairs and events', '展会与活动'], realty: ['1:235', 'Недвижимость', "Ko'chmas mulk", 'Real estate', '房产'],
+  sights: ['h:poi?sight', 'Достопримечательности', 'Diqqatga sazovor joylar', 'Sights', '名胜古迹'], tourist: ['h:poi?sight', 'Туристическая карта', 'Turistik karta', 'Tourist card', '旅游卡'],
+  fairs: ['h:news?afisha', 'Ярмарки и события', 'Yarmarka va tadbirlar', 'Fairs and events', '展会与活动'], realty: ['1:235', 'Недвижимость', "Ko'chmas mulk", 'Real estate', '房产'],
   ipo: ['1:332', 'Покупка акций IPO', 'IPO aksiyalari', 'Buy IPO shares', '购买 IPO 股票'], business: ['1:523', 'Для бизнеса', 'Biznes uchun', 'For business', '企业服务'],
   volunteer: ['1:4356', 'Волонтёрство', 'Volontyorlik', 'Volunteering', '志愿服务'], cashback: ['1:448', 'Национальный кешбэк', 'Milliy keshbek', 'National cashback', '国家返现'],
-  roads: ['h:reports?road', 'Дороги и ремонт', "Yo'llar va ta'mirlash", 'Roads and repairs', '道路与维修'], clean: ['1:4063', 'Чистый город', 'Toza shahar', 'Clean city', '清洁城市'],
+  roads: ['h:reports?road', 'Дороги и ремонт', "Yo'llar va ta'mirlash", 'Roads and repairs', '道路与维修'], clean: ['h:eco', 'Чистый город', 'Toza shahar', 'Clean city', '清洁城市'],
   mosques: ['1:3529', 'Карта мечетей', 'Masjidlar xaritasi', 'Mosque map', '清真寺地图'], marketplace: ['1:5149', 'Маркетплейс', 'Marketpleys', 'Marketplace', '商城'],
   home: ['1:5285', 'Электронный дом', 'Elektron uy', 'E-home', '智慧家庭'],
   med: ['h:poi?med', 'Аптеки и клиники рядом', 'Yaqin dorixona va klinikalar', 'Pharmacies & clinics nearby', '附近药店和诊所'], parking_map: ['h:poi?parking', 'Карта парковок', 'Avtoturargohlar xaritasi', 'Parking map', '停车地图'],
@@ -687,7 +687,7 @@ function aiOpen() {
     else if (b.dataset.place) { window.__cafOpenId = b.dataset.place; aiClose(); setTimeout(() => current === 'h:cafes' ? cafOpen(b.dataset.place) : go('h:cafes'), 120); }
     else if (b.dataset.poi) { const [k, id] = b.dataset.poi.split(':'); aiClose(); setTimeout(() => { if (current === 'h:poi' && window.__poK === k) poOpen(k, id); else { window.__poOpen = id; po(k).cat = 'all'; po(k).city = null; go('h:poi', k); } }, 120); }
     else if (b.dataset.cafq) { window.__cafAsk = b.dataset.cafq; aiClose(); setTimeout(() => { if (current === 'h:cafes') { const q = window.__cafAsk; window.__cafAsk = null; XACT.aiopen(); cgAsk(q); } else go('h:cafes'); }, 120); }
-    else if (b.dataset.go) { const to = AI_GO[b.dataset.go][0]; aiClose(); setTimeout(() => to.startsWith('h:') ? go(to.split('?')[0], to.split('?')[1]) : go(to), 120); }
+    else if (b.dataset.go) { const to = AI_GO[b.dataset.go][0]; aiClose(); setTimeout(() => to.startsWith('a:') ? runAction(to.slice(2)) : to.startsWith('h:') ? go(to.split('?')[0], to.split('?')[1]) : go(to), 120); }
   });
 }
 function aiClose() {
@@ -939,17 +939,19 @@ function drawHomeNews(inner) {
   });
 }
 function afterRender(id, layers) {
-  if (id === '1:19') return drawDocs(layers, 880);
+  if (id === '1:19') return drawDocsPage(layers);
   if (id === '1:4475') return drawSos(layers, 1016);
   if (id === '1:2649') return drawFines(layers, 976);
-  if (id === '1:3042') return drawFamily(layers, 1680);
+  if (id === '1:3042') return drawFamilyPage(layers);
   if (id === '1:2573') return drawGov(layers, 650);
   if (id === '1:5285') return drawUtil(layers, 790);
-  if (id === '1:1332') return drawProfile(layers);
-  if (id === '1:4858') return drawParking(layers);
+  if (id === '1:1332') { drawProfile(layers); return drawStats(layers); }
+  if (id === '1:1552') return drawSettings(layers);
+  if (id === '1:1677') return drawHelp(layers);
+  if (id === '1:4858') { drawParking(layers); return drawCars(layers); }
   if (id === '1:3529') return drawMosques(layers);
-  if (id === '1:5032') return drawHealth(layers);
-  if (id === '1:996') return drawMahalla(layers);
+  if (id === '1:5032') { drawHealth(layers); return drawAppts(layers); }
+  if (id === '1:996') { drawMahalla(layers); return drawMahallaTop(layers); }
   if (id === '1:2379') return drawTransit(layers);
   if (id === '1:140') return drawInvest(layers);
   if (id !== '1:1909') return;
@@ -2648,7 +2650,7 @@ function drawDocs(layers, y) {
     box.innerHTML = DC.map(d => { const n = dcLeft(d.expires); const col = n < 0 ? '#DC2626' : n <= 30 ? '#D97706' : '#15803D'; return `<button class="hv-mq" data-dc="${esc(d.kind + '|' + d.title)}"><span class="hv-dot" style="background:${col}"></span><span><b>${esc(t('dk_' + d.kind))}${d.title ? ' · ' + esc(d.title) : ''}</b><i>${esc(d.expires.split('-').reverse().join('.'))} · <em style="color:${col};font-style:normal">${esc(n < 0 ? t('dc_exp') : n === 0 ? t('dc_today') : t('dc_left', { n }))}</em></i></span>${IC.chev}</button>`; }).join('');
   };
   paint();
-  if (authUser()) api('/api/docs').then(j => { if (j.ok) { DC = j.list; if (document.body.contains(box)) paint(); } });
+  if (authUser()) api('/api/docs').then(j => { if (j.ok) { DC = j.list.filter(d => d.kind !== 'appt'); if (document.body.contains(box)) paint(); } });
 }
 function dcForm(kind, title) {
   if (needLogin()) return;
@@ -2657,7 +2659,7 @@ function dcForm(kind, title) {
     <div class="cf-sec">${esc(t('dc_title'))}</div><input id="dcT" class="dc-in" maxlength="60" value="${esc(cur ? cur.title : '')}">
     <div class="cf-sec">${esc(t('dc_date'))}</div><input id="dcD" class="dc-in" type="date" value="${esc(cur ? cur.expires : '')}">
     <button class="h-btn h-primary" id="dcS" style="margin-top:16px">${esc(t('dc_save'))}</button>${cur ? `<button class="h-btn h-ghostd" id="dcR" style="margin-top:10px">${esc(t('tc_rm'))}</button>` : ''}`, 'bs-caf');
-  const done = () => { bsheetClose(true); api('/api/docs').then(j => { if (j.ok) DC = j.list; render(current, currentP); }); };
+  const done = () => { bsheetClose(true); api('/api/docs').then(j => { if (j.ok) DC = j.list.filter(d => d.kind !== 'appt'); render(current, currentP); }); };
   w.querySelector('#dcS').addEventListener('click', e => { e.preventDefault(); const d = w.querySelector('#dcD').value; if (!d) return w.querySelector('#dcD').focus(); const body = { kind: w.querySelector('#dcK').value, title: w.querySelector('#dcT').value.trim(), expires: d }; const old = cur && (cur.kind !== body.kind || cur.title !== body.title) ? api('/api/docs', { action: 'remove', kind: cur.kind, title: cur.title }) : Promise.resolve(); old.then(() => api('/api/docs', body)).then(j => j.ok ? done() : toast(t('po_err'))); });
   const rm = w.querySelector('#dcR'); if (rm) rm.addEventListener('click', e => { e.preventDefault(); api('/api/docs', { action: 'remove', kind: cur.kind, title: cur.title }).then(done); });
 }
@@ -2771,3 +2773,459 @@ Object.assign(XACT, {
   fines: () => bsheet(`<div class="tr-hero"><span style="background:#1D4ED8;color:#fff;font-size:24px">🚓</span><div><b>${esc(t('fn_t'))}</b></div></div><div class="h-card bk-card">${lk('https://road24.uz', t('fn_road24'), t('fn_road24_s'), GLYPH('🚓'), '#1D4ED8')}${lk(MYGOV(LANG) + '/service/1238', t('fn_points'), '', GLYPH('📋'), '#0F766E')}${lk(MYGOV(LANG) + '/service/1054', t('fn_appeal'), '', GLYPH('⚖️'), '#B45309')}</div>`, 'bs-caf'),
   tickets: () => { window.open('https://iticket.uz', '_blank', 'noopener'); },
 });
+
+// ======================= Real services instead of the design's sample screens =======================
+// Every user sees only their own data (Telegram profile, documents, cars, appointments, reports).
+// Payments, tickets and state services open the official apps and sites — MyUzCity never takes money.
+const RL_I = {
+  ru: {
+    pay_t: 'Оплата', pay_s: 'MyUzCity не принимает деньги: оплата проходит в официальном приложении вашего банка или платёжной системы.', pay_apps: 'Оплатить через приложение',
+    pay_h_util: 'В приложении выберите «Коммунальные услуги» → электроэнергия, газ, вода или вывоз мусора. Понадобится лицевой счёт из квитанции.',
+    pay_h_fine: 'Штрафы проверяются по госномеру и техпаспорту. Официальная проверка и оплата — в приложении Road24.',
+    pay_h_transit: 'Проезд в метро и автобусах — картой ATTO, банковской картой с NFC или QR в приложениях ATTO и Click. Пополнение без комиссии — в приложении ATTO.',
+    pay_h_event: 'Билеты на концерты, выставки и ярмарки продаются на iTicket.uz.', pay_h_qr: 'Наведите камеру на QR-код продавца — оплата откроется в вашем банковском приложении.',
+    pay_h_other: 'Выберите приложение, которым вы пользуетесь.', pay_scan: 'Сканировать QR', pay_atto: 'Приложение ATTO', pay_road24: 'Проверить штрафы в Road24', pay_iticket: 'Билеты на iTicket.uz', pay_calc: 'Рассчитать сумму',
+    car_t: 'Мои автомобили', car_add: 'Добавить', car_none: 'Добавьте свой автомобиль — номер пригодится для парковки и проверки штрафов.', car_ok: 'Автомобиль сохранён', car_bad: 'Проверьте госномер, например 01 A 123 BC', car_rm_q: 'Удалить {p}?', car_rm: 'Удалить', car_fines: 'Штрафы', car_all: 'Все автомобили ({n})', car_model: 'Марка и модель', car_color_l: 'Цвет',
+    st_rep: 'Сообщений', st_votes: 'Голосов', st_docs: 'Документов', st_guest: 'Войдите через Telegram — здесь будут ваши обращения, голоса и документы',
+    my_t: 'Мои заявки и данные', my_rep: 'Мои сообщения о проблемах', my_rep_none: 'Вы ещё не сообщали о проблемах в городе', my_rep_new: 'Сообщить о проблеме', my_docs: 'Документы и записи', my_docs_none: 'Документы не добавлены', my_cars: 'Автомобили', my_trust: 'Доверенные контакты для SOS: {n}',
+    set_t: 'Личные данные', set_name: 'Имя', set_phone: 'Телефон · подтверждён в Telegram', set_tg: 'Telegram', set_city: 'Город', set_mah: 'Махалля', set_none: 'Не указано', set_save: 'Сохранить', set_saved: 'Сохранено', set_name_t: 'Как к вам обращаться', set_mah_t: 'Ваша махалля', set_mah_ph: 'Например: Бабур',
+    nf_t: 'Уведомления в Telegram', nf_s: 'Сообщения присылает бот @MyUzCity_bot', nf_docs: 'Сроки документов и записи к врачу', nf_reports: 'Статусы моих сообщений о проблемах', nf_air: 'Предупреждать, когда воздух вредный',
+    fb_t: 'Остались вопросы? Напишите нам', fb_ph: 'Опишите вопрос или предложение…', fb_send: 'Отправить', fb_ok: 'Спасибо! Сообщение №{n} передано команде MyUzCity', fb_short: 'Напишите хотя бы пару слов',
+    dy_t: 'Электронный дневник eMaktab', dy_s: 'Оценки, домашние задания и расписание вашего ребёнка — в официальной системе eMaktab Министерства образования. Логин и пароль выдаёт классный руководитель.', dy_open: 'Открыть eMaktab',
+    kg_t: 'Очередь в детский сад', kg_s: 'Заявление подаётся бесплатно на my.gov.uz: можно выбрать до трёх государственных садов. После подачи придёт код заявления, направление — когда подойдёт очередь.', kg_open: 'Подать заявление на my.gov.uz', kg_map: 'Детские сады на карте',
+    dm_t: 'Запись к врачу', dm_s: 'Онлайн-запись к семейному врачу и специалистам — через официальную систему DMED Минздрава (вход по ПИНФЛ) или на my.gov.uz.', dm_open: 'Открыть DMED', dm_gov: 'Записаться через my.gov.uz', dm_near: 'Поликлиники рядом',
+    mb_t: 'Электронная мед. книжка', mb_s: 'Ваши приёмы, назначения, анализы и электронные рецепты хранятся в DMED — единой медицинской системе Минздрава.',
+    ap_t: 'Мои записи к врачу', ap_none: 'Записались к врачу? Добавьте приём — бот напомнит накануне и в день приёма.', ap_add: 'Добавить приём', ap_doc: 'Врач или специальность', ap_doc_ph: 'Терапевт', ap_place: 'Где', ap_place_ph: 'Поликлиника №5, каб. 203', ap_date: 'Дата', ap_time: 'Время', ap_rm: 'Удалить', ap_ok: 'Приём сохранён — напомним в Telegram', ap_today: 'сегодня', ap_tomorrow: 'завтра',
+    mh_t: 'Моя махалля', mh_set: 'Укажите вашу махаллю', mh_set_s: 'Чтобы общаться с соседями и голосовать в опросах махалли', mh_chat: 'Чат соседей', mh_polls: 'Опросы махалли', mh_vote: 'Голосовать', mh_votes: 'Голосов: {n}', mh_none: 'Опросов пока нет',
+    ch_t: 'Чат соседей', ch_city: 'Весь город', ch_mah: 'Махалля', ch_ph: 'Сообщение…', ch_none: 'Пока тихо — напишите первым', ch_rules: 'Будьте вежливы, не публикуйте чужие личные данные.', ch_limit: 'Слишком часто — подождите минуту',
+    tk_t: 'Билеты', tk_air: 'Авиа', tk_rail: 'Поезда', tk_bus: 'Автобусы', tk_from: 'Откуда', tk_to: 'Куда', tk_date: 'Дата', tk_find: 'Найти билеты',
+    tk_air_s: 'Поиск по всем авиакомпаниям — на Aviasales; билеты Uzbekistan Airways — на uzairways.com.', tk_rail_s: 'Билеты на Afrosiyob, Sharq и другие поезда продаёт «Узбекистон темир йуллари» — на eticket.railway.uz и в приложении UTY.', tk_bus_s: 'Междугородние автобусы с автовокзала «Ташкент» — на avtoticket.uz и в приложении UzBus.',
+    tk_uzair: 'Uzbekistan Airways', tk_sched: 'Расписание поездов', tk_board: 'Табло аэропорта', tk_same: 'Выберите разные города',
+    ec_t: 'Чистый город', ec_air: 'Воздух', ec_rec: 'Пункты приёма', ec_rep: 'Сообщить о мусоре', ec_cities: 'Воздух в городах Узбекистана', ec_src: 'Open-Meteo (модель CAMS), обновляется каждый час', ec_hours: 'Прогноз на сутки', ec_alert: 'Предупреждать в Telegram о вредном воздухе', ec_rec_s: 'Пункты приёма вторсырья', ec_rec_open: 'Открыть карту', ec_rep_s: 'Свалка, переполненные баки, мусор во дворе — сфотографируйте и отметьте на карте',
+    og_web: 'Сайт фонда', og_find: 'Найти сайт и контакты', og_donate: 'Пожертвования принимаются через Click, Payme, Paynet и на сайте фонда.',
+    pg_go: 'Подробнее', ip_s: 'Купить акции на Ташкентской фондовой бирже можно через лицензированного брокера. Следите за новостями о размещении.', ip_news: 'Новости о размещении', ip_uzse: 'Ташкентская фондовая биржа', ip_uznif: 'IPO прошло в мае 2026 года: акции торгуются на Ташкентской и Лондонской биржах.',
+    rt_post: 'Разместите объявление о продаже или аренде на крупнейших площадках:', rt_buy: 'Квартиры, дома и коммерческая недвижимость:', rt_land: 'Земельные участки продаются на государственной электронной площадке E-auksion.',
+    cg_t: 'Центр госуслуг', cg_s: 'Большинство услуг можно получить онлайн на my.gov.uz без очереди. В центр госуслуг возьмите паспорт или ID-карту. Справки: 1242.', cg_map: 'Центры госуслуг на карте', cg_call: 'Позвонить 1242', cg_online: 'Открыть my.gov.uz',
+    rs_rej: 'Отклонено', login_first: 'Войдите через Telegram',
+  },
+  uz: {
+    pay_t: "To'lov", pay_s: "MyUzCity pul qabul qilmaydi: to'lov bankingiz yoki to'lov tizimining rasmiy ilovasida amalga oshiriladi.", pay_apps: "Ilova orqali to'lash",
+    pay_h_util: "Ilovada «Kommunal xizmatlar» → elektr, gaz, suv yoki chiqindi bo'limini tanlang. Kvitansiyadagi shaxsiy hisob raqami kerak bo'ladi.",
+    pay_h_fine: "Jarimalar davlat raqami va texpasport bo'yicha tekshiriladi. Rasmiy tekshiruv va to'lov — Road24 ilovasida.",
+    pay_h_transit: "Metro va avtobusda — ATTO kartasi, NFC bank kartasi yoki ATTO va Click ilovalaridagi QR bilan. Komissiyasiz to'ldirish — ATTO ilovasida.",
+    pay_h_event: "Konsert, ko'rgazma va yarmarkalarga chiptalar — iTicket.uz saytida.", pay_h_qr: "Kamerani sotuvchining QR-kodiga qarating — to'lov bank ilovangizda ochiladi.",
+    pay_h_other: "O'zingiz foydalanadigan ilovani tanlang.", pay_scan: 'QR skanerlash', pay_atto: 'ATTO ilovasi', pay_road24: "Road24'da jarimalarni tekshirish", pay_iticket: 'iTicket.uz chiptalari', pay_calc: "Summani hisoblash",
+    car_t: 'Mening avtomobillarim', car_add: "Qo'shish", car_none: "Avtomobilingizni qo'shing — raqam parkovka va jarimalarni tekshirish uchun kerak bo'ladi.", car_ok: 'Avtomobil saqlandi', car_bad: "Davlat raqamini tekshiring, masalan 01 A 123 BC", car_rm_q: "{p} o'chirilsinmi?", car_rm: "O'chirish", car_fines: 'Jarimalar', car_all: 'Barcha avtomobillar ({n})', car_model: 'Marka va model', car_color_l: 'Rangi',
+    st_rep: 'Xabarlar', st_votes: 'Ovozlar', st_docs: 'Hujjatlar', st_guest: "Telegram orqali kiring — bu yerda murojaatlaringiz, ovozlaringiz va hujjatlaringiz bo'ladi",
+    my_t: "Mening arizalarim va ma'lumotlarim", my_rep: 'Muammolar haqidagi xabarlarim', my_rep_none: "Siz hali shahardagi muammolar haqida xabar bermagansiz", my_rep_new: 'Muammo haqida xabar berish', my_docs: 'Hujjatlar va qabullar', my_docs_none: "Hujjatlar qo'shilmagan", my_cars: 'Avtomobillar', my_trust: 'SOS uchun ishonchli kontaktlar: {n}',
+    set_t: "Shaxsiy ma'lumotlar", set_name: 'Ism', set_phone: 'Telefon · Telegramda tasdiqlangan', set_tg: 'Telegram', set_city: 'Shahar', set_mah: 'Mahalla', set_none: "Ko'rsatilmagan", set_save: 'Saqlash', set_saved: 'Saqlandi', set_name_t: 'Sizga qanday murojaat qilaylik', set_mah_t: 'Mahallangiz', set_mah_ph: 'Masalan: Bobur',
+    nf_t: 'Telegramdagi bildirishnomalar', nf_s: '@MyUzCity_bot boti yuboradi', nf_docs: 'Hujjat muddatlari va shifokor qabullari', nf_reports: 'Muammo xabarlarim holati', nf_air: "Havo zararli bo'lganda ogohlantirish",
+    fb_t: 'Savollar qoldimi? Bizga yozing', fb_ph: 'Savol yoki taklifingizni yozing…', fb_send: 'Yuborish', fb_ok: 'Rahmat! №{n} xabar MyUzCity jamoasiga yetkazildi', fb_short: "Kamida bir-ikki so'z yozing",
+    dy_t: 'eMaktab elektron kundaligi', dy_s: "Farzandingizning baholari, uy vazifalari va dars jadvali — Ta'lim vazirligining rasmiy eMaktab tizimida. Login va parolni sinf rahbari beradi.", dy_open: 'eMaktabni ochish',
+    kg_t: "Bog'chaga navbat", kg_s: "Ariza my.gov.uz orqali bepul topshiriladi: uchtagacha davlat bog'chasini tanlash mumkin. Arizadan so'ng kod keladi, navbat kelganda yo'llanma beriladi.", kg_open: "my.gov.uz'da ariza berish", kg_map: "Bog'chalar xaritada",
+    dm_t: 'Shifokor qabuliga yozilish', dm_s: "Oilaviy shifokor va mutaxassislarga onlayn yozilish — Sog'liqni saqlash vazirligining rasmiy DMED tizimi (JShShIR bilan kirish) yoki my.gov.uz orqali.", dm_open: 'DMEDni ochish', dm_gov: "my.gov.uz orqali yozilish", dm_near: 'Yaqin poliklinikalar',
+    mb_t: 'Elektron tibbiy daftarcha', mb_s: "Qabullar, tayinlovlar, tahlillar va elektron retseptlar DMED — vazirlikning yagona tibbiy tizimida saqlanadi.",
+    ap_t: 'Shifokor qabullarim', ap_none: "Shifokorga yozildingizmi? Qabulni qo'shing — bot bir kun oldin va qabul kuni eslatadi.", ap_add: "Qabul qo'shish", ap_doc: 'Shifokor yoki mutaxassislik', ap_doc_ph: 'Terapevt', ap_place: 'Qayerda', ap_place_ph: '5-poliklinika, 203-xona', ap_date: 'Sana', ap_time: 'Vaqt', ap_rm: "O'chirish", ap_ok: 'Qabul saqlandi — Telegramda eslatamiz', ap_today: 'bugun', ap_tomorrow: 'ertaga',
+    mh_t: 'Mening mahallam', mh_set: "Mahallangizni ko'rsating", mh_set_s: "Qo'shnilar bilan muloqot va mahalla so'rovnomalari uchun", mh_chat: "Qo'shnilar chati", mh_polls: "Mahalla so'rovnomalari", mh_vote: 'Ovoz berish', mh_votes: 'Ovozlar: {n}', mh_none: "Hozircha so'rovnomalar yo'q",
+    ch_t: "Qo'shnilar chati", ch_city: 'Butun shahar', ch_mah: 'Mahalla', ch_ph: 'Xabar…', ch_none: 'Hozircha jim — birinchi bo‘lib yozing', ch_rules: "Odobli bo'ling, boshqalarning shaxsiy ma'lumotlarini joylamang.", ch_limit: 'Juda tez — bir daqiqa kuting',
+    tk_t: 'Chiptalar', tk_air: 'Avia', tk_rail: 'Poyezdlar', tk_bus: 'Avtobuslar', tk_from: 'Qayerdan', tk_to: 'Qayerga', tk_date: 'Sana', tk_find: 'Chipta qidirish',
+    tk_air_s: "Barcha aviakompaniyalar bo'yicha qidiruv — Aviasales; Uzbekistan Airways chiptalari — uzairways.com.", tk_rail_s: "Afrosiyob, Sharq va boshqa poyezdlarga chiptalar — «O'zbekiston temir yo'llari»: eticket.railway.uz va UTY ilovasi.", tk_bus_s: "«Toshkent» avtovokzalidan shaharlararo avtobuslar — avtoticket.uz va UzBus ilovasi.",
+    tk_uzair: 'Uzbekistan Airways', tk_sched: 'Poyezdlar jadvali', tk_board: 'Aeroport tablosi', tk_same: 'Turli shaharlarni tanlang',
+    ec_t: 'Toza shahar', ec_air: 'Havo', ec_rec: 'Qabul punktlari', ec_rep: 'Chiqindi haqida xabar', ec_cities: "O'zbekiston shaharlarida havo", ec_src: 'Open-Meteo (CAMS modeli), har soatda yangilanadi', ec_hours: 'Bir kunlik prognoz', ec_alert: 'Havo zararli bo‘lsa Telegramda ogohlantirish', ec_rec_s: 'Ikkilamchi xomashyo qabul punktlari', ec_rec_open: 'Xaritani ochish', ec_rep_s: "Axlatxona, to'lib ketgan konteynerlar, hovlidagi chiqindi — suratga oling va xaritada belgilang",
+    og_web: 'Fond sayti', og_find: 'Sayt va kontaktlarni topish', og_donate: "Xayriyalar Click, Payme, Paynet va fond sayti orqali qabul qilinadi.",
+    pg_go: 'Batafsil', ip_s: "Toshkent fond birjasida aksiyalarni litsenziyali broker orqali sotib olish mumkin. Joylashtirish yangiliklarini kuzatib boring.", ip_news: 'Joylashtirish yangiliklari', ip_uzse: 'Toshkent fond birjasi', ip_uznif: "IPO 2026-yil may oyida o'tdi: aksiyalar Toshkent va London birjalarida savdoda.",
+    rt_post: "Sotish yoki ijara e'lonini eng katta maydonchalarda joylashtiring:", rt_buy: "Kvartira, uy va tijorat ko'chmas mulki:", rt_land: 'Yer uchastkalari davlat E-auksion elektron maydonchasida sotiladi.',
+    cg_t: 'Davlat xizmatlari markazi', cg_s: "Ko'p xizmatlarni my.gov.uz orqali navbatsiz onlayn olish mumkin. Markazga pasport yoki ID-karta bilan boring. Ma'lumot: 1242.", cg_map: 'Markazlar xaritada', cg_call: "1242 ga qo'ng'iroq", cg_online: "my.gov.uz'ni ochish",
+    rs_rej: 'Rad etildi', login_first: 'Telegram orqali kiring',
+  },
+  en: {
+    pay_t: 'Payment', pay_s: 'MyUzCity never takes money: you pay in the official app of your bank or payment service.', pay_apps: 'Pay with an app',
+    pay_h_util: 'In the app choose “Utilities” → electricity, gas, water or waste. You will need the account number from your bill.',
+    pay_h_fine: 'Fines are checked by plate number and registration certificate. Official check and payment — in the Road24 app.',
+    pay_h_transit: 'Metro and buses: ATTO card, an NFC bank card or a QR code in the ATTO and Click apps. Top up without fees in the ATTO app.',
+    pay_h_event: 'Tickets for concerts, exhibitions and fairs are sold on iTicket.uz.', pay_h_qr: 'Point the camera at the seller’s QR code — payment opens in your banking app.',
+    pay_h_other: 'Choose the app you use.', pay_scan: 'Scan a QR code', pay_atto: 'ATTO app', pay_road24: 'Check fines in Road24', pay_iticket: 'Tickets on iTicket.uz', pay_calc: 'Estimate the amount',
+    car_t: 'My cars', car_add: 'Add', car_none: 'Add your car — the plate is handy for parking and checking fines.', car_ok: 'Car saved', car_bad: 'Check the plate, e.g. 01 A 123 BC', car_rm_q: 'Remove {p}?', car_rm: 'Remove', car_fines: 'Fines', car_all: 'All cars ({n})', car_model: 'Make and model', car_color_l: 'Colour',
+    st_rep: 'Reports', st_votes: 'Votes', st_docs: 'Documents', st_guest: 'Sign in with Telegram — your reports, votes and documents will appear here',
+    my_t: 'My requests and data', my_rep: 'My problem reports', my_rep_none: 'You have not reported any city problems yet', my_rep_new: 'Report a problem', my_docs: 'Documents and appointments', my_docs_none: 'No documents yet', my_cars: 'Cars', my_trust: 'Trusted SOS contacts: {n}',
+    set_t: 'Personal data', set_name: 'Name', set_phone: 'Phone · confirmed in Telegram', set_tg: 'Telegram', set_city: 'City', set_mah: 'Mahalla', set_none: 'Not set', set_save: 'Save', set_saved: 'Saved', set_name_t: 'How should we call you', set_mah_t: 'Your mahalla', set_mah_ph: 'e.g. Bobur',
+    nf_t: 'Telegram notifications', nf_s: 'Sent by the @MyUzCity_bot bot', nf_docs: 'Document expiry and doctor appointments', nf_reports: 'Status of my problem reports', nf_air: 'Warn me when the air is unhealthy',
+    fb_t: 'Still have questions? Write to us', fb_ph: 'Describe your question or idea…', fb_send: 'Send', fb_ok: 'Thank you! Message #{n} has been passed to the MyUzCity team', fb_short: 'Write at least a few words',
+    dy_t: 'eMaktab e-diary', dy_s: 'Your child’s grades, homework and timetable are in eMaktab, the Ministry of Education’s official system. The class teacher gives the login and password.', dy_open: 'Open eMaktab',
+    kg_t: 'Kindergarten queue', kg_s: 'Apply for free on my.gov.uz: you can choose up to three state kindergartens. You get an application code, and a referral when your turn comes.', kg_open: 'Apply on my.gov.uz', kg_map: 'Kindergartens on the map',
+    dm_t: 'Doctor’s appointment', dm_s: 'Book a family doctor or specialist online in DMED, the Ministry of Health’s official system (sign in with your PINFL), or on my.gov.uz.', dm_open: 'Open DMED', dm_gov: 'Book on my.gov.uz', dm_near: 'Clinics nearby',
+    mb_t: 'Electronic medical record', mb_s: 'Your visits, prescriptions, test results and e-prescriptions are kept in DMED, the Ministry of Health’s unified system.',
+    ap_t: 'My doctor’s appointments', ap_none: 'Booked a doctor? Add the appointment — the bot will remind you the day before and on the day.', ap_add: 'Add appointment', ap_doc: 'Doctor or speciality', ap_doc_ph: 'Therapist', ap_place: 'Where', ap_place_ph: 'Clinic No. 5, room 203', ap_date: 'Date', ap_time: 'Time', ap_rm: 'Remove', ap_ok: 'Saved — we will remind you in Telegram', ap_today: 'today', ap_tomorrow: 'tomorrow',
+    mh_t: 'My mahalla', mh_set: 'Set your mahalla', mh_set_s: 'To chat with neighbours and vote in mahalla polls', mh_chat: 'Neighbours’ chat', mh_polls: 'Mahalla polls', mh_vote: 'Vote', mh_votes: 'Votes: {n}', mh_none: 'No polls yet',
+    ch_t: 'Neighbours’ chat', ch_city: 'Whole city', ch_mah: 'Mahalla', ch_ph: 'Message…', ch_none: 'Quiet so far — write first', ch_rules: 'Be polite and don’t post other people’s personal data.', ch_limit: 'Too fast — wait a minute',
+    tk_t: 'Tickets', tk_air: 'Flights', tk_rail: 'Trains', tk_bus: 'Buses', tk_from: 'From', tk_to: 'To', tk_date: 'Date', tk_find: 'Find tickets',
+    tk_air_s: 'Search all airlines on Aviasales; Uzbekistan Airways tickets — on uzairways.com.', tk_rail_s: 'Afrosiyob, Sharq and other trains: tickets from Uzbekistan Railways on eticket.railway.uz and in the UTY app.', tk_bus_s: 'Intercity buses from Tashkent bus station — avtoticket.uz and the UzBus app.',
+    tk_uzair: 'Uzbekistan Airways', tk_sched: 'Train timetable', tk_board: 'Airport board', tk_same: 'Choose two different cities',
+    ec_t: 'Clean city', ec_air: 'Air', ec_rec: 'Recycling', ec_rep: 'Report litter', ec_cities: 'Air in the cities of Uzbekistan', ec_src: 'Open-Meteo (CAMS model), updated hourly', ec_hours: 'Next 24 hours', ec_alert: 'Warn me in Telegram when the air is unhealthy', ec_rec_s: 'Recycling points', ec_rec_open: 'Open the map', ec_rep_s: 'Dumps, overflowing bins, litter in the yard — take a photo and mark it on the map',
+    og_web: 'Foundation website', og_find: 'Find website and contacts', og_donate: 'Donations are accepted via Click, Payme, Paynet and on the foundation’s website.',
+    pg_go: 'Learn more', ip_s: 'Shares on the Tashkent Stock Exchange are bought through a licensed broker. Follow the news about the offering.', ip_news: 'News about the offering', ip_uzse: 'Tashkent Stock Exchange', ip_uznif: 'The IPO took place in May 2026: the shares trade in Tashkent and London.',
+    rt_post: 'Post a sale or rental listing on the largest sites:', rt_buy: 'Flats, houses and commercial property:', rt_land: 'Land plots are sold on E-auksion, the state electronic auction.',
+    cg_t: 'Public service centre', cg_s: 'Most services are available online on my.gov.uz without a queue. Bring your passport or ID card to the centre. Help line: 1242.', cg_map: 'Centres on the map', cg_call: 'Call 1242', cg_online: 'Open my.gov.uz',
+    rs_rej: 'Rejected', login_first: 'Sign in with Telegram',
+  },
+};
+RL_I.zh = RL_I.en;
+for (const l in RL_I) Object.assign(I[l] || (I[l] = {}), RL_I[l]);
+RP_COL.rej = '#6B7280';
+
+const PAGE_BG = '#F9FBFC';
+const ext = (href, title, sub, ic, col) => lk(href, title, sub, ic, col);
+function bindActs(w) { w.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b || !w.contains(b)) return; e.preventDefault(); e.stopPropagation(); runAction(b.dataset.act); }); return w; }
+// opaque block over a part of a design screen (hides its sample data) with live content on top
+function cover(layer, y, h, html) { const d = hoverlay(layer, 0, y, 430, h, `<div class="cv-in">${html}</div>`); d.style.background = PAGE_BG; d.classList.add('cv'); return bindActs(d); }
+const loginBtn = () => `<button class="h-btn h-tgbtn" data-act="tglogin">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`;
+XACT.tglogin = () => tgLogin();
+XACT.ext = url => window.open(url, '_blank', 'noopener');
+XACT.aiopen = () => aiOpen();
+const yaMyGov = id => `${MYGOV(LANG)}/service/${id}`;
+
+// ---------- payments: open the real apps ----------
+const PAY_APPS = [['Click', 'click.uz', 'https://click.uz', '#0F6CF2'], ['Payme', 'payme.uz', 'https://payme.uz', '#00B9C5'], ['Uzum Bank', 'uzumbank.uz', 'https://uzumbank.uz', '#7000FF'], ['Paynet', 'paynet.uz', 'https://paynet.uz', '#16A34A']];
+HS.pay = (p) => {
+  const key = String(p || 'other').split(':')[0];
+  const kind = /^util/.test(key) || key === 'light' ? 'util' : key === 'fine' ? 'fine' : key === 'transit' ? 'transit' : key === 'event' || key === 'tourist' ? 'event' : key === 'qr' ? 'qr' : 'other';
+  const first = { fine: ext('https://road24.uz', t('pay_road24'), 'road24.uz', GLYPH('🚓'), '#1D4ED8'), transit: ext('https://atto.uz', t('pay_atto'), 'atto.uz', GLYPH('🚇'), '#0EA5E9'), event: ext('https://iticket.uz', t('pay_iticket'), 'iticket.uz', GLYPH('🎟️'), '#DB2777') }[kind] || '';
+  return `${hdr(t('pay_t'))}<div class="h-body">
+    <div class="h-card"><div class="h-muted">${esc(t('pay_h_' + kind))}</div></div>
+    ${kind === 'qr' ? btn(t('pay_scan'), 'go:h:qr', 'primary') : ''}${kind === 'util' ? btn(t('pay_calc'), 'go:1:5285', 'ghostd') : ''}
+    ${first ? `<div class="hv-card bk-card" style="margin-top:12px">${first}</div>` : ''}
+    <div class="h-sec">${esc(t('pay_apps'))}</div>
+    <div class="hv-card bk-card">${PAY_APPS.map(([n, d, u, c]) => ext(u, n, d, `<b style="color:#fff;font-size:15px">${n[0]}</b>`, c)).join('')}</div>
+    <div class="h-muted small" style="margin-top:12px">${esc(t('pay_s'))}</div></div>`;
+};
+HS.receipts = () => HS.pay('util');
+HS.addcard = () => HS.pay('transit');
+
+// ---------- cars (per user, in the account) ----------
+let CARS = null;
+function carsLoad() { return authUser() ? api('/api/cars').then(j => (CARS = j.ok ? j.list : CARS || [])) : Promise.resolve(CARS = []); }
+const fmtPlate = p => { const m = String(p).match(/^(\d{2})([A-Z])(\d{3})([A-Z]{2})$/) || String(p).match(/^(\d{2})(\d{3})([A-Z]{3})$/); return m ? m.slice(1).join(' ') : p; };
+const carRow = c => `<div class="car-row"><span class="hv-ic" style="background:#7C5426">${GLYPH('🚗')}</span><span class="car-tx"><b>${esc(c.model || t('car_t'))}</b><i>${esc(fmtPlate(c.plate))}${c.color ? ' · ' + esc(c.color) : ''}</i></span><a class="car-b" href="https://road24.uz" target="_blank" rel="noopener">${esc(t('car_fines'))}</a><button class="car-x" data-act="carrm:${esc(c.plate)}" aria-label="remove">✕</button></div>`;
+function drawCars(layers) {
+  const r = layers.r; if (!r) return;
+  const w = cover(r, 352, 236, `<div class="hv-h">${esc(t('car_t'))}<button data-act="go:h:addcar">＋ ${esc(t('car_add'))}</button></div><div class="hv-card cars-box" id="carBox"><div class="hv-sk"></div></div>`);
+  const box = w.querySelector('#carBox');
+  const paint = () => {
+    if (!authUser()) { box.innerHTML = `<p class="dc-empty">${esc(t('car_none'))}</p>${loginBtn()}`; return; }
+    const l = CARS || []; if (!l.length) { box.innerHTML = `<p class="dc-empty">${esc(t('car_none'))}</p><button class="h-btn h-ghostd" data-act="go:h:addcar">＋ ${esc(t('car_add'))}</button>`; return; }
+    box.innerHTML = l.slice(0, 2).map(carRow).join('') + (l.length > 2 ? `<button class="hov-link" data-act="carsall">${esc(t('car_all', { n: l.length }))} ›</button>` : '');
+  };
+  paint(); carsLoad().then(() => { if (document.body.contains(box)) paint(); });
+}
+XACT.carsall = () => bsheet(`<div class="hv-h" style="margin:0 0 10px">${esc(t('car_t'))}</div><div class="hv-card cars-box">${(CARS || []).map(carRow).join('')}</div>`, 'bs-caf');
+XACT.carrm = plate => sheet(t('car_rm_q', { p: fmtPlate(plate) }), '', [[t('car_rm'), () => api('/api/cars', { action: 'remove', plate }).then(() => carsLoad()).then(() => { bsheetClose(true); render(current, currentP); })], [t('cancel'), null]]);
+HS.addcar = () => {
+  if (!authUser()) return `${hdr(t('addcar_t'))}<div class="h-body"><div class="h-card"><div class="h-muted">${esc(t('car_none'))}</div></div>${loginBtn()}</div>`;
+  const cols = t('car_colors').split('|'), c = window.__carColor == null ? -1 : window.__carColor;
+  return `${hdr(t('addcar_t'))}<div class="h-body"><div class="h-card">
+    <label class="h-field"><span>${esc(t('car_plate'))}</span><input id="carP" placeholder="01 A 123 BC" autocapitalize="characters" autocomplete="off"></label>
+    <label class="h-field"><span>${esc(t('car_model'))}</span><input id="carM" placeholder="Chevrolet Cobalt" autocomplete="off"></label>
+    <div class="h-field"><span>${esc(t('car_color_l'))}</span></div><div class="h-chips" style="margin-top:-6px">${cols.map((x, i) => `<button class="h-chip ${i === c ? 'on' : ''}" data-act="carcolor:${i}">${esc(x)}</button>`).join('')}</div></div>
+    ${btn(t('set_save'), 'carsave', 'primary')}</div>`;
+};
+XACT.carcolor = i => { window.__carColor = +i; document.querySelectorAll('.hscreen .h-chip').forEach((b, j) => b.classList.toggle('on', j === +i)); };
+XACT.carsave = () => {
+  const P = document.getElementById('carP'), plate = (P.value || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+  if (!/^\d{2}([A-Z]\d{3}[A-Z]{2}|\d{3}[A-Z]{3})$/.test(plate)) { toast(t('car_bad')); return P.focus(); }
+  const cols = t('car_colors').split('|');
+  api('/api/cars', { plate, model: document.getElementById('carM').value, color: window.__carColor >= 0 ? cols[window.__carColor] : '' }).then(j => { if (j.ok) { window.__carColor = null; toast(t('car_ok')); carsLoad().then(() => goBack('1:4858')); } else toast(t('po_err')); });
+};
+
+// ---------- profile: real counters, my requests, personal data, notifications ----------
+let ME = null;
+function meLoad() { return authUser() ? api('/api/me').then(j => { if (j.ok) { ME = j; try { localStorage.setItem('uzk-user', JSON.stringify(j.user)); } catch (e) {} } return ME; }) : Promise.resolve(null); }
+function drawStats(layers) {
+  const r = layers.r; if (!r) return;
+  const w = hoverlay(r, 24, 206, 382, 104, '<div class="ps-card" id="psBox"></div>'); bindActs(w);
+  const box = w.querySelector('#psBox');
+  const paint = () => {
+    if (!authUser()) { box.innerHTML = `<button class="ps-guest" data-act="tglogin">${esc(t('st_guest'))}</button>`; return; }
+    const s = (ME && ME.stats) || {};
+    box.innerHTML = [['reports', 'st_rep'], ['votes', 'st_votes'], ['docs', 'st_docs']].map(([k, l]) => `<button data-act="go:h:myact"><b>${s[k] == null ? '…' : s[k]}</b><i>${esc(t(l))}</i></button>`).join('');
+  };
+  paint(); meLoad().then(() => { if (document.body.contains(box)) paint(); });
+}
+HS.myact = () => `${hdr(t('my_t'))}<div class="h-body" id="myBody"><div class="hv-sk"></div></div>`;
+HS.myact.mount = el => {
+  const b = el.querySelector('#myBody');
+  if (!authUser()) { b.innerHTML = `<div class="h-card"><div class="h-muted">${esc(t('st_guest'))}</div></div>${loginBtn()}`; return; }
+  Promise.all([api('/api/reports'), api('/api/docs'), carsLoad(), meLoad()]).then(([rp, dc]) => {
+    const mine = (rp.list || []).filter(x => x.own), docs = dc.list || [], s = (ME && ME.stats) || {};
+    const st = x => `<span class="rp-st" style="background:${RP_COL[x.status] || '#6B7280'}1a;color:${RP_COL[x.status] || '#6B7280'}">${esc(t('rs_' + x.status))}</span>`;
+    b.innerHTML = `<div class="h-sec">${esc(t('my_rep'))}</div>
+      <div class="hv-card bk-card">${mine.length ? mine.map(x => `<button class="bk-link" data-act="rpgo:${x.id}"><span class="hv-ic" style="background:${RP_COL[x.status] || '#6B7280'}1f">${RP_IC[x.kind] || '📌'}</span><span><b>№${x.id} · ${esc(t('rk_' + x.kind))}</b><i>${esc((x.text || '').slice(0, 80))}</i></span>${st(x)}</button>`).join('') : `<p class="dc-empty">${esc(t('my_rep_none'))}</p>`}</div>
+      ${btn(t('my_rep_new'), 'go:h:reports?road', 'ghostd')}
+      <div class="h-sec">${esc(t('my_docs'))}</div>
+      <div class="hv-card bk-card">${docs.length ? docs.map(d => `<button class="bk-link" data-act="${d.kind === 'appt' ? 'go:1:5032' : 'go:1:19'}"><span class="hv-ic" style="background:${d.kind === 'appt' ? '#0EA5E9' : '#15803D'}">${GLYPH(d.kind === 'appt' ? '🩺' : '📄')}</span><span><b>${esc(d.kind === 'appt' ? (d.title || t('ap_t')) : t('dk_' + d.kind) + (d.title ? ' · ' + d.title : ''))}</b><i>${esc(d.expires.split('-').reverse().join('.'))}</i></span>${IC.chev}</button>`).join('') : `<p class="dc-empty">${esc(t('my_docs_none'))}</p>`}</div>
+      <div class="h-sec">${esc(t('my_cars'))}</div>
+      <div class="hv-card cars-box">${(CARS || []).length ? CARS.map(carRow).join('') : `<p class="dc-empty">${esc(t('car_none'))}</p>`}</div>
+      <div class="h-muted small" style="margin-top:12px">🆘 ${esc(t('my_trust', { n: s.trusted || 0 }))}</div>`;
+    bindActs(b);
+  });
+};
+XACT.rpgo = id => { go('h:reports', 'road'); setTimeout(() => { try { rpOpen(+id); } catch (e) {} }, 900); };
+function drawSettings(layers) {
+  const r = layers.r; if (!r) return;
+  const w = cover(r, 150, 400, `<div class="hv-h" style="margin-top:8px">${esc(t('set_t'))}</div><div class="hv-card bk-card" id="setBox"></div>`);
+  const box = w.querySelector('#setBox');
+  const u = authUser();
+  if (!u) { box.innerHTML = `<p class="dc-empty">${esc(t('st_guest'))}</p>${loginBtn()}`; return; }
+  const rowS = (ic, l, v, act) => `<button class="bk-link" ${act ? `data-act="${act}"` : 'disabled'}><span class="hv-ic" style="background:#F3F4F6">${GLYPH(ic)}</span><span><i>${esc(l)}</i><b>${esc(v || t('set_none'))}</b></span>${act ? IC.chev : ''}</button>`;
+  const paint = mah => { box.innerHTML = rowS('👤', t('set_name'), userName(), 'setname') + rowS('📱', t('set_phone'), fmtPhone(u.phone), '') + (u.username ? rowS('✈️', t('set_tg'), '@' + u.username, '') : '') + rowS('🏙️', t('set_city'), cityName(cityIdx()), 'go:h:city') + rowS('🏘️', t('set_mah'), mah, 'setmah'); };
+  paint(PREFS && PREFS.mahalla); prefsLoad().then(p => { if (document.body.contains(box)) paint(p && p.mahalla); });
+}
+let PREFS = null;
+function prefsLoad() { return authUser() ? api('/api/prefs').then(j => (PREFS = j.ok ? j.prefs : PREFS)) : Promise.resolve(null); }
+function prefsSave(ch) { return api('/api/prefs', ch).then(j => { if (j.ok) PREFS = j.prefs; return j; }); }
+function askText(title, val, ph, onSave) {
+  const w = bsheet(`<div class="hv-h" style="margin:0 0 12px">${esc(title)}</div><input class="dc-in" id="askIn" value="${esc(val || '')}" placeholder="${esc(ph || '')}" maxlength="60" autocomplete="off"><button class="h-btn h-primary" id="askOk" style="margin-top:14px">${esc(t('set_save'))}</button>`, 'bs-caf');
+  const i = w.querySelector('#askIn'); setTimeout(() => i.focus(), 300);
+  const ok = () => { const v = i.value.trim(); onSave(v).then(() => { bsheetClose(true); toast(t('set_saved')); render(current, currentP); }); };
+  w.querySelector('#askOk').addEventListener('click', e => { e.preventDefault(); ok(); });
+  i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ok(); } });
+}
+XACT.setname = () => askText(t('set_name_t'), userName(), '', v => api('/api/me', { name: v }).then(j => { if (j.ok) try { localStorage.setItem('uzk-user', JSON.stringify(j.user)); } catch (e) {} }));
+XACT.setmah = () => { if (needLogin()) return; askText(t('set_mah_t'), (PREFS && PREFS.mahalla) || '', t('set_mah_ph'), v => prefsSave({ mahalla: v })); };
+HS.notif = () => `${hdr(t('nf_t'))}<div class="h-body" id="nfBody"><div class="hv-sk"></div></div>`;
+HS.notif.mount = el => {
+  const b = el.querySelector('#nfBody');
+  if (!authUser()) { b.innerHTML = `<div class="h-card"><div class="h-muted">${esc(t('st_guest'))}</div></div>${loginBtn()}`; bindActs(b); return; }
+  prefsLoad().then(p => {
+    p = p || { docs: 1, reports: 1, air: 0 };
+    b.innerHTML = `<div class="h-card np">${[['docs', '📄'], ['reports', '📝'], ['air', '😷']].map(([k, ic]) => `<label class="nf-row"><span>${ic}</span><b>${esc(t('nf_' + k))}</b><input type="checkbox" data-nf="${k}" ${p[k] ? 'checked' : ''}></label>`).join('')}</div><div class="h-muted small" style="margin-top:10px">🔔 ${esc(t('nf_s'))}</div>`;
+    b.querySelectorAll('[data-nf]').forEach(c => c.addEventListener('change', () => prefsSave({ [c.dataset.nf]: c.checked }).then(j => toast(j.ok ? t('set_saved') : t('po_err')))));
+  });
+};
+
+// ---------- help: real feedback + FAQ about this app ----------
+function drawHelp(layers) {
+  const r = layers.r; if (!r) return;
+  const w = cover(r, 600, 220, `<div class="hv-h">${esc(t('fb_t'))}</div><textarea class="rp-ta" id="fbT" maxlength="2000" placeholder="${esc(t('fb_ph'))}"></textarea><button class="h-btn h-primary" id="fbS" style="margin-top:10px">${esc(t('fb_send'))}</button>`);
+  w.querySelector('#fbS').addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation(); const ta = w.querySelector('#fbT'), v = ta.value.trim();
+    if (v.length < 3) { toast(t('fb_short')); return ta.focus(); }
+    e.target.disabled = true; api('/api/feedback', { text: v }).then(j => { e.target.disabled = false; if (j.ok) { ta.value = ''; toast(t('fb_ok', { n: j.id })); } else toast(t('po_err')); });
+  });
+}
+const FAQ = {
+  ru: [
+    [['Что такое MyUzCity?', 'Городские сервисы в одном приложении: карты поликлиник, мечетей, парковок и зарядок, транспорт и табло аэропортов, сообщения о проблемах, опросы, напоминания о документах и ИИ-ассистент. Бесплатно.'], ['Как войти?', 'Нажмите «Войти через Telegram», в боте @MyUzCity_bot поделитесь номером — бот пришлёт 6-значный код, введите его в приложении.'], ['Где мои данные?', 'Имя и телефон берутся из Telegram. Документы, машины и записи видите только вы.']],
+    [['Как проверить штрафы?', 'Раздел «Штрафы» открывает официальное приложение Road24 и услуги my.gov.uz: штрафные баллы и обжалование.'], ['Где камеры скорости?', 'Все известные камеры — на карте в разделе «Штрафы» и «Камеры скорости».'], ['Как оплатить парковку?', 'В разделе «Парковка» — карта парковок и ссылки на официальные способы оплаты.']],
+    [['Как получить госуслугу?', 'Раздел «Госуслуги»: популярные услуги my.gov.uz и ближайшие центры госуслуг. Колл-центр — 1242.'], ['Как работают напоминания о документах?', 'Добавьте документ и срок — бот напомнит за 30, 7 и 1 день.'], ['Как пожаловаться хокиму?', '«Обращение к хокиму» или «Сообщить о проблеме»: фото, место на карте, статус приходит в Telegram.']],
+    [['Как сообщить о яме или мусоре?', 'Нажмите «Сообщить о проблеме», добавьте фото и точку на карте. Сообщение видно всем, жители могут его поддержать.'], ['Что делает тревожная кнопка?', 'Отправляет вашу геолокацию доверенным людям в Telegram. Добавьте близких в разделе «Тревожная кнопка».'], ['Откуда погода и воздух?', 'Open-Meteo — обновляется каждый час.']],
+    [['Как найти достопримечательности?', 'Раздел «Достопримечательности» — карта, описания из Википедии и ИИ-гид.'], ['Где купить билеты?', '«Транспорт» и «Билеты»: поезда, самолёты и автобусы — с переходом на официальные сайты продажи.']],
+    [['Можно ли купить акции в приложении?', 'Нет. Мы показываем информацию и ведём на Ташкентскую фондовую биржу; покупка — через лицензированного брокера.'], ['Где земля и новостройки?', 'Раздел «Недвижимость»: новостройки на карте, объявления на OLX и Uybor, участки на E-auksion.']],
+  ],
+  uz: [
+    [['MyUzCity nima?', "Shahar xizmatlari bitta ilovada: poliklinika, masjid, parkovka va zaryadlash xaritalari, transport, aeroport tablosi, muammolar haqida xabar, so'rovnomalar, hujjat eslatmalari va AI-yordamchi. Bepul."], ['Qanday kiraman?', "«Telegram orqali kirish»ni bosing, @MyUzCity_bot botida raqamingizni yuboring — bot 6 xonali kod yuboradi, uni ilovaga kiriting."], ["Ma'lumotlarim qayerda?", "Ism va telefon Telegramdan olinadi. Hujjatlar, mashinalar va qabullarni faqat siz ko'rasiz."]],
+    [['Jarimalarni qanday tekshiraman?', "«Jarimalar» bo'limi rasmiy Road24 ilovasi va my.gov.uz xizmatlarini ochadi."], ['Tezlik kameralari qayerda?', "Barcha ma'lum kameralar xaritada."], ["Parkovkaga qanday to'layman?", "«Parkovka» bo'limida — xarita va rasmiy to'lov usullari."]],
+    [['Davlat xizmatini qanday olaman?', "«Davlat xizmatlari»: my.gov.uz xizmatlari va yaqin markazlar. Call-markaz — 1242."], ['Hujjat eslatmalari qanday ishlaydi?', "Hujjat va muddatni qo'shing — bot 30, 7 va 1 kun oldin eslatadi."], ['Hokimga qanday murojaat qilaman?', "«Hokimga murojaat» yoki «Muammo haqida xabar»: surat, xaritadagi joy, holat Telegramga keladi."]],
+    [['Chuqur yoki chiqindi haqida qanday xabar beraman?', "«Muammo haqida xabar»ni bosing, surat va joyni qo'shing. Xabarni hamma ko'radi va qo'llab-quvvatlay oladi."], ['Xavf tugmasi nima qiladi?', "Joylashuvingizni ishonchli odamlarga Telegramda yuboradi."], ['Ob-havo va havo sifati qayerdan?', 'Open-Meteo — har soatda yangilanadi.']],
+    [["Diqqatga sazovor joylarni qanday topaman?", "«Diqqatga sazovor joylar» — xarita, Vikipediya tavsiflari va AI-gid."], ['Chiptalarni qayerdan olaman?', "«Transport» va «Chiptalar»: poyezd, samolyot va avtobus — rasmiy saytlarga o'tish bilan."]],
+    [["Ilovada aksiya sotib olsa bo'ladimi?", "Yo'q. Biz ma'lumot beramiz va Toshkent fond birjasiga yo'naltiramiz; xarid — litsenziyali broker orqali."], ['Yer va yangi uylar qayerda?', "«Ko'chmas mulk»: yangi uylar xaritada, OLX va Uybor e'lonlari, E-auksion uchastkalari."]],
+  ],
+  en: [
+    [['What is MyUzCity?', 'City services in one app: maps of clinics, mosques, parking and EV chargers, transport and airport boards, problem reports, polls, document reminders and an AI assistant. Free.'], ['How do I sign in?', 'Tap “Sign in with Telegram”, share your number in @MyUzCity_bot — it sends a 6-digit code to enter in the app.'], ['Where is my data?', 'Name and phone come from Telegram. Only you see your documents, cars and appointments.']],
+    [['How do I check fines?', '“Fines” opens the official Road24 app and my.gov.uz services: penalty points and appeals.'], ['Where are speed cameras?', 'All known cameras are on the map.'], ['How do I pay for parking?', '“Parking” has the parking map and official payment options.']],
+    [['How do I get a public service?', '“Public services”: popular my.gov.uz services and the nearest centres. Call centre — 1242.'], ['How do document reminders work?', 'Add a document and its expiry — the bot reminds you 30, 7 and 1 day before.'], ['How do I appeal to the hokim?', 'Use “Appeal to the Hokim” or “Report a problem”: photo, place on the map, status updates in Telegram.']],
+    [['How do I report a pothole or litter?', 'Tap “Report a problem”, add a photo and a point on the map. Reports are public and residents can support them.'], ['What does the panic button do?', 'It sends your location to trusted people in Telegram.'], ['Where do weather and air data come from?', 'Open-Meteo, updated hourly.']],
+    [['How do I find sights?', '“Sights”: map, Wikipedia descriptions and an AI guide.'], ['Where can I buy tickets?', '“Transport” and “Tickets”: trains, flights and buses via the official sales sites.']],
+    [['Can I buy shares in the app?', 'No. We show information and link to the Tashkent Stock Exchange; you buy through a licensed broker.'], ['Where are land plots and new buildings?', '“Real estate”: new buildings on the map, OLX and Uybor listings, plots on E-auksion.']],
+  ],
+};
+FAQ.zh = FAQ.en;
+HS.faq = (p) => { const i = Math.min(5, +p || 0), list = (FAQ[LANG] || FAQ.ru)[i] || []; return `${hdr(t('faq_cats').split('|')[i])}<div class="h-body"><div class="h-card np">${list.map(([q, a], j) => `<details class="h-faq" ${j ? '' : 'open'}><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div></div>`; };
+
+// ---------- documents / family / health: own data only ----------
+function drawDocsPage(layers) { const r = layers.r; if (!r) return; cover(r, 140, 750, ''); drawDocs(layers, 156); }
+XACT.diary = () => bsheet(`<div class="hv-h" style="margin:0 0 8px">${esc(t('dy_t'))}</div><p class="bs-p">${esc(t('dy_s'))}</p><div class="hv-card bk-card">${ext('https://emaktab.uz', t('dy_open'), 'emaktab.uz', GLYPH('📘'), '#143C20')}</div>`, 'bs-caf');
+XACT.kinder = () => bsheet(`<div class="hv-h" style="margin:0 0 8px">${esc(t('kg_t'))}</div><p class="bs-p">${esc(t('kg_s'))}</p><div class="hv-card bk-card">${ext(yaMyGov(285), t('kg_open'), 'my.gov.uz', GLYPH('🏛️'), '#143C20')}<button class="bk-link" data-act="go:h:poi?edu:kindergarten"><span class="hv-ic" style="background:#DB2777">${GLYPH('🧸')}</span><span><b>${esc(t('kg_map'))}</b></span>${IC.chev}</button></div>`, 'bs-caf');
+function drawFamilyPage(layers) { const r = layers.r; if (!r) return; cover(r, 372, 560, ''); drawFamily(layers, 384); }
+const DMED = 'https://dmed.uz';
+XACT.dmed = k => bsheet(`<div class="hv-h" style="margin:0 0 8px">${esc(t(k === 'mb' ? 'mb_t' : 'dm_t'))}</div><p class="bs-p">${esc(t(k === 'mb' ? 'mb_s' : 'dm_s'))}</p><div class="hv-card bk-card">${ext(DMED, t('dm_open'), 'dmed.uz', GLYPH('🩺'), '#0EA5E9')}${k === 'mb' ? '' : ext(MYGOV(LANG), t('dm_gov'), 'my.gov.uz', GLYPH('🏛️'), '#143C20')}<button class="bk-link" data-act="go:h:poi?med:clinic"><span class="hv-ic" style="background:#2563EB">${GLYPH('🏥')}</span><span><b>${esc(t('dm_near'))}</b></span>${IC.chev}</button></div>`, 'bs-caf');
+HS.doctor = () => { setTimeout(() => { goBack('1:5032'); XACT.dmed('dm'); }, 0); return ''; };
+HS.medbook = () => { setTimeout(() => { goBack('1:5032'); XACT.dmed('mb'); }, 0); return ''; };
+HS.slots = HS.doctor;
+HS.diary = () => { setTimeout(() => { goBack('1:3042'); XACT.diary(); }, 0); return ''; };
+const apDays = d => Math.round((Date.parse(d + 'T00:00:00Z') - Date.parse(new Date(Date.now() + 5 * 3600e3).toISOString().slice(0, 10) + 'T00:00:00Z')) / 864e5);
+function drawAppts(layers) {
+  const r = layers.r; if (!r) return;
+  const w = cover(r, 376, 330, `<div class="hv-h">${esc(t('ap_t'))}<button data-act="apadd">＋ ${esc(t('ap_add'))}</button></div><div class="hv-card dc-card" id="apBox"><div class="hv-sk"></div></div>`);
+  const box = w.querySelector('#apBox');
+  const paint = list => {
+    if (!authUser()) { box.innerHTML = `<p class="dc-empty">${esc(t('ap_none'))}</p>${loginBtn()}`; return; }
+    const l = (list || []).filter(d => d.kind === 'appt' && apDays(d.expires) >= 0).slice(0, 3);
+    box.innerHTML = l.length ? l.map(d => { const n = apDays(d.expires); return `<button class="hv-mq" data-act="aprm:${esc(d.title)}"><span class="hv-dot" style="background:${n <= 1 ? '#D97706' : '#0EA5E9'}"></span><span><b>${esc(d.title)}</b><i>${esc(d.expires.split('-').reverse().join('.'))}${n === 0 ? ' · ' + t('ap_today') : n === 1 ? ' · ' + t('ap_tomorrow') : ''}</i></span></button>`; }).join('') : `<p class="dc-empty">${esc(t('ap_none'))}</p>`;
+  };
+  paint(null); if (authUser()) api('/api/docs').then(j => { if (document.body.contains(box)) paint(j.list); });
+}
+XACT.apadd = () => {
+  if (needLogin()) return;
+  const d0 = new Date(Date.now() + 5 * 3600e3 + 864e5).toISOString().slice(0, 10);
+  const w = bsheet(`<div class="hv-h" style="margin:0 0 12px">${esc(t('ap_add'))}</div>
+    <label class="h-field"><span>${esc(t('ap_doc'))}</span><input class="dc-in" id="apD" placeholder="${esc(t('ap_doc_ph'))}" maxlength="24"></label>
+    <label class="h-field"><span>${esc(t('ap_place'))}</span><input class="dc-in" id="apP" placeholder="${esc(t('ap_place_ph'))}" maxlength="24"></label>
+    <div style="display:flex;gap:10px"><label class="h-field" style="flex:1"><span>${esc(t('ap_date'))}</span><input class="dc-in" id="apDt" type="date" value="${d0}"></label><label class="h-field" style="flex:1"><span>${esc(t('ap_time'))}</span><input class="dc-in" id="apTm" type="time" value="10:00"></label></div>
+    <button class="h-btn h-primary" id="apS" style="margin-top:12px">${esc(t('set_save'))}</button>`, 'bs-caf');
+  w.querySelector('#apS').addEventListener('click', e => {
+    e.preventDefault(); const doc = w.querySelector('#apD').value.trim() || t('ap_doc_ph'), pl = w.querySelector('#apP').value.trim(), dt = w.querySelector('#apDt').value, tm = w.querySelector('#apTm').value;
+    if (!dt) return w.querySelector('#apDt').focus();
+    const title = [doc, tm, pl].filter(Boolean).join(' · ').slice(0, 60);
+    api('/api/docs', { kind: 'appt', title, expires: dt }).then(j => { if (j.ok) { bsheetClose(true); toast(t('ap_ok')); render(current, currentP); } else toast(t('po_err')); });
+  });
+};
+XACT.aprm = title => sheet(title, '', [[t('ap_rm'), () => api('/api/docs', { action: 'remove', kind: 'appt', title }).then(() => render(current, currentP))], [t('cancel'), null]]);
+
+// ---------- mahalla: own mahalla, real chat, live polls ----------
+function drawMahallaTop(layers) {
+  const r = layers.r; if (!r) return;
+  const w = cover(r, 140, 770, `<div class="mh-head" id="mhHead"></div><button class="h-btn h-primary" data-act="go:h:chat" style="margin:4px 0 22px">💬 ${esc(t('mh_chat'))}</button><div class="hv-h">${esc(t('mh_polls'))}<button data-act="go:h:polls?mahalla">${esc(t('po_all_m') || '')} ›</button></div><div id="mhPolls"><div class="hv-sk"></div></div>`);
+  const head = w.querySelector('#mhHead');
+  const paintHead = mah => { head.innerHTML = mah ? `<b>${esc(t('mh_t'))} «${esc(mah)}»</b><button data-act="setmah" aria-label="edit">✎</button><i>${esc(cityName(cityIdx()))}</i>` : `<button class="mh-set" data-act="setmah"><b>＋ ${esc(t('mh_set'))}</b><i>${esc(t('mh_set_s'))}</i></button>`; };
+  paintHead(PREFS && PREFS.mahalla); prefsLoad().then(p => { if (document.body.contains(head)) paintHead(p && p.mahalla); });
+  api('/api/polls?scope=mahalla').then(j => {
+    const box = w.querySelector('#mhPolls'); if (!box) return;
+    const l = (j.ok ? j.polls : []).slice(0, 3);
+    box.innerHTML = l.length ? l.map(p => { const top = p.counts.indexOf(Math.max(...p.counts)); return `<button class="pl-card mh-poll" data-act="go:h:polls?mahalla"><span class="pl-q">${esc(p.q)}</span><span class="pl-meta">👥 ${esc(t('mh_votes', { n: p.total }))}${p.total ? ' · ' + esc(p.options[top]) + ' ' + Math.round(p.counts[top] * 100 / p.total) + '%' : ''}</span><span class="mh-vote">${esc(p.mine != null ? '✓ ' + p.options[p.mine] : t('mh_vote'))}</span></button>`; }).join('') : `<div class="cf-empty">${esc(t('mh_none'))}</div>`;
+  });
+}
+const chs = () => (window.__chat = window.__chat || { room: null, list: [], last: 0, timer: 0 });
+function chatRoom(kind) { const ci = cityIdx(), m = PREFS && PREFS.mahalla; return kind === 'm' && m ? `m${ci}:${m.toLowerCase()}` : `c${ci}`; }
+HS.chat = () => {
+  const s = chs(), m = PREFS && PREFS.mahalla, k = s.kind || (m ? 'm' : 'c');
+  return `${hdr(t('ch_t'))}<div class="ch-tabs"><button class="h-chip ${k === 'm' ? 'on' : ''}" data-act="chroom:m">🏘️ ${esc(m ? m : t('ch_mah'))}</button><button class="h-chip ${k === 'c' ? 'on' : ''}" data-act="chroom:c">🏙️ ${esc(cityName(cityIdx()))}</button></div>
+    <div class="ch-list vs" id="chList"><div class="hv-sk"></div></div>
+    <div class="ch-bar">${authUser() ? `<textarea id="chIn" rows="1" maxlength="800" placeholder="${esc(t('ch_ph'))}"></textarea><button id="chSend" aria-label="send">➤</button>` : loginBtn()}</div>`;
+};
+HS.chat.mount = el => {
+  const s = chs(); clearInterval(s.timer);
+  if (!s.kind) s.kind = PREFS && PREFS.mahalla ? 'm' : 'c';
+  if (s.kind === 'm' && !(PREFS && PREFS.mahalla)) { prefsLoad().then(p => { if (p && p.mahalla) render(current, currentP); }); }
+  const room = chatRoom(s.kind); if (room !== s.room) { s.room = room; s.list = []; s.last = 0; }
+  const box = el.querySelector('#chList');
+  const fmtT = ts => { const d = new Date(ts * 1000); return d.toLocaleTimeString(LANG === 'en' ? 'en-GB' : 'ru-RU', { hour: '2-digit', minute: '2-digit' }); };
+  const paint = () => { if (!document.body.contains(box)) return clearInterval(s.timer); box.innerHTML = (s.list.length ? s.list.map(m => `<div class="ch-m ${m.mine ? 'me' : ''}">${m.mine ? '' : `<i>${esc(m.name)}</i>`}${esc(m.text)}<em>${fmtT(m.created)}</em></div>`).join('') : `<div class="cf-empty">${esc(t('ch_none'))}</div>`) + `<div class="ch-rules">${esc(t('ch_rules'))}</div>`; box.scrollTop = box.scrollHeight; };
+  const pull = () => api(`/api/chat?room=${encodeURIComponent(s.room)}&after=${s.last}`).then(j => { if (!j.ok) return; if (j.list.length) { s.list = s.list.concat(j.list).slice(-200); s.last = s.list[s.list.length - 1].id; } paint(); });
+  if (s.list.length) paint(); pull(); s.timer = setInterval(pull, 4000);
+  const inp = el.querySelector('#chIn'), send = el.querySelector('#chSend');
+  if (inp) {
+    inp.addEventListener('input', () => { inp.style.height = 'auto'; inp.style.height = Math.min(120, inp.scrollHeight) + 'px'; });
+    const go2 = () => { const v = inp.value.trim(); if (!v) return; send.disabled = true; api('/api/chat', { room: s.room, text: v }).then(j => { send.disabled = false; if (j.ok) { inp.value = ''; inp.style.height = 'auto'; pull(); } else toast(j._status === 429 ? t('ch_limit') : t('po_err')); }); };
+    send.addEventListener('click', e => { e.preventDefault(); go2(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go2(); } });
+  }
+};
+XACT.chroom = k => { const s = chs(); if (k === 'm' && !(PREFS && PREFS.mahalla)) { if (needLogin()) return; return XACT.setmah(); } s.kind = k; render(current, currentP); };
+
+// ---------- tickets: flights, trains, buses on the official sites ----------
+const TK_CITIES = [['TAS', 'Ташкент', 'Toshkent', 'Tashkent'], ['SKD', 'Самарканд', 'Samarqand', 'Samarkand'], ['BHK', 'Бухара', 'Buxoro', 'Bukhara'], ['UGC', 'Ургенч', 'Urganch', 'Urgench'], ['NCU', 'Нукус', 'Nukus', 'Nukus'], ['NMA', 'Наманган', 'Namangan', 'Namangan'], ['AZN', 'Андижан', 'Andijon', 'Andijan'], ['FEG', 'Фергана', "Farg'ona", 'Fergana'], ['KSQ', 'Карши', 'Qarshi', 'Karshi'], ['TMJ', 'Термез', 'Termiz', 'Termez'], ['NVI', 'Навои', 'Navoiy', 'Navoi'],
+  ['MOW', 'Москва', 'Moskva', 'Moscow'], ['LED', 'Санкт-Петербург', 'Sankt-Peterburg', 'St Petersburg'], ['IST', 'Стамбул', 'Istanbul', 'Istanbul'], ['DXB', 'Дубай', 'Dubay', 'Dubai'], ['ALA', 'Алматы', 'Olmaota', 'Almaty'], ['ICN', 'Сеул', 'Seul', 'Seoul']];
+const tkName = code => { const x = TK_CITIES.find(y => y[0] === code); return x ? x[LANG === 'ru' ? 1 : LANG === 'uz' ? 2 : 3] : code; };
+HS.tickets = () => {
+  const s = (window.__tk = window.__tk || { m: 'air', from: 'TAS', to: 'SKD', date: new Date(Date.now() + 5 * 3600e3 + 864e5).toISOString().slice(0, 10) });
+  const opts = (sel, list) => list.map(c => `<option value="${c}" ${c === sel ? 'selected' : ''}>${esc(tkName(c))}</option>`).join('');
+  const all = TK_CITIES.map(c => c[0]);
+  const links = {
+    air: ext('https://www.uzairways.com', t('tk_uzair'), 'uzairways.com', GLYPH('✈️'), '#1D4ED8') + `<button class="bk-link" data-act="go:h:flights"><span class="hv-ic" style="background:#0EA5E9">${GLYPH('🛫')}</span><span><b>${esc(t('tk_board'))}</b></span>${IC.chev}</button>`,
+    rail: ext('https://eticket.railway.uz', 'eticket.railway.uz', '', GLYPH('🚄'), '#B45309') + `<button class="bk-link" data-act="go:h:trains"><span class="hv-ic" style="background:#7C5426">${GLYPH('🕒')}</span><span><b>${esc(t('tk_sched'))}</b></span>${IC.chev}</button>`,
+    bus: ext('https://avtoticket.uz', 'avtoticket.uz', '', GLYPH('🚌'), '#15803D'),
+  }[s.m];
+  return `${hdr(t('tk_t'))}<div class="h-body">
+    <div class="h-chips">${[['air', '✈️'], ['rail', '🚄'], ['bus', '🚌']].map(([k, ic]) => `<button class="h-chip ${s.m === k ? 'on' : ''}" data-act="tkmode:${k}">${ic} ${esc(t('tk_' + k))}</button>`).join('')}</div>
+    <div class="h-card" style="margin-top:12px">
+      ${s.m === 'air' ? `<label class="h-field"><span>${esc(t('tk_from'))}</span><select class="dc-in" id="tkF">${opts(s.from, all)}</select></label><label class="h-field"><span>${esc(t('tk_to'))}</span><select class="dc-in" id="tkT">${opts(s.to, all)}</select></label><label class="h-field"><span>${esc(t('tk_date'))}</span><input class="dc-in" type="date" id="tkD" value="${s.date}"></label>` : ''}
+      <div class="h-muted">${esc(t('tk_' + s.m + '_s'))}</div></div>
+    ${s.m === 'air' ? btn(t('tk_find'), 'tkfind', 'primary') : ''}
+    <div class="hv-card bk-card" style="margin-top:12px">${links}</div></div>`;
+};
+XACT.tkmode = m => { window.__tk.m = m; render(current, currentP); };
+XACT.tkfind = () => {
+  const s = window.__tk, f = document.getElementById('tkF').value, to = document.getElementById('tkT').value, d = document.getElementById('tkD').value || s.date;
+  Object.assign(s, { from: f, to, date: d }); if (f === to) return toast(t('tk_same'));
+  const [y, mo, da] = d.split('-'); window.open(`https://www.aviasales.uz/search/${f}${da}${mo}${to}1`, '_blank', 'noopener');
+};
+
+// ---------- clean city: real air quality + recycling points ----------
+HS.eco = (arg) => {
+  const tab = arg === 'rec' ? 'rec' : 'air';
+  return `${hdr(t('ec_t'))}<div class="h-body">
+    <div class="h-chips">${[['air', '🌫️'], ['rec', '♻️']].map(([k, ic]) => `<button class="h-chip ${tab === k ? 'on' : ''}" data-act="go:h:eco?${k}">${ic} ${esc(t('ec_' + k))}</button>`).join('')}<button class="h-chip" data-act="go:h:reports?clean">🗑️ ${esc(t('ec_rep'))}</button></div>
+    <div id="ecBody" style="margin-top:12px"><div class="hv-sk"></div></div></div>`;
+};
+HS.eco.mount = (el, arg) => {
+  const b = el.querySelector('#ecBody');
+  if (arg === 'rec') {
+    b.innerHTML = `<div class="hv-h">${esc(t('ec_rec_s'))}</div><div id="ecMap" class="ec-map"></div><button class="h-btn h-primary" data-act="go:h:poi?recycle" style="margin-top:12px">${esc(t('ec_rec_open'))}</button>
+      <div class="h-card" style="margin-top:14px"><div class="h-muted">${esc(t('ec_rep_s'))}</div></div>${btn(t('ec_rep'), 'go:h:reports?clean', 'ghostd')}`;
+    bindActs(b); const m = b.querySelector('#ecMap'); if (typeof PO_K !== 'undefined' && PO_K.recycle) poMiniInto(m, 'recycle'); return;
+  }
+  const ci = cityIdx(), caps = []; const seen = new Set(); CITIES.forEach((c, i) => { if (!seen.has(c[4])) { seen.add(c[4]); caps.push(i); } });
+  const q = `latitude=${caps.map(i => CITIES[i][5]).join(',')}&longitude=${caps.map(i => CITIES[i][6]).join(',')}&current=us_aqi,pm2_5`;
+  Promise.all([wxLoad(ci).catch(() => null), fetch('https://air-quality-api.open-meteo.com/v1/air-quality?' + q).then(r => r.json()).catch(() => null)]).then(([, multi]) => {
+    if (!document.body.contains(b)) return;
+    const W = WX[ci] || {}, a = W.a && W.a.current, aq = a ? Math.round(a.us_aqi) : null, lv = aqLvl(aq);
+    const hr = W.a && W.a.hourly, now = new Date(Date.now() + 5 * 3600e3).toISOString().slice(0, 13);
+    const hi = hr && hr.time ? Math.max(0, hr.time.findIndex(x => x >= now)) : 0;
+    const hours = hr && hr.us_aqi ? hr.time.slice(hi, hi + 24).filter((_, i) => i % 3 === 0).map((tm, k) => { const v = Math.round(hr.us_aqi[hi + k * 3]); const l2 = aqLvl(v); return `<div><i>${tm.slice(11, 16)}</i><b style="color:${AQ_COL[l2] || '#111'}">${isNaN(v) ? '—' : v}</b></div>`; }).join('') : '';
+    const arr = Array.isArray(multi) ? multi : multi ? [multi] : [];
+    const rows = caps.map((i, k) => [i, arr[k] && arr[k].current ? Math.round(arr[k].current.us_aqi) : null]).filter(x => x[1] != null).sort((x, y) => x[1] - y[1]);
+    b.innerHTML = `${lv >= 0 ? `<div class="wx-aq" style="border-color:${AQ_COL[lv]}55;background:${AQ_COL[lv]}12"><div class="wx-aqh"><span style="background:${AQ_COL[lv]}">${aq}</span><div><b>${esc(cityName(ci))}: ${esc(t('aq_' + lv))}</b><i>PM2.5 ${Math.round(a.pm2_5)} · PM10 ${Math.round(a.pm10)} мкг/м³</i></div></div><p>${esc(t('aqa_' + lv))}</p></div>` : `<div class="cf-empty">${esc(t('po_err'))}</div>`}
+      ${hours ? `<div class="h-sec">${esc(t('ec_hours'))}</div><div class="wx-hours ec-h">${hours}</div>` : ''}
+      ${authUser() ? `<label class="nf-row h-card" style="margin-top:12px"><span>😷</span><b>${esc(t('ec_alert'))}</b><input type="checkbox" id="ecAl" ${PREFS && PREFS.air ? 'checked' : ''}></label>` : ''}
+      ${rows.length ? `<div class="h-sec">${esc(t('ec_cities'))}</div><div class="h-card np fx-list">${rows.map(([i, v]) => { const l2 = aqLvl(v); return `<div class="fx-row"><b style="width:auto;flex:1">${esc(cityName(i))}</b><i style="flex:0 0 auto">${esc(t('aq_' + l2))}</i><span style="color:${AQ_COL[l2]};min-width:40px;text-align:right">${v}</span></div>`; }).join('')}</div>` : ''}
+      <div class="h-muted small" style="margin-top:10px">${esc(t('ec_src'))}</div>`;
+    const al = b.querySelector('#ecAl'); if (al) { prefsLoad().then(p => { if (p) al.checked = !!p.air; }); al.addEventListener('change', () => prefsSave({ air: al.checked }).then(j => toast(j.ok ? t('set_saved') : t('po_err')))); }
+  });
+};
+function poMiniInto(el, k) {
+  Promise.all([leafletReady(), poIndex()]).then(() => poLoad(k, poCity(k))).then(list => {
+    const c = CITIES[poCity(k)], map = L.map(el, { zoomControl: false, attributionControl: true }).setView([c[5], c[6]], c[7] || 12); tiles(map);
+    list.forEach(p => L.circleMarker([p.la, p.lo], { radius: 6, color: '#fff', weight: 2, fillColor: PO_K[k].col(p), fillOpacity: 1 }).addTo(map));
+    if (!list.length) el.insertAdjacentHTML('beforeend', `<div class="ec-none">${esc(t('rc_none'))}</div>`);
+  }).catch(() => {});
+}
+
+// ---------- volunteering, business, IPO, real estate, public service centres ----------
+const ORG_WEB = { 0: 'https://ezguamal.org' };
+XACT.org = i => { i = +i || 0; const n = ORGS[i]; bsheet(`<div class="hv-h" style="margin:0 0 8px">${esc(n)}</div><p class="bs-p">${esc(t('og_donate'))}</p><div class="hv-card bk-card">${ORG_WEB[i] ? ext(ORG_WEB[i], t('og_web'), ORG_WEB[i].replace('https://', ''), GLYPH('🌐'), '#143C20') : ''}${ext('https://www.google.com/search?q=' + encodeURIComponent(n + ' Uzbekistan'), t('og_find'), '', GLYPH('🔎'), '#6B7280')}</div>`, 'bs-caf'); };
+HS.org = (p) => { setTimeout(() => { goBack('1:4356'); XACT.org(p); }, 0); return ''; };
+const PROG_LINKS = [['https://invest.gov.uz', 'invest.gov.uz'], ['https://my.gov.uz', 'my.gov.uz'], ['https://lex.uz', 'lex.uz'], ['https://invest.gov.uz', 'invest.gov.uz']];
+XACT.prog = i => { i = +i || 0; const n = (PROGS[LANG] || PROGS.ru)[i], [u, d] = PROG_LINKS[i]; bsheet(`<div class="hv-h" style="margin:0 0 10px">${esc(n)}</div><div class="hv-card bk-card">${ext(u, t('pg_go'), d, GLYPH('🏛️'), '#143C20')}</div>`, 'bs-caf'); };
+HS.prog = (p) => { setTimeout(() => { goBack('1:523'); XACT.prog(p); }, 0); return ''; };
+XACT.ipo = i => { i = +i || 0; const n = IPO[i], uznif = /National Investment Fund/i.test(n); bsheet(`<div class="hv-h" style="margin:0 0 8px">${esc(n)}</div><p class="bs-p">${esc(uznif ? t('ip_uznif') + ' ' : '')}${esc(t('ip_s'))}</p><div class="hv-card bk-card">${ext('https://uzse.uz', t('ip_uzse'), 'uzse.uz', GLYPH('📈'), '#143C20')}${ext('https://news.google.com/search?q=' + encodeURIComponent(n.replace(/\s*\(.*\)/, '') + ' IPO'), t('ip_news'), 'Google News', GLYPH('📰'), '#6B7280')}</div>`, 'bs-caf'); };
+HS.ipo = (p) => { setTimeout(() => { goBack('1:332'); XACT.ipo(p); }, 0); return ''; };
+XACT.realty = k => {
+  k = +k || 0; const ttl = t('realty').split('|')[k] || '';
+  const body = k === 3 ? `<p class="bs-p">${esc(t('rt_land'))}</p><div class="hv-card bk-card">${ext('https://e-auksion.uz', 'E-auksion', 'e-auksion.uz', GLYPH('🗺️'), '#143C20')}</div>`
+    : `<p class="bs-p">${esc(t(k === 0 ? 'rt_post' : 'rt_buy'))}</p><div class="hv-card bk-card">${ext('https://www.olx.uz/nedvizhimost/', 'OLX — ' + ttl, 'olx.uz', GLYPH('🏠'), '#0F766E')}${ext('https://uybor.uz', 'Uybor', 'uybor.uz', GLYPH('🏢'), '#7C3AED')}</div>`;
+  bsheet(`<div class="hv-h" style="margin:0 0 8px">${esc(ttl)}</div>${body}`, 'bs-caf');
+};
+HS.realty = (p) => { setTimeout(() => { goBack('1:235'); XACT.realty(p); }, 0); return ''; };
+XACT.cgu = () => bsheet(`<div class="hv-h" style="margin:0 0 8px">${esc(t('cg_t'))}</div><p class="bs-p">${esc(t('cg_s'))}</p><div class="hv-card bk-card">${ext(MYGOV(LANG), t('cg_online'), 'my.gov.uz', GLYPH('🏛️'), '#143C20')}<button class="bk-link" data-act="go:h:poi?gov:cgu"><span class="hv-ic" style="background:#15803D">${GLYPH('📍')}</span><span><b>${esc(t('cg_map'))}</b></span>${IC.chev}</button><a class="bk-link" href="tel:1242"><span class="hv-ic" style="background:#0EA5E9">${GLYPH('📞')}</span><span><b>${esc(t('cg_call'))}</b></span>${IC.chev}</a></div>`, 'bs-caf');
+HS.queue = () => { setTimeout(() => { goBack('1:2573'); XACT.cgu(); }, 0); return ''; };
+HS.doc = () => { setTimeout(() => go('1:19'), 0); return ''; };
+HS.booking = () => { setTimeout(() => go('h:cafes'), 0); return ''; };
+HS.tourist = () => { setTimeout(() => go('h:poi', 'sight'), 0); return ''; };
+HS.ai = (p) => { setTimeout(() => { goBack('1:1909'); aiOpen(); setTimeout(() => { try { aiAsk(t({ light: 'ai_light_q', metro: 'ai_metro_q', doc: 'ai_doc_q' }[p] || 'ai_doc_q')); } catch (e) {} }, 400); }, 0); return ''; };
+AI_HIDE.add('h:chat'); AI_HIDE.add('h:tickets'); AI_HIDE.add('h:eco');
+
+// ---------- recycling points (OpenStreetMap amenity=recycling) ----------
+Object.assign(PO_SVG, { recycle: '<path d="M7 19H4.8a1.8 1.8 0 0 1-1.6-2.7L7 9.7M11 19h8.2a1.8 1.8 0 0 0 1.6-2.7l-1.2-2.2M14 16l-3 3 3 3M8.3 13.6 7 9.7l-4 1M9.3 5.6l1.2-2.1a1.8 1.8 0 0 1 3.1 0l3.9 6.7M13.4 9.6l3.8-.8 1 3.9"/>' });
+PO_DATA.recycle = {};
+const RC_I = {
+  ru: { rc_t: 'Пункты приёма вторсырья', rc_kind: 'Пункт приёма', rc_s: 'Название или адрес', rcc_plastic: 'Пластик', rcc_paper: 'Бумага', rcc_glass: 'Стекло', rcc_metal: 'Металл', rcc_batteries: 'Батарейки', rcc_clothes: 'Одежда', rcc_centre: 'Пункт приёма', rc_takes: 'Принимают', rc_none: 'В этом городе на карте пока нет пунктов приёма' },
+  uz: { rc_t: 'Ikkilamchi xomashyo qabul punktlari', rc_kind: 'Qabul punkti', rc_s: 'Nomi yoki manzili', rcc_plastic: 'Plastik', rcc_paper: "Qog'oz", rcc_glass: 'Shisha', rcc_metal: 'Metall', rcc_batteries: 'Batareyalar', rcc_clothes: 'Kiyim', rcc_centre: 'Qabul punkti', rc_takes: 'Qabul qilinadi', rc_none: "Bu shaharda xaritada hozircha qabul punktlari yo'q" },
+  en: { rc_t: 'Recycling points', rc_kind: 'Recycling point', rc_s: 'Name or address', rcc_plastic: 'Plastic', rcc_paper: 'Paper', rcc_glass: 'Glass', rcc_metal: 'Metal', rcc_batteries: 'Batteries', rcc_clothes: 'Clothes', rcc_centre: 'Collection point', rc_takes: 'Accepts', rc_none: 'No recycling points on the map in this city yet' },
+};
+RC_I.zh = RC_I.en; for (const l in RC_I) Object.assign(I[l] || (I[l] = {}), RC_I[l]);
+const RC_COL = { plastic: '#0EA5E9', paper: '#B45309', glass: '#16A34A', metal: '#64748B', batteries: '#DC2626', clothes: '#7C3AED', centre: '#15803D' };
+const rcTypes = p => String(p.rt || '').split(',').filter(Boolean);
+PO_K.recycle = { title: 'rc_t', cats: ['plastic', 'paper', 'glass', 'metal', 'batteries', 'clothes'], extraH: 0, foot: true,
+  has: (p, c) => rcTypes(p).includes(c), col: p => RC_COL[rcTypes(p)[0]] || '#15803D', ic: () => 'recycle', name: p => p.n || t('rc_kind'),
+  sub: p => [t('rc_kind'), rcTypes(p).map(x => t('rcc_' + x)).join(', ')].filter(Boolean).join(' · ') };
+P2_PREFIX.recycle = 'rcc_'; P2_CHIPCOL.recycle = RC_COL;

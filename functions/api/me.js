@@ -4,7 +4,10 @@ export const onRequestOptions = () => new Response(null, { headers: CORS });
 async function me(env, request) { const s = await readSession(env, request); if (!s) return null; await ensureDb(env); return env.DB.prepare('SELECT * FROM users WHERE id = ?1').bind(s.u).first(); }
 export async function onRequestGet({ request, env }) {
   if (!ready(env)) return json({ ok: false }, 503);
-  const u = await me(env, request); return u ? json({ ok: true, user: publicUser(u) }) : json({ ok: false, error: 'unauthorized' }, 401);
+  const u = await me(env, request); if (!u) return json({ ok: false, error: 'unauthorized' }, 401);
+  const n = async (sql) => ((await env.DB.prepare(sql).bind(u.id).first()) || {}).n || 0;
+  const stats = { reports: await n('SELECT COUNT(*) AS n FROM reports WHERE user_id = ?1'), open: await n("SELECT COUNT(*) AS n FROM reports WHERE user_id = ?1 AND status IN ('new', 'work')"), votes: await n('SELECT COUNT(*) AS n FROM votes WHERE user_id = ?1'), docs: await n('SELECT COUNT(*) AS n FROM docs WHERE user_id = ?1'), trusted: await n('SELECT COUNT(*) AS n FROM trusted WHERE owner = ?1') };
+  return json({ ok: true, user: publicUser(u), stats });
 }
 export async function onRequestPost({ request, env }) {
   if (!ready(env)) return json({ ok: false }, 503);

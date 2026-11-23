@@ -1,6 +1,6 @@
 // Document expiry reminders: GET → list; POST {kind, title, expires: 'YYYY-MM-DD'} → save; POST {action:'remove', kind, title}.
 import { json, CORS, ready, sessionUser } from '../_lib/auth.js';
-const KINDS = ['passport', 'idcard', 'intl', 'license', 'inspection', 'insurance', 'tinting', 'gas', 'poa', 'other'];
+const KINDS = ['passport', 'idcard', 'intl', 'license', 'inspection', 'insurance', 'tinting', 'gas', 'poa', 'appt', 'other'];
 export const onRequestOptions = () => new Response(null, { headers: CORS });
 export async function onRequestGet({ request, env }) {
   if (!ready(env)) return json({ ok: false }, 503);

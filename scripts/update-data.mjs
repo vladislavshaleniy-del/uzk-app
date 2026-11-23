@@ -276,6 +276,18 @@ const POI = {
       return p;
     },
   },
+  recycle: {
+    r: [16000, 10000],
+    q: b => `nw["amenity"="recycling"](${b});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p) return null;
+      const rt = ['plastic', 'paper', 'glass', 'metal', 'batteries', 'clothes'].filter(k => yes(t['recycling:' + k]) || (k === 'plastic' && (yes(t['recycling:plastic_bottles']) || yes(t['recycling:plastic_packaging']))) || (k === 'metal' && (yes(t['recycling:scrap_metal']) || yes(t['recycling:cans']))) || (k === 'paper' && yes(t['recycling:cardboard'])));
+      if (rt.length) p.rt = rt.join(',');
+      if (t.recycling_type === 'centre') p.ce = 1;
+      if (t.operator) p.op = t.operator;
+      return p;
+    },
+  },
   build: {
     r: [14000, 7000],
     // equality filters only (regex on names is too slow for the public servers); names are checked below
