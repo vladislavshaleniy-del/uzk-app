@@ -1,6 +1,7 @@
 // MyUzCity AI assistant — Cloudflare Pages Function + Workers AI (binding "AI", see wrangler.toml).
 // Knows the app's sections, reads the app's own live data (data/places, data/news) and answers with
 // action tags the app turns into buttons: [[go:code]], [[place:id]], [[cafes:query]], [[poi:kind:id]].
+import { BASE, kbFor } from '../_lib/kb.js';
 const MODELS = ['@cf/openai/gpt-oss-120b', '@cf/meta/llama-3.3-70b-instruct-fp8-fast'];
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type' };
 const LANGS = { ru: 'русском', uz: 'узбекском (латиница)', en: 'английском', zh: 'китайском' };
@@ -56,7 +57,7 @@ function nearList(list, loc, n) {
 function system(b, places, news, extra = '') {
   const lang = LANGS[b.lang] || LANGS.ru;
   return `Ты — ИИ-ассистент городского приложения MyUzCity (Узбекистан). Пользователь: ${b.name && b.name !== '—' ? b.name : 'гость (имя неизвестно, не придумывай его)'}. Город: ${b.city || 'Ташкент'}. Сейчас: ${b.date || ''}. Открытый экран: ${b.screen || '—'}.
-Отвечай на ${lang} языке, коротко и по делу (2–5 предложений), дружелюбно. Не выдумывай факты, цены, телефоны, адреса и рейтинги: используй только данные ниже и общеизвестное. Если данных нет — честно скажи и предложи нужный раздел приложения.
+Отвечай на ${lang} языке, коротко и по делу (2–5 предложений; для вопросов о госуслугах и документах — короткий список шагов до 6 пунктов), дружелюбно. Пиши простым текстом без markdown и звёздочек, пункты списка начинай с «• ». Не выдумывай факты, цены, телефоны, адреса и рейтинги: используй только данные ниже и общеизвестное. Если данных нет — честно скажи и предложи нужный раздел приложения.
 Разделы приложения (код — что внутри):
 ${SERVICES.map(([k, d]) => `${k} — ${d}`).join('\n')}
 Кнопки: чтобы показать переход в раздел, добавь в конце ответа тег [[go:код]] (не больше двух тегов).
@@ -96,6 +97,11 @@ export async function onRequestPost({ request, env }) {
   }
   let extra = '';
   if (b.mode !== 'raw') {
+    // public-services knowledge: always the basics, plus the topics this question (or the previous one) is about
+    const prevUser = msgs.filter(m => m.role === 'user').slice(-2).map(m => m.content).join(' \n ');
+    const topics = kbFor(last).length ? kbFor(last) : kbFor(prevUser);
+    extra += `${BASE}\n${topics.map(e => `\n[Тема: ${e.id}, раздел приложения: [[go:${e.go}]]]\n${e.t}`).join('\n')}
+Правила для госуслуг: опирайся на эту справку; суммы, сроки, телефоны и сайты называй только из неё. Если нужной цифры в справке нет — не придумывай, скажи, что точную сумму и порядок покажет my.gov.uz или колл-центр 1242. Если вопрос по теме справки, добавь в конце тег раздела из её заголовка.\n`;
     const poi = async (k, filter, n, label) => {
       const list = ((await getJSON(`${DATA}poi/${k}/${ci}.json`)) || []).filter(filter);
       return nearList(list, loc, n).map(p => `${k}:${p.id} | ${p.n || label} | ${p.a || (p.k ? ({ m: 'многоуровневый', u: 'подземный', s: 'вдоль улицы', g: 'открытая' })[p.k] : '') || (p.hi ? 'историческая' : '')} | ${p.f === 1 ? 'платная' : p.f === 0 ? 'бесплатная' : ''} | ${p.h || ''} | ${p.ad || '—'} | ${p.ph || ''} | ${loc ? dist(loc, [p.la, p.lo]).toFixed(1) + ' км' : ''}`).join('\n');
