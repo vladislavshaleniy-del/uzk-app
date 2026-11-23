@@ -45,6 +45,7 @@ export async function ensureDb(env) {
     env.DB.prepare('CREATE TABLE IF NOT EXISTS admins (tg_id INTEGER PRIMARY KEY, created INTEGER)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS flags (k TEXT PRIMARY KEY, v TEXT)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS cars (user_id INTEGER, plate TEXT, model TEXT, color TEXT, created INTEGER, PRIMARY KEY (user_id, plate))'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, type TEXT, data TEXT, created INTEGER)'),
   ]);
 }
 export const publicUser = u => u && ({ id: u.id, phone: u.phone, first_name: u.first_name || '', last_name: u.last_name || '', username: u.username || '', name: u.name || '', city: u.city, lang: u.lang || '', created: u.created });

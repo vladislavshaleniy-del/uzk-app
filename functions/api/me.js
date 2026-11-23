@@ -13,6 +13,16 @@ export async function onRequestPost({ request, env }) {
   if (!ready(env)) return json({ ok: false }, 503);
   const u = await me(env, request); if (!u) return json({ ok: false, error: 'unauthorized' }, 401);
   let b; try { b = await request.json(); } catch { return json({ ok: false }, 400); }
+  if (b.action === 'delete') {   // the user's right to erase: everything personal goes; public reports stay without the link to the person
+    const del = (sql, ...v) => env.DB.prepare(sql).bind(u.id, ...v).run();
+    await del('DELETE FROM docs WHERE user_id = ?1'); await del('DELETE FROM cars WHERE user_id = ?1'); await del('DELETE FROM items WHERE user_id = ?1'); await del('DELETE FROM prefs WHERE user_id = ?1');
+    await del('DELETE FROM trusted WHERE owner = ?1'); await del('DELETE FROM invites WHERE owner = ?1'); await del('DELETE FROM sos_log WHERE owner = ?1'); await del('DELETE FROM votes WHERE user_id = ?1');
+    await del('DELETE FROM chat WHERE user_id = ?1'); await del('DELETE FROM report_ups WHERE user_id = ?1'); await del('UPDATE reports SET user_id = NULL WHERE user_id = ?1'); await del('UPDATE feedback SET user_id = NULL WHERE user_id = ?1');
+    await del('DELETE FROM codes WHERE user_id = ?1'); await del('DELETE FROM logins WHERE user_id = ?1');
+    if (u.tg_id) await env.DB.prepare('DELETE FROM trusted WHERE tg_id = ?1').bind(u.tg_id).run();
+    await del('DELETE FROM users WHERE id = ?1');
+    return json({ ok: true, deleted: true });
+  }
   const name = typeof b.name === 'string' ? b.name.trim().slice(0, 80) : u.name;
   const city = Number.isInteger(b.city) && b.city >= 0 && b.city < 300 ? b.city : u.city;
   const lang = ['ru', 'uz', 'en', 'zh'].includes(b.lang) ? b.lang : u.lang;

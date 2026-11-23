@@ -3084,7 +3084,7 @@ XACT.aprm = title => sheet(title, '', [[t('ap_rm'), () => api('/api/docs', { act
 // ---------- mahalla: own mahalla, real chat, live polls ----------
 function drawMahallaTop(layers) {
   const r = layers.r; if (!r) return;
-  const w = cover(r, 140, 770, `<div class="mh-head" id="mhHead"></div><button class="h-btn h-primary" data-act="go:h:chat" style="margin:4px 0 22px">💬 ${esc(t('mh_chat'))}</button><div class="hv-h">${esc(t('mh_polls'))}<button data-act="go:h:polls?mahalla">${esc(t('po_all_m') || '')} ›</button></div><div id="mhPolls"><div class="hv-sk"></div></div>`);
+  const w = cover(r, 140, 770, `<div class="mh-head" id="mhHead"></div><button class="h-btn h-primary" data-act="go:h:chat" style="margin:4px 0 22px">💬 ${esc(t('mh_chat'))}</button><div class="hv-h">${esc(t('mh_polls'))}<button data-act="go:h:polls?mahalla">${esc(t('po_all_m') || '')}</button></div><div id="mhPolls"><div class="hv-sk"></div></div>`);
   const head = w.querySelector('#mhHead');
   const paintHead = mah => { head.innerHTML = mah ? `<b>${esc(t('mh_t'))} «${esc(mah)}»</b><button data-act="setmah" aria-label="edit">✎</button><i>${esc(cityName(cityIdx()))}</i>` : `<button class="mh-set" data-act="setmah"><b>＋ ${esc(t('mh_set'))}</b><i>${esc(t('mh_set_s'))}</i></button>`; };
   paintHead(PREFS && PREFS.mahalla); prefsLoad().then(p => { if (document.body.contains(head)) paintHead(p && p.mahalla); });
@@ -3238,3 +3238,291 @@ HS.welcome = () => `<div class="h-welcome">
   <div class="h-wlangs">${Object.keys(LANGS).map(l => `<button class="h-chip ${l === LANG ? 'on' : ''}" data-act="lang:${l}">${LANGS[l]}</button>`).join('')}</div>
   <div class="h-wbtns"><button class="h-btn h-tgbtn" data-act="tglogin">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>${btn(t('wl_guest'), 'login', 'ghost')}</div>
   <div class="h-demo light">${esc(t('wl_note'))}</div></div>`;
+
+// ======================= Live interface: the design's picture screens rebuilt as real HTML =======================
+// Same look as the Figma design (dark-green header, white cards, gold line icons, bottom tab bar), but every text,
+// number and button is live, translatable and works on any screen size. Old screen ids (1:xxxx) stay valid:
+// they are routed to these HTML screens, so links, history and the assistant keep working.
+const L4 = (ru, uz, en, zh) => ({ ru, uz, en, zh: zh || en });
+const tt = o => (o && (o[LANG] || o.en || o.ru)) || '';
+const ICP = {
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
+  home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4M20 17v3"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  bus: '<rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 3v8M16 3v8M7 18v2M17 18v2"/><circle cx="8" cy="14.5" r=".6"/><circle cx="16" cy="14.5" r=".6"/>',
+  car: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+  zap: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  alert: '<circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5M12 16.2h.01"/>',
+  road: '<path d="M5 21 9 3M19 21 15 3M12 5v2.5M12 10.5v3M12 16.5v3"/>',
+  gov: '<path d="M3 21h18M5 18V10M9.7 18V10M14.3 18V10M19 18V10M12 3l9 5H3z"/>',
+  heart: '<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/>',
+  file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
+  chart: '<path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-3"/>',
+  sos: '<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3z"/><path d="M12 9v4M12 17h.01"/>',
+  trash: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>',
+  store: '<path d="M3 9 4.5 4h15L21 9M4 9v11h16V9M3 9h18M9 20v-6h6v6"/>',
+  bag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
+  build: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>',
+  msg: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/>',
+  cap: '<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>',
+  map: '<path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3z"/><path d="M9 3v15M15 6v15"/>',
+  pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  food: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>',
+  card: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  trend: '<path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>',
+  video: '<path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+  steth: '<path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/>',
+  mosque: '<path d="M12 3c-2 2-4 3-4 5.5S9.8 12 12 12s4-1 4-3.5S14 5 12 3zM5 21v-8h14v8M3 21h18M10 21v-4a2 2 0 0 1 4 0v4M5 13V9M19 13V9"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3.1.2 1.5 1.5 2.6 2.5 2.6z"/>',
+  amb: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/>',
+  phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+  sliders: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+  help: '<circle cx="12" cy="12" r="9.5"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  lock: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+  globe: '<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5a14.5 14.5 0 0 1 0 19 14.5 14.5 0 0 1 0-19"/>',
+  book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  spark: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>', drop: '<path d="M12 2.7 6.3 9.2a7.5 7.5 0 1 0 11.4 0z"/>', fire: '<path d="M12 2s5 4.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 1-3.5S8 11 10 12c0-4 2-10 2-10z"/>', wifi: '<path d="M5 12.6a10 10 0 0 1 14 0M8.5 16.1a5 5 0 0 1 7 0M2 8.8a15 15 0 0 1 20 0M12 20h.01"/>',
+  receipt: '<path d="M4 2v20l3-2 2 2 3-2 3 2 2-2 3 2V2l-3 2-2-2-3 2-3-2-2 2z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+  handshake: '<path d="m11 17 2 2a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4L13.4 7.4a1 1 0 0 0-1.4 0L10 9.4a2 2 0 0 1-2.8-2.8L10 3.8a3 3 0 0 1 4.2 0L22 11.6M2 11.6 5 8.6l6 6M2 11.6l5.5 5.5a1.5 1.5 0 0 0 2.1 0"/>',
+  briefcase: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2M2 13h20"/>',
+};
+const ico = (k, s = 24, col = 'currentColor', sw = 1.8) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICP[k] || ICP.grid}</svg>`;
+const GOLD = '#D7A866', DK = '#113F1D';
+
+// ---------- texts ----------
+const LV = {
+  tab_home: L4('Главная', 'Asosiy', 'Home', '首页'), tab_qr: L4('Scan QR', 'QR skaner', 'Scan QR', '扫码'), tab_all: L4('Все услуги', 'Barcha xizmatlar', 'All services', '全部服务'), tab_prof: L4('Профиль', 'Profil', 'Profile', '我的'),
+  svc_t: L4('Все сервисы', 'Barcha xizmatlar', 'All services', '全部服务'), qa_t: L4('Быстрые действия', 'Tezkor amallar', 'Quick actions', '快捷操作'), news: L4('Новости', 'Yangiliklar', 'News', '新闻'), all: L4('Все', 'Barchasi', 'All', '全部'), ai: L4('AI Агент', 'AI Agent', 'AI Agent', 'AI 助手'),
+  sec_driver: L4('Водителю', 'Haydovchiga', 'For drivers', '驾车'), sec_admin: L4('Административные', 'Ma’muriy', 'Administrative', '行政'), sec_city: L4('Городские сервисы', 'Shahar xizmatlari', 'City services', '城市服务'), sec_edu: L4('Образование и здоровье', 'Ta’lim va sog‘liq', 'Education and health', '教育与健康'), sec_tour: L4('Туризм и досуг', 'Turizm va dam olish', 'Tourism and leisure', '旅游休闲'), sec_inv: L4('Инвестиции', 'Investitsiyalar', 'Investment', '投资'), sec_cam: L4('Видеокамеры', 'Videokameralar', 'Cameras', '摄像头'),
+  s_transport: L4('Транспорт', 'Transport', 'Transport', '交通'), s_parking: L4('Парковка', 'Parkovka', 'Parking', '停车'), s_ev: L4('Электрозарядка', 'Elektr zaryadlash', 'EV charging', '充电桩'), s_fines: L4('Штрафы', 'Jarimalar', 'Fines', '罚款'), s_roads: L4('Дороги и ремонт', 'Yo‘llar va ta’mir', 'Roads and repairs', '道路维修'), s_cams: L4('Камеры скорости', 'Tezlik kameralari', 'Speed cameras', '测速摄像头'),
+  s_gov: L4('Госуслуги', 'Davlat xizmatlari', 'Public services', '政务服务'), s_vol: L4('Стать волонтёром', 'Volontyor bo‘lish', 'Volunteer', '志愿者'), s_docs: L4('Мои документы', 'Hujjatlarim', 'My documents', '我的证件'), s_polls: L4('Опросы', 'So‘rovnomalar', 'Polls', '投票'),
+  s_home: L4('Электронный дом', 'Elektron uy', 'E-home', '智慧家庭'), s_sos: L4('Тревожная кнопка', 'Xavf tugmasi', 'Panic button', '紧急按钮'), s_clean: L4('Чистый город', 'Toza shahar', 'Clean city', '清洁城市'), s_market: L4('Маркетплейс', 'Marketpleys', 'Marketplace', '商城'), s_fairs: L4('Афиша и события', 'Afisha va tadbirlar', 'Events', '活动'), s_mah: L4('Цифровая махалля', 'Raqamli mahalla', 'Digital mahalla', '数字社区'), s_appeal: L4('Обращение к хокиму', 'Hokimga murojaat', 'Appeal to the hokim', '向市长反映'), s_cash: L4('Национальный кешбэк', 'Milliy keshbek', 'National cashback', '国家返现'),
+  s_family: L4('Семья и образование', 'Oila va ta’lim', 'Family and education', '家庭教育'), s_health: L4('Здоровье и медицина', 'Sog‘liq va tibbiyot', 'Health', '医疗健康'), s_sights: L4('Достопримечательности', 'Diqqatga sazovor joylar', 'Sights', '景点'), s_mosques: L4('Мечети и намаз', 'Masjid va namoz', 'Mosques and prayer', '清真寺'), s_cafes: L4('Кафе и рестораны', 'Kafe va restoranlar', 'Cafes and restaurants', '餐厅'), s_tickets: L4('Купить билеты', 'Chipta olish', 'Buy tickets', '购票'),
+  s_invest: L4('Инвестиции', 'Investitsiyalar', 'Investment', '投资'), s_camsv: L4('Видеокамеры', 'Videokameralar', 'Cameras', '摄像头'), s_med: L4('Аптеки и клиники', 'Dorixona va klinikalar', 'Pharmacies and clinics', '药店诊所'), s_news: L4('Новости', 'Yangiliklar', 'News', '新闻'),
+  p_docs: L4('Мои документы', 'Hujjatlarim', 'My documents', '我的证件'), p_my: L4('Мои заявки и данные', 'Arizalarim', 'My requests', '我的申请'), p_help: L4('Помощь и поддержка', 'Yordam', 'Help and support', '帮助'), p_set: L4('Настройки', 'Sozlamalar', 'Settings', '设置'), p_priv: L4('Политика конфиденциальности', 'Maxfiylik siyosati', 'Privacy policy', '隐私政策'), p_out: L4('Выйти', 'Chiqish', 'Sign out', '退出'), p_notif: L4('Уведомления', 'Bildirishnomalar', 'Notifications', '通知'), p_lang: L4('Язык', 'Til', 'Language', '语言'), p_other: L4('Другое', 'Boshqa', 'Other', '其他'), p_guest: L4('Гость', 'Mehmon', 'Guest', '访客'), p_guest_s: L4('Войдите, чтобы сохранять свои данные', 'Ma’lumotlarni saqlash uchun kiring', 'Sign in to keep your data', '登录以保存数据'),
+  faq_t: L4('Частые вопросы', 'Ko‘p beriladigan savollar', 'FAQ', '常见问题'),
+  inv_biz: L4('Для бизнеса', 'Biznes uchun', 'For business', '企业'), inv_biz_s: L4('Инвестиционные программы', 'Investitsiya dasturlari', 'Investment programmes', '投资项目'), inv_ipo: L4('IPO', 'IPO', 'IPO', 'IPO'), inv_ipo_s: L4('Акции компаний Узбекистана', 'O‘zbekiston kompaniyalari aksiyalari', 'Shares of Uzbek companies', '乌兹别克公司股票'), inv_re: L4('Недвижимость', 'Ko‘chmas mulk', 'Real estate', '房产'), inv_re_s: L4('Купить, продать, инвестировать', 'Sotib olish, sotish, investitsiya', 'Buy, sell, invest', '买卖与投资'), inv_dir: L4('Направления инвестиций', 'Investitsiya yo‘nalishlari', 'Investment areas', '投资方向'),
+  re_post: L4('Подать объявление', 'E’lon berish', 'Post a listing', '发布房源'), re_sec: L4('Вторичный рынок', 'Ikkilamchi bozor', 'Resale market', '二手房'), re_new: L4('Новостройки', 'Yangi uylar', 'New buildings', '新楼盘'), re_land: L4('Земельные участки', 'Yer uchastkalari', 'Land plots', '土地'),
+  ipo_t: L4('Акции компаний', 'Kompaniyalar aksiyalari', 'Company shares', '公司股票'),
+  biz_progs: L4('Доступные программы', 'Mavjud dasturlar', 'Available programmes', '可用项目'), biz_inc: L4('Что входит', 'Nimalar kiradi', 'Includes', '包括'),
+  vol_t: L4('Благотворительные организации', 'Xayriya tashkilotlari', 'Charities', '慈善机构'),
+  cash_s: L4('Государственная программа: часть денег за покупки с фискальным чеком возвращается на карту. Сканируйте QR-код на чеке — откроется электронный чек на сайте налоговой.', 'Davlat dasturi: fiskal chekli xaridlar uchun pulning bir qismi kartaga qaytariladi. Chekdagi QR-kodni skanerlang — soliq saytida elektron chek ochiladi.', 'State programme: part of the money for purchases with a fiscal receipt is returned to your card. Scan the QR code on the receipt to open the e-receipt on the tax site.'), cash_scan: L4('Сканировать чек', 'Chekni skanerlash', 'Scan a receipt', '扫描收据'), cash_gov: L4('Кешбэк на my.gov.uz', 'my.gov.uz’da keshbek', 'Cashback on my.gov.uz'), cash_soliq: L4('Мои чеки — my.soliq.uz', 'Cheklarim — my.soliq.uz', 'My receipts — my.soliq.uz'),
+  gov_cats: L4('Категории услуг', 'Xizmat turlari', 'Service categories', '服务类别'), gov_c1: L4('Документы и справки', 'Hujjat va ma’lumotnomalar', 'Documents and certificates'), gov_c2: L4('Регистрация и лицензии', 'Ro‘yxatga olish va litsenziyalar', 'Registration and licences'), gov_c3: L4('Социальные услуги', 'Ijtimoiy xizmatlar', 'Social services'), gov_c4: L4('Правовые услуги', 'Huquqiy xizmatlar', 'Legal services'), gov_q: L4('Записаться в центр госуслуг', 'Davlat xizmatlari markaziga yozilish', 'Visit a public service centre'),
+  fn_check: L4('Проверить штрафы', 'Jarimalarni tekshirish', 'Check fines'), fn_plate: L4('Госномер', 'Davlat raqami', 'Plate number'), fn_go: L4('Проверить в Road24', 'Road24’da tekshirish', 'Check in Road24'), fn_note: L4('Штрафы ГАИ хранятся в государственной базе — проверка и оплата в официальном приложении Road24.', 'YHXB jarimalari davlat bazasida — tekshirish va to‘lov rasmiy Road24 ilovasida.', 'Traffic fines are kept in the state database — check and pay in the official Road24 app.'), fn_mycars: L4('Мои автомобили', 'Avtomobillarim', 'My cars'),
+  em_t: L4('Экстренные службы', 'Favqulodda xizmatlar', 'Emergency services', '紧急服务'), em_102: L4('Полиция', 'Politsiya', 'Police', '警察'), em_101: L4('Пожарная служба (МЧС)', 'Yong‘in xizmati (FVV)', 'Fire service', '消防'), em_103: L4('Скорая помощь', 'Tez yordam', 'Ambulance', '急救'), em_104: L4('Аварийная газовая служба', 'Gaz avariya xizmati', 'Gas emergency', '燃气抢修'), em_112: L4('Единая служба спасения', 'Yagona qutqaruv xizmati', 'Unified emergency line', '统一急救'), em_rep: L4('Сообщить о проблеме в городе', 'Shahardagi muammo haqida xabar', 'Report a city problem'),
+  pr_t: L4('Время намаза', 'Namoz vaqtlari', 'Prayer times', '礼拜时间'), mq_map: L4('Мечети на карте', 'Masjidlar xaritada', 'Mosques on the map', '清真寺地图'),
+  eh_acc: L4('Мои лицевые счета', 'Shaxsiy hisob raqamlarim', 'My utility accounts', '我的账户'), eh_add: L4('Добавить счёт', 'Hisob qo‘shish', 'Add account', '添加账户'), eh_none: L4('Добавьте лицевые счета из квитанций — оплата в одно касание через ваше банковское приложение.', 'Kvitansiyadagi hisob raqamlarini qo‘shing — bank ilovangiz orqali bir bosishda to‘lov.', 'Add the account numbers from your bills — pay in one tap via your banking app.'), eh_prov: L4('Услуга', 'Xizmat', 'Service'), eh_num: L4('Лицевой счёт', 'Shaxsiy hisob', 'Account number'), eh_title: L4('Название (необязательно)', 'Nomi (ixtiyoriy)', 'Name (optional)'), eh_pay: L4('Оплатить', 'To‘lash', 'Pay'), eh_copied: L4('Номер счёта скопирован — вставьте его в приложении банка', 'Hisob raqami nusxalandi — uni bank ilovasiga qo‘ying', 'Account number copied — paste it in your banking app'), eh_rm: L4('Удалить счёт?', 'Hisob o‘chirilsinmi?', 'Remove this account?'),
+  ehp_electric: L4('Электроэнергия', 'Elektr energiyasi', 'Electricity'), ehp_gas: L4('Газ', 'Gaz', 'Gas'), ehp_water: L4('Холодная вода', 'Sovuq suv', 'Water'), ehp_heat: L4('Отопление и горячая вода', 'Isitish va issiq suv', 'Heating and hot water'), ehp_waste: L4('Вывоз мусора', 'Chiqindi olib ketish', 'Waste collection'), ehp_net: L4('Интернет и ТВ', 'Internet va TV', 'Internet and TV'), ehp_other: L4('Другое', 'Boshqa', 'Other'),
+  pk_mapL: L4('Карта парковок', 'Parkovkalar xaritasi', 'Parking map', '停车地图'), pk_fast: L4('Быстрая оплата', 'Tezkor to‘lov', 'Quick payment', '快速支付'), pk_qrs: L4('QR Система', 'QR tizimi', 'QR system', '二维码支付'), pk_scan: L4('Сканировать QR на парковке', 'Parkovkada QR skanerlash', 'Scan the parking QR', '扫描停车二维码'),
+  p_del: L4('Удалить аккаунт и данные', 'Hisob va ma’lumotlarni o‘chirish', 'Delete account and data', '删除账户和数据'), p_del_q: L4('Удалить аккаунт? Документы, машины, счета, голоса и сообщения в чате будут удалены без возможности восстановления.', 'Hisob o‘chirilsinmi? Hujjatlar, mashinalar, hisoblar, ovozlar va chat xabarlari qaytarib bo‘lmaydigan tarzda o‘chiriladi.', 'Delete the account? Documents, cars, accounts, votes and chat messages will be deleted permanently.'), p_del_ok: L4('Аккаунт удалён', 'Hisob o‘chirildi', 'Account deleted'),
+  priv_ok: L4('Входя, вы соглашаетесь с политикой конфиденциальности', 'Kirish orqali maxfiylik siyosatiga rozilik bildirasiz', 'By signing in you accept the privacy policy'),
+};
+const lt = k => tt(LV[k]);
+
+// ---------- routing: old picture-screen ids open the live screens ----------
+const LIVE = { '1:1909': 'home', '1:2054': 'home', '1:2763': 'services', '1:1332': 'profile', '1:1433': 'myact', '1:1777': 'myact', '1:1552': 'settings', '1:1677': 'help',
+  '1:19': 'docs', '1:140': 'invest', '1:235': 'realty2', '1:332': 'ipo2', '1:448': 'cashback', '1:523': 'business', '1:996': 'mahalla', '1:2573': 'gov', '1:2649': 'fines',
+  '1:3042': 'family', '1:3529': 'mosques', '1:4356': 'volunteer', '1:4475': 'sos', '1:4858': 'parking', '1:5032': 'health', '1:5285': 'ehome', '1:2379': 'transport', '1:1162': 'tickets',
+  '1:3757': 'tourist2', '1:3249': 'tourist2', '1:3678': 'tourist2', '1:5424': 'events2', '1:4063': 'eco', '1:4216': 'eco', '1:3863': 'roads2', '1:4597': 'appeal2', '1:4702': 'polls2', '1:2221': 'home', '1:2306': 'qr', '1:2468': 'ev2', '1:729': 'cafes' };
+const TOP = new Set(['home', 'services', 'profile']);
+// called first thing by render() in index.html
+function liveRender(id, p) {
+  const name = LIVE[id];
+  if (!name || !HS[name]) return false;
+  document.documentElement.style.background = document.body.style.background = '';
+  setTimeout(() => { if (typeof updateFab === 'function') updateFab(); }, 0);
+  current = id; currentP = p == null ? null : p;
+  const app = document.getElementById('app'); app.innerHTML = ''; app.style.background = '#F9FBFC';
+  const el = document.createElement('div'); el.className = 'hscreen lv hs-' + name; el.style.zoom = U; el.style.height = VH + 'px';
+  el.innerHTML = HS[name](p) + lvTabs(id);
+  app.appendChild(el);
+  el.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b || !b.dataset.act) return; e.preventDefault(); runAction(b.dataset.act); });
+  if (HS[name].mount) HS[name].mount(el, p);
+  el.querySelectorAll('.flow[data-draw]').forEach(f => { try { LV_DRAW[f.dataset.draw](f); } catch (e) { console.warn(e); } });
+  return true;
+}
+// alias screens that are simply other live screens
+const aliasTo = (to, p) => () => { setTimeout(() => { history.replaceState(Object.assign({}, history.state || {}, { id: to.split('?')[0].startsWith('h:') ? to.split('?')[0] : to }), ''); render(to.split('?')[0], to.split('?')[1]); }, 0); return ''; };
+HS.tourist2 = aliasTo('h:poi?sight'); HS.events2 = aliasTo('h:news?afisha'); HS.roads2 = aliasTo('h:reports?road'); HS.appeal2 = aliasTo('h:reports?appeal'); HS.polls2 = aliasTo('h:polls?city'); HS.ev2 = aliasTo('h:poi?ev');
+HS.realty2 = () => HS.realtyL(); HS.ipo2 = () => HS.ipoL();
+
+// ---------- flow layers: the existing live blocks (maps, documents, SOS…) drawn inside HTML screens ----------
+const isFlow = l => !!(l && l.classList && l.classList.contains('flow'));
+const _hoverlay = hoverlay;
+hoverlay = function (layer, x, y, w, h, html, cls = '') {
+  if (!isFlow(layer)) return _hoverlay(layer, x, y, w, h, html, cls);
+  const d = document.createElement('div'); d.className = 'hov-f ' + cls;
+  if (html === '') return d;
+  d.innerHTML = `<div class="hov-z">${html}</div>`; layer.appendChild(d); return d;
+};
+const _miniMap = miniMap;
+miniMap = function (layer, box, k, onOpen) {
+  if (!isFlow(layer)) return _miniMap(layer, box, k, onOpen);
+  const hold = document.createElement('div'); hold.className = 'mm-hold'; hold.style.height = box[3] + 'px'; layer.appendChild(hold);
+  const d = _miniMap(hold, [0, 0, 1, box[3]], k, onOpen); d.classList.add('mm-f'); d.style.left = '0'; d.style.top = '0'; d.style.width = '100%'; d.style.height = '100%'; d.style.borderRadius = '20px';
+  return d;
+};
+const fl = (name) => `<div class="flow" data-draw="${name}"></div>`;
+const LV_DRAW = {
+  docs: f => drawDocs({ r: f }, 0),
+  docsAppts: f => drawAppts({ r: f }),
+  cars: f => drawCars({ r: f }),
+  parkingMap: f => { hoverlay(f, 0, 0, 0, 0, `<div class="hv-h">${esc(lt('pk_mapL'))}<button data-act="pkpay">${esc(t('pk_pay_l'))} ›</button></div>`); bindActs(f); miniMap(f, [0, 0, 382, 300], 'parking', () => go('h:poi', 'parking')); },
+  health: f => drawHealth({ r: f }),
+  mahTop: f => drawMahallaTop({ r: f }),
+  mahMosques: f => drawMahalla({ r: f }),
+  family: f => drawFamily({ r: f }, 0),
+  gov: f => drawGov({ r: f }, 0),
+  fines: f => drawFines({ r: f }, 0),
+  sos: f => drawSos({ r: f }, 0),
+  util: f => drawUtil({ r: f }, 0),
+  invest: f => drawInvest({ r: f }),
+  settings: f => drawSettings({ r: f }),
+  help: f => drawHelp({ r: f }),
+  mosqueMap: f => miniMap(f, [0, 0, 382, 280], 'mosque', () => go('h:poi', 'mosque')),
+};
+const LV_CSS_NOTE = 1;
+
+// ---------- building blocks ----------
+function lvTabs(id) {
+  const a = id === '1:1909' ? 0 : id === '1:2763' ? 2 : id === '1:1332' || LIVE[id] === 'settings' || LIVE[id] === 'help' || LIVE[id] === 'myact' ? 3 : 2;
+  return `<nav class="lv-tabs">${[['home', 'tab_home', 'go:1:1909'], ['qr', 'tab_qr', 'go:h:qr'], ['grid', 'tab_all', 'go:1:2763'], ['user', 'tab_prof', 'go:1:1332']].map(([i, k, act], n) => `<button class="${n === a ? 'on' : ''}" data-act="${act}">${ico(i, 26, 'currentColor', 1.7)}<span>${esc(lt(k))}</span></button>`).join('')}</nav>`;
+}
+const lvHdr = (title, back = true) => `<header class="lv-hdr ${back ? '' : 'big'}">${back ? `<button class="lv-back" data-act="back" aria-label="back">${IC.back}</button>` : ''}<h1>${esc(title)}</h1></header>`;
+const lvTile = (icon, label, act, opt = {}) => `<button class="lv-tile" data-act="${esc(act)}"><span class="lv-ti" style="background:${opt.bg || DK}">${ico(icon, 24, opt.col || GOLD)}</span><b>${esc(label)}</b></button>`;
+const lvSec = label => `<div class="lv-sec">${esc(label)}</div>`;
+const lvRow = (icon, title, sub, act, opt = {}) => `<button class="lv-row" data-act="${esc(act)}"><span class="lv-ri" style="background:${opt.bg || '#F3F4F6'};color:${opt.col || '#374151'}">${ico(icon, 22)}</span><span class="lv-rt"><b>${esc(title)}</b>${sub ? `<i>${esc(sub)}</i>` : ''}</span>${'right' in opt ? opt.right : IC.chev}</button>`;
+const lvLink = (icon, title, sub, href, opt = {}) => `<a class="lv-row" href="${esc(href)}" target="_blank" rel="noopener"><span class="lv-ri" style="background:${opt.bg || '#F3F4F6'};color:${opt.col || '#374151'}">${ico(icon, 22)}</span><span class="lv-rt"><b>${esc(title)}</b>${sub ? `<i>${esc(sub)}</i>` : ''}</span>${IC.chev}</a>`;
+const page = (title, body, opt = {}) => `${lvHdr(title, opt.back !== false)}<main class="lv-body vs">${body}<div class="lv-pad"></div></main>`;
+
+// ---------- home ----------
+const QA = [['grid', 's_camsv', 'go:1:2763', 'tab_all'], ['video', 's_camsv', 'go:h:cams'], ['food', 's_cafes', 'go:h:cafes'], ['steth', 's_med', 'go:h:poi?med'], ['mosque', 's_mosques', 'go:1:3529'], ['bus', 's_transport', 'go:h:transport'], ['car', 's_parking', 'go:1:4858'], ['gov', 's_gov', 'go:1:2573'], ['zap', 's_ev', 'go:h:poi?ev'], ['trend', 's_invest', 'go:1:140']];
+HS.home = () => {
+  const qa = QA.map(([i, k, act, k2]) => `<button class="lv-qa" data-act="${act}">${ico(i, 28, '#C8924A', 1.7)}<b>${esc(lt(k2 || k))}</b></button>`).join('');
+  return `<header class="lv-home">
+      <div class="lv-pills"><button class="lv-pill" id="hWx">🌤️ …</button><button class="lv-pill" id="hAq" hidden></button><button class="lv-pill" id="hFx" hidden></button><button class="lv-lang" data-act="langsheet">${esc(LANG.toUpperCase())} ${ico('chev', 14)}</button></div>
+      <div class="lv-hrow"><button class="lv-city" data-act="go:h:city">${PIN(18)}<span>${esc(cityName())}</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button><button class="lv-ai" data-act="aiopen">${ico('spark', 18, '#fff')}<span>${esc(lt('ai'))}</span></button></div>
+      <div class="lv-date" id="hDate">${esc(liveText('date'))}</div>
+    </header>
+    <main class="lv-body vs lv-hbody">
+      <div class="lv-h2">${esc(lt('qa_t'))}</div>
+      <div class="lv-qas">${qa}</div>
+      <div class="lv-h2">${esc(lt('news'))}<button data-act="go:h:news?all">${esc(lt('all'))} ›</button></div>
+      <div id="hNews"><div class="hv-sk"></div><div class="hv-sk"></div></div><div class="lv-pad"></div>
+    </main>`;
+};
+HS.home.mount = el => {
+  const ci = cityIdx(), wx = el.querySelector('#hWx'), aq = el.querySelector('#hAq'), fx = el.querySelector('#hFx');
+  const paint = () => {
+    const W = WX[ci];
+    if (W && W.w && W.w.current) { const c = W.w.current; wx.innerHTML = `<span>${wxIcon(c.weather_code, !c.is_day)}</span><b>${c.temperature_2m > 0 ? '+' : ''}${Math.round(c.temperature_2m)}°C</b>`; }
+    const a = W && W.a && W.a.current ? Math.round(W.a.current.us_aqi) : null, lv = aqLvl(a);
+    if (lv >= 0) { aq.hidden = false; aq.innerHTML = `<span class="wx-dot" style="background:${AQ_COL[lv]}"></span><b>AQI ${a}</b>`; }
+    if (FX && FX.list) { const u = FX.list.find(x => x.c === 'USD'); if (u) { fx.hidden = false; fx.innerHTML = `<b>$ ${fmtRate(u.r)}</b><i class="${u.d >= 0 ? 'up' : 'dn'}">${u.d >= 0 ? '▲' : '▼'}</i>`; } }
+  };
+  paint(); wxLoad(ci).then(() => document.body.contains(wx) && paint()).catch(() => {}); fxLoad().then(() => document.body.contains(fx) && paint());
+  [wx, aq].forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); wxSheet(); })); fx.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); fxSheet(); });
+  const box = el.querySelector('#hNews');
+  const drawN = () => { if (!document.body.contains(box)) return; const cn = cityNews(); const list = cn ? cn.items.slice(0, 8) : []; window.__newsList = list; box.innerHTML = list.length ? list.map((n, i) => newsCard(n, i)).join('') : `<div class="cf-empty">${esc(t('caf_load'))}</div>`; };
+  if (NEWS) drawN(); loadNews().then(drawN);
+  box.addEventListener('click', e => { const c = e.target.closest('[data-nidx]'); if (!c) return; e.preventDefault(); e.stopPropagation(); openNews(window.__newsList[+c.dataset.nidx]); });
+  const dt = el.querySelector('#hDate'); const iv = setInterval(() => { if (!document.body.contains(dt)) return clearInterval(iv); dt.textContent = liveText('date'); }, 15000);
+};
+ICP.chev = '<path d="m6 9 6 6 6-6"/>';
+
+// ---------- all services ----------
+const SVC = [
+  ['sec_driver', [['bus', 's_transport', 'go:h:transport'], ['car', 's_parking', 'go:1:4858'], ['zap', 's_ev', 'go:h:poi?ev'], ['alert', 's_fines', 'go:1:2649'], ['road', 's_roads', 'go:h:reports?road'], ['video', 's_cams', 'go:h:poi?speedcam']]],
+  ['sec_admin', [['gov', 's_gov', 'go:1:2573'], ['heart', 's_vol', 'go:1:4356'], ['file', 's_docs', 'go:1:19'], ['chart', 's_polls', 'go:h:polls?city']]],
+  ['sec_city', [['home', 's_home', 'go:1:5285'], ['sos', 's_sos', 'go:1:4475', '#C81E1E', '#fff'], ['trash', 's_clean', 'go:h:eco'], ['store', 's_market', 'go:1:5149'], ['bag', 's_fairs', 'go:h:news?afisha'], ['build', 's_mah', 'go:1:996'], ['msg', 's_appeal', 'go:h:reports?appeal'], ['gift', 's_cash', 'go:1:448']]],
+  ['sec_edu', [['cap', 's_family', 'go:1:3042'], ['heart', 's_health', 'go:1:5032']]],
+  ['sec_tour', [['map', 's_sights', 'go:h:poi?sight'], ['mosque', 's_mosques', 'go:1:3529'], ['food', 's_cafes', 'go:h:cafes'], ['card', 's_tickets', 'go:h:tickets']]],
+  ['sec_inv', [['trend', 's_invest', 'go:1:140']]],
+  ['sec_cam', [['video', 's_camsv', 'go:h:cams']]],
+];
+HS.services = () => page(lt('svc_t'), SVC.map(([s, items]) => lvSec(lt(s)) + `<div class="lv-grid">${items.map(([i, k, act, bg, col]) => lvTile(i, lt(k), act, { bg, col })).join('')}</div>`).join(''), { back: false });
+
+// ---------- profile ----------
+HS.profile = () => {
+  const u = authUser();
+  const ini = u ? (userName().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '🙂') : '';
+  return `<header class="lv-hdr lv-prof">${u ? `<span class="lv-av">${esc(ini)}</span><div><b>${esc(userName())}</b><i>${esc(fmtPhone(u.phone))}${u.username ? ' · @' + esc(u.username) : ''}</i></div>` : `<button class="lv-av tg" data-act="tglogin">${TG_SVG.replace(/22/g, '30')}</button><div><b>${esc(lt('p_guest'))}</b><i>${esc(lt('p_guest_s'))}</i></div>`}</header>
+    <main class="lv-body vs">
+      <div class="flow lv-stats" id="pStats"></div>
+      ${u ? '' : `<button class="h-btn h-tgbtn" data-act="tglogin" style="margin:0 0 16px">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`}
+      <div class="lv-card">${lvRow('file', lt('p_docs'), '', 'go:1:19')}${lvRow('list', lt('p_my'), '', 'go:h:myact')}${lvRow('help', lt('p_help'), '', 'go:1:1677')}${lvRow('sliders', lt('p_set'), '', 'go:1:1552')}${lvRow('lock', lt('p_priv'), '', 'privacy')}${u ? lvRow('logout', lt('p_out'), '', 'logout', { right: '' }) : ''}</div>
+      <div class="lv-pad"></div></main>`;
+};
+HS.profile.mount = el => { const f = el.querySelector('#pStats'); f.classList.add('flow'); drawStats({ r: f }); };
+XACT.privacy = () => window.open('privacy.html?lang=' + LANG, '_blank', 'noopener');
+HS.settings = () => page(lt('p_set'), `${fl('settings')}<div class="lv-sec">${esc(lt('p_other'))}</div><div class="lv-card">${lvRow('bell', lt('p_notif'), '', 'go:h:notif')}${lvRow('globe', lt('p_lang'), ({ ru: 'Русский', uz: "O'zbekcha", en: 'English', zh: '中文' })[LANG], 'langsheet')}${lvRow('lock', lt('p_priv'), '', 'privacy')}</div>${authUser() ? `<div class="lv-card">${lvRow('trash', lt('p_del'), '', 'delacc', { bg: '#FDECEC', col: '#C81E1E', right: '' })}</div>` : ''}`);
+HS.help = () => page(lt('p_help'), `<div class="lv-sec">${esc(lt('faq_t'))}</div><div class="lv-card">${t('faq_cats').split('|').map((c, i) => lvRow('help', c, '', 'go:h:faq?' + i)).join('')}</div>${fl('help')}`);
+
+// ---------- sections ----------
+HS.docs = () => page(lt('s_docs'), fl('docs'));
+HS.family = () => page(lt('s_family'), `<div class="lv-card">${lvRow('book', t('dy_t'), 'emaktab.uz', 'diary', { bg: DK, col: GOLD })}${lvRow('cap', t('kg_t'), 'my.gov.uz', 'kinder', { bg: DK, col: GOLD })}</div>${fl('family')}`);
+HS.health = () => page(lt('s_health'), `<div class="lv-card">${lvRow('steth', t('dm_t'), 'DMED · my.gov.uz', 'dmed:dm', { bg: '#FDF2E3', col: '#B7791F' })}${lvRow('file', t('mb_t'), 'DMED', 'dmed:mb', { bg: '#FDF2E3', col: '#B7791F' })}</div>${fl('docsAppts')}${fl('health')}`);
+HS.mahalla = () => page(lt('s_mah'), `${fl('mahTop')}${fl('mahMosques')}`);
+HS.parking = () => page(lt('s_parking'), `<div class="lv-card lv-qr"><div class="lv-qrh"><div><i>${esc(lt('pk_fast'))}</i><b>${esc(lt('pk_qrs'))}</b></div><span class="lv-ri" style="background:#EEF0F2;color:#143C20">${ico('qr', 24)}</span></div>${btn(lt('pk_scan'), 'go:h:qr', 'primary')}</div>${fl('cars')}${fl('parkingMap')}`);
+HS.gov = () => page(lt('s_gov'), `<div class="lv-sec">${esc(lt('gov_cats'))}</div><div class="lv-card">${[['file', 'gov_c1'], ['briefcase', 'gov_c2'], ['users', 'gov_c3'], ['gov', 'gov_c4']].map(([i, k]) => lvLink(i, lt(k), 'my.gov.uz', MYGOV(LANG), { bg: DK, col: GOLD })).join('')}</div>${btn(lt('gov_q'), 'cgu', 'primary')}${fl('gov')}`);
+HS.fines = () => page(lt('s_fines'), `<div class="lv-card lv-pad16"><div class="lv-h3">${esc(lt('fn_check'))}</div><label class="h-field"><span>${esc(lt('fn_plate'))}</span><input class="dc-in" id="fnP" placeholder="01 A 123 BC" autocapitalize="characters" autocomplete="off"></label>${btn(lt('fn_go'), 'fncheck', 'primary')}<div class="h-muted small" style="margin-top:10px">${esc(lt('fn_note'))}</div></div>${fl('cars')}${fl('fines')}`);
+XACT.fncheck = () => { const v = (document.getElementById('fnP') || {}).value || ''; if (v.trim() && navigator.clipboard) navigator.clipboard.writeText(v.toUpperCase().replace(/\s+/g, '')).catch(() => {}); window.open('https://road24.uz', '_blank', 'noopener'); };
+const EM = [['102', 'shield', 'em_102'], ['101', 'flame', 'em_101'], ['103', 'amb', 'em_103'], ['104', 'alert', 'em_104'], ['112', 'phone', 'em_112']];
+HS.sos = () => page(lt('s_sos'), `${fl('sos')}<div class="lv-sec">${esc(lt('em_t'))}</div><div class="lv-card">${EM.map(([n, i, k]) => `<a class="lv-row lv-em" href="tel:${n}"><span class="lv-ri" style="background:#C81E1E;color:#fff">${ico(i, 22)}</span><span class="lv-rt"><b>${n}</b><i>${esc(lt(k))}</i></span>${ico('phone', 22, '#111827')}</a>`).join('')}</div>${lvRow('msg', lt('em_rep'), '', 'go:h:reports?appeal')}`);
+HS.mosques = () => { const ci = cityIdx(), P0 = prayNow(ci); return page(lt('s_mosques'), `<div class="lv-sec">${esc(lt('pr_t'))} · ${esc(cityName(ci))}</div><div class="lv-card lv-pad16">${prayStrip(ci, 'lv-pr')}<div class="pr-next" style="margin-top:10px">${esc(t('mq_next', { p: t('pr_' + P0.next), t: hm(P0.tm[P0.next]) }))} · ${esc(t('mq_in', { d: fmtLeft(P0.left) }))}</div></div><div class="lv-h2">${esc(lt('mq_map'))}<button data-act="go:h:poi?mosque">${esc(lt('all'))} ›</button></div>${fl('mosqueMap')}`); };
+HS.invest = () => page(lt('s_invest'), `<div class="lv-sec">${esc(lt('inv_dir'))}</div><div class="lv-card">${lvRow('briefcase', lt('inv_biz'), lt('inv_biz_s'), 'go:1:523', { bg: '#7C5426', col: '#fff' })}${lvRow('trend', lt('inv_ipo'), lt('inv_ipo_s'), 'go:1:332', { bg: '#7C5426', col: '#fff' })}${lvRow('home', lt('inv_re'), lt('inv_re_s'), 'go:1:235', { bg: '#7C5426', col: '#fff' })}</div>${fl('invest')}`);
+HS.realtyL = () => page(lt('inv_re'), `<div class="lv-card">${lvRow('plus', lt('re_post'), 'OLX · Uybor', 'realty:0', { bg: DK, col: GOLD })}${lvRow('home', lt('re_sec'), 'OLX · Uybor', 'realty:1', { bg: DK, col: GOLD })}${lvRow('build', lt('re_new'), '', 'go:h:poi?build', { bg: DK, col: GOLD })}${lvRow('pin', lt('re_land'), 'E-auksion', 'realty:3', { bg: DK, col: GOLD })}</div>`);
+HS.ipoL = () => page('IPO', `<div class="lv-sec">${esc(lt('ipo_t'))}</div><div class="lv-card">${IPO.map((n, i) => lvRow('trend', n, '', 'ipo:' + i, { bg: '#F3F4F6', col: '#7C5426' })).join('')}</div>`);
+const BIZ = [
+  ['trend', L4('Инвестиционные программы', 'Investitsiya dasturlari', 'Investment programmes'), L4('Доступ к государственным и частным инвестиционным программам', 'Davlat va xususiy investitsiya dasturlariga kirish', 'Access to state and private investment programmes'), L4('Льготное кредитование|Венчурные инвестиции|Гранты на развитие бизнеса', 'Imtiyozli kreditlash|Venchur investitsiyalar|Biznesni rivojlantirish grantlari', 'Concessional loans|Venture investment|Business development grants')],
+  ['handshake', L4('Поддержка предпринимателей', 'Tadbirkorlarni qo‘llab-quvvatlash', 'Support for entrepreneurs'), L4('Комплексная поддержка малого и среднего бизнеса', 'Kichik va o‘rta biznesni har tomonlama qo‘llab-quvvatlash', 'Comprehensive support for small and medium business'), L4('Регистрация бизнеса онлайн|Консультации|Обучающие программы', 'Biznesni onlayn ro‘yxatdan o‘tkazish|Maslahatlar|O‘quv dasturlari', 'Online business registration|Consulting|Training programmes')],
+  ['gift', L4('Государственные льготы', 'Davlat imtiyozlari', 'State benefits'), L4('Налоговые и таможенные преференции для бизнеса', 'Biznes uchun soliq va bojxona imtiyozlari', 'Tax and customs preferences for business'), L4('Налоговые льготы|Таможенные преференции|Льготы для свободных экономических зон', 'Soliq imtiyozlari|Bojxona imtiyozlari|Erkin iqtisodiy zonalar imtiyozlari', 'Tax benefits|Customs preferences|Free economic zone benefits')],
+  ['briefcase', L4('Бизнес-проекты', 'Biznes-loyihalar', 'Business projects'), L4('Готовые инвестиционные проекты', 'Tayyor investitsiya loyihalari', 'Ready investment projects'), L4('Сельское хозяйство|IT и технологии|Туризм и гостиничный бизнес', 'Qishloq xo‘jaligi|IT va texnologiyalar|Turizm va mehmonxona biznesi', 'Agriculture|IT and technology|Tourism and hospitality')],
+];
+HS.business = () => page(lt('inv_biz'), `<div class="lv-sec">${esc(lt('biz_progs'))}</div>${BIZ.map(([i, ti, s, li], n) => `<div class="lv-card lv-pad16 lv-biz"><div class="lv-bh"><span class="lv-ri" style="background:#F3E3C8;color:#7C5426">${ico(i, 22)}</span><div><b>${esc(tt(ti))}</b><i>${esc(tt(s))}</i></div></div><div class="lv-inc"><i>${esc(lt('biz_inc'))}:</i>${tt(li).split('|').map(x => `<span>• ${esc(x)}</span>`).join('')}</div>${btn(t('pg_go'), 'prog:' + n, 'primary')}</div>`).join('')}`);
+const ORG_S = [L4('Помощь детям с онкологией', 'Saraton kasalligiga chalingan bolalarga yordam', 'Help for children with cancer'), L4('Социальная поддержка общин', 'Jamoalarni ijtimoiy qo‘llab-quvvatlash', 'Social support for communities'), L4('Поддержка детей без попечения', 'Ota-ona qaramog‘isiz bolalarni qo‘llab-quvvatlash', 'Support for children without parental care'), L4('Благотворительный фонд', 'Xayriya jamg‘armasi', 'Charitable foundation'), L4('Образование и культура', 'Ta’lim va madaniyat', 'Education and culture'), L4('Ассоциация по борьбе с раком груди', 'Ko‘krak saratoniga qarshi assotsiatsiya', 'Breast cancer association'), L4('Молодёжные инициативы', 'Yoshlar tashabbuslari', 'Youth initiatives')];
+HS.volunteer = () => page(lt('s_vol'), `<div class="lv-sec">${esc(lt('vol_t'))}</div><div class="lv-card">${ORGS.map((n, i) => lvRow('heart', n, tt(ORG_S[i]), 'org:' + i, { bg: '#FDECEC', col: '#C81E1E' })).join('')}</div>`);
+HS.cashback = () => page(lt('s_cash'), `<div class="lv-card lv-pad16"><div class="h-muted">${esc(lt('cash_s'))}</div></div>${btn(lt('cash_scan'), 'go:h:qr', 'primary')}<div class="lv-card" style="margin-top:14px">${lvLink('gift', lt('cash_gov'), 'my.gov.uz', MYGOV(LANG), { bg: DK, col: GOLD })}${lvLink('receipt', lt('cash_soliq'), 'my.soliq.uz', 'https://my.soliq.uz', { bg: DK, col: GOLD })}</div>`);
+
+// ---------- e-home: own utility accounts + calculator + pay ----------
+const EH_P = { electric: ['bolt', '#D97706'], gas: ['fire', '#2563EB'], water: ['drop', '#0EA5E9'], heat: ['flame', '#DC2626'], waste: ['trash', '#15803D'], net: ['wifi', '#7C3AED'], other: ['receipt', '#64748B'] };
+let EHA = null;
+function ehLoad() { return authUser() ? api('/api/items?type=util').then(j => (EHA = j.ok ? j.list : EHA || [])) : Promise.resolve(EHA = []); }
+HS.ehome = () => page(lt('s_home'), `<div class="lv-h2">${esc(lt('eh_acc'))}<button data-act="ehadd">＋ ${esc(lt('eh_add'))}</button></div><div class="lv-card" id="ehBox"><div class="hv-sk"></div></div>${fl('util')}`);
+HS.ehome.mount = el => {
+  const box = el.querySelector('#ehBox');
+  const paint = () => {
+    if (!authUser()) { box.innerHTML = `<p class="dc-empty lv-pad16">${esc(lt('eh_none'))}</p><div class="lv-pad16" style="padding-top:0">${loginBtn()}</div>`; return; }
+    const l = EHA || [];
+    box.innerHTML = l.length ? l.map(a => { const [i, c] = EH_P[a.data.p] || EH_P.other; return `<div class="lv-row eh-row"><span class="lv-ri" style="background:${c}1a;color:${c}">${ico(i, 22)}</span><span class="lv-rt"><b>${esc(a.data.t || lt('ehp_' + a.data.p))}</b><i>${esc(lt('eh_num'))}: ${esc(a.data.n)}</i></span><button class="car-b" data-act="ehpay:${a.id}">${esc(lt('eh_pay'))}</button><button class="car-x" data-act="ehrm:${a.id}">✕</button></div>`; }).join('') : `<p class="dc-empty lv-pad16">${esc(lt('eh_none'))}</p>`;
+  };
+  paint(); ehLoad().then(() => document.body.contains(box) && paint());
+};
+XACT.ehadd = () => {
+  if (needLogin()) return;
+  const w = bsheet(`<div class="hv-h" style="margin:0 0 12px">${esc(lt('eh_add'))}</div><div class="rp-kinds" id="ehK">${Object.keys(EH_P).map((k, i) => `<button class="h-chip ${i ? '' : 'on'}" data-k="${k}">${esc(lt('ehp_' + k))}</button>`).join('')}</div>
+    <label class="h-field" style="margin-top:12px"><span>${esc(lt('eh_num'))}</span><input class="dc-in" id="ehN" inputmode="numeric" autocomplete="off" maxlength="24"></label>
+    <label class="h-field"><span>${esc(lt('eh_title'))}</span><input class="dc-in" id="ehT" maxlength="30" autocomplete="off"></label><button class="h-btn h-primary" id="ehS">${esc(t('set_save'))}</button>`, 'bs-caf');
+  let p = 'electric';
+  w.querySelector('#ehK').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); e.stopPropagation(); p = b.dataset.k; w.querySelectorAll('#ehK .h-chip').forEach(x => x.classList.toggle('on', x === b)); });
+  w.querySelector('#ehS').addEventListener('click', e => { e.preventDefault(); const n = w.querySelector('#ehN').value.trim(); if (n.length < 4) return w.querySelector('#ehN').focus(); api('/api/items', { type: 'util', data: { p, n, t: w.querySelector('#ehT').value.trim() } }).then(j => { if (j.ok) { bsheetClose(true); toast(t('set_saved')); ehLoad().then(() => render(current, currentP)); } else toast(t('po_err')); }); });
+};
+XACT.ehpay = id => { const a = (EHA || []).find(x => String(x.id) === String(id)); if (a && navigator.clipboard) navigator.clipboard.writeText(a.data.n).then(() => toast(lt('eh_copied'))).catch(() => {}); go('h:pay', 'util'); };
+XACT.ehrm = id => sheet(lt('eh_rm'), '', [[t('car_rm'), () => api('/api/items', { action: 'remove', type: 'util', id: +id }).then(() => ehLoad()).then(() => render(current, currentP))], [t('cancel'), null]]);
+
+// ---------- consent on sign-in ----------
+const _tgLoginOrig = tgLogin;
+tgLogin = function () { const r = _tgLoginOrig.apply(this, arguments); setTimeout(() => { const s = document.querySelector('.bs-wrap .bs-body'); if (s && !s.querySelector('.lv-consent')) s.insertAdjacentHTML('beforeend', `<a class="lv-consent" href="privacy.html?lang=${LANG}" target="_blank" rel="noopener">${esc(lt('priv_ok'))}</a>`); }, 60); return r; };
+for (const k of ['home', 'services', 'profile']) AI_HIDE.delete && AI_HIDE.delete('h:' + k);
+XACT.delacc = () => sheet(lt('p_del'), lt('p_del_q'), [[lt('p_del'), () => api('/api/me', { action: 'delete' }).then(j => { if (!j.ok) return toast(t('po_err')); try { ['uzk-user', 'uzk-session', 'uzk-auth'].forEach(k => localStorage.removeItem(k)); } catch (e) {} CARS = null; DC = null; PREFS = null; EHA = null; toast(lt('p_del_ok')); history.replaceState({ id: 'h:welcome', depth: 0 }, '', location.pathname); render('h:welcome'); })], [t('cancel'), null]]);
+const _welcome = HS.welcome;
+HS.welcome = () => { const h = _welcome(), i = h.lastIndexOf('</div>'); return h.slice(0, i) + `<a class="lv-consent light" href="privacy.html?lang=${LANG}" target="_blank" rel="noopener">${esc(lt('p_priv'))}</a>` + h.slice(i); };
