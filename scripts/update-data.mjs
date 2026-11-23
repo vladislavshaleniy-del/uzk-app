@@ -202,7 +202,7 @@ const POI = {
   },
   med: {
     r: [16000, 8000],
-    q: b => ['hospital', 'clinic', 'doctors', 'dentist', 'pharmacy'].map(v => `nw["amenity"="${v}"](${b});`).join('') + ['laboratory', 'centre', 'blood_donation'].map(v => `nw["healthcare"="${v}"](${b});`).join(''),
+    q: b => `nw["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"](${b});nw["healthcare"="laboratory"](${b});`,
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       const hc = t.healthcare || '';
@@ -218,7 +218,7 @@ const POI = {
   build: {
     r: [14000, 7000],
     // equality filters only (regex on names is too slow for the public servers); names are checked below
-    q: b => `nwr["landuse"="construction"](${b});nw["building"="construction"](${b});nw["construction"~"^(apartments|residential|commercial|office|mixed)$"](${b});nwr["building"="apartments"]["name"](${b});nwr["landuse"="residential"]["name"](${b});`,
+    q: b => `nwr["landuse"="construction"](${b});nw["building"="construction"]["name"](${b});nw["construction"~"^(apartments|residential|commercial|office|mixed)$"](${b});wr["landuse"="residential"]["name"](${b});`,
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       const con = t.landuse === 'construction' || t.building === 'construction' || !!t.construction;
