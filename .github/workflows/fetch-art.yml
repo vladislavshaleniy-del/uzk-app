@@ -11,8 +11,8 @@ jobs:
       - name: Download pictures uploaded to the art hand-off
         run: |
           mkdir -p portal/art
-          for n in transport health edu gov mahalla faith market business city leisure assistant; do
-            curl -sf --max-time 60 -o "portal/art/$n.webp" "https://myuzcity.pages.dev/api/art?n=$n" || rm -f "portal/art/$n.webp"
+          for n in safety extra1 extra2 extra3; do
+            curl -sf --max-time 60 -o "portal/art/in-$n.webp" "https://myuzcity.pages.dev/api/art?n=$n" || rm -f "portal/art/in-$n.webp"
           done
           ls -la portal/art
       - name: Commit
