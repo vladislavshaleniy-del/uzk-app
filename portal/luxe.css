@@ -160,45 +160,28 @@ details.kb.hs-hit { outline: 2px solid rgba(237, 184, 98, .55); outline-offset: 
 .tile { box-shadow: inset 0 0 0 1px rgba(244, 241, 232, .07); }
 .tile:hover { box-shadow: inset 0 0 0 1px rgba(237, 184, 98, .35), 0 30px 60px -30px rgba(0, 0, 0, .9); }
 
-/* ---------- the assistant: a robot in a dark green suit, code living on its visor ---------- */
-.bot { position: relative; aspect-ratio: 2 / 3; --vx: 38.3%; --vy: 12.7%; --vw: 40%; --vh: 22.4%; --mx: 58.6%; --my: 30.1%; perspective: 900px; }
-.bot.tiny { aspect-ratio: 1; --vx: 21.1%; --vy: 18.7%; --vw: 57%; --vh: 47.8%; --mx: 50%; --my: 55.8%; }
-.bot-in { position: absolute; inset: 0; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .9s var(--ease); transform-origin: 50% 40%; }
-.bot-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; -webkit-user-drag: none; user-select: none; }
-.bot-visor { position: absolute; left: var(--vx); top: var(--vy); width: var(--vw); height: var(--vh); mix-blend-mode: screen; opacity: .6;
-  -webkit-mask: radial-gradient(closest-side, #000 62%, transparent 100%); mask: radial-gradient(closest-side, #000 62%, transparent 100%); pointer-events: none; }
-.bot-visor canvas { display: block; width: 100%; height: 100%; }
-.bot-mouth { position: absolute; left: var(--mx); top: var(--my); width: calc(var(--vw) * .5); aspect-ratio: 2.4; translate: -50% -50%; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(closest-side, rgba(120, 255, 190, .85), rgba(52, 230, 150, .35) 55%, transparent); mix-blend-mode: screen; opacity: 0; }
-body.rb-talking .bot-mouth { animation: botTalk .34s ease-in-out infinite alternate; }
-@keyframes botTalk { from { opacity: .25; transform: scale(.8, .6); } to { opacity: .95; transform: scale(1.1, 1.25); } }
-.bot-visor::after { content: ''; }
-.bot-sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: overlay;
-  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .55) 50%, transparent 60%) no-repeat; background-size: 300% 100%; background-position: 130% 0;
-  -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; animation: botSheen 7s var(--ease) 1.5s infinite; }
-@keyframes botSheen { 0% { background-position: 130% 0; } 40%, 100% { background-position: -30% 0; } }
-.bot.big, .bot.mid { animation: botFloat 7s ease-in-out infinite; }
-@keyframes botFloat { 50% { translate: 0 -8px; } }
-/* placements */
-.agent .bot.big { position: absolute; left: 50%; bottom: 0; height: 97%; width: auto; translate: -50% 0; scale: -1 1; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .55)) drop-shadow(0 0 40px rgba(52, 216, 164, .14)); animation: none; }
-.agent .bot.big .bot-in, .dock-bot .bot.mid .bot-in { transform: rotateX(var(--rx, 0deg)) rotateY(calc(var(--ry, 0deg) * -1)); }
-.agent .bot.big .bot-in { animation: botFloat 7s ease-in-out infinite; }
-.agent .ag-ring { top: 30%; width: 380px; height: 380px; }
+/* ---------- the page inside the Matrix: teal-black canvas with faint code streams ---------- */
+#mxbg { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -3; pointer-events: none; opacity: .2; }
+.pearl { background:
+  radial-gradient(55% 45% at 82% -6%, rgba(18, 112, 104, .4), transparent 70%),
+  radial-gradient(42% 36% at 4% 8%, rgba(14, 92, 74, .32), transparent 72%),
+  radial-gradient(60% 40% at 50% 112%, rgba(12, 80, 78, .26), transparent 70%),
+  linear-gradient(180deg, #031210 0%, #020D0B 50%, #020A09 100%) !important; z-index: -4; }
+html { background: #020D0B; }
+
+/* ---------- the assistant: a living portrait inside the Matrix ---------- */
+.bot { position: absolute; inset: 0; overflow: hidden; background: #020805; }
+.bot-fb, .bot canvas.lv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.bot-fb { object-fit: cover; object-position: 56% 40%; }
+.bot.lv-on .bot-fb { visibility: hidden; }
+.agent { background: #020805 !important; }
 .agent .ag-id { z-index: 2; }
-.dock-bot .bot.mid { position: absolute; left: 50%; bottom: 0; height: 84%; width: auto; translate: -50% 0; scale: -1 1; animation: none; filter: drop-shadow(0 24px 30px rgba(0, 0, 0, .6)); }
-.dock-bot .bot.mid .bot-in { animation: botFloat 7s ease-in-out infinite; }
-.dock-av .bot.tiny { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; }
-.dock-av .bot.tiny .bot-img { object-fit: cover; }
-.dock-av { background: radial-gradient(circle at 50% 30%, #145238, #04130B 72%); }
-.tile-ag .bot.tile { position: absolute; right: 8%; bottom: -14%; height: 128%; width: auto; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, .6)); }
-.tile .bot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: auto; transform: none; filter: none; }
-.tile:hover .bot img { transform: none; }
-@media (max-width: 760px) {
-  .dock-bot .bot.mid { left: auto; right: 2%; translate: 0 0; height: 200%; bottom: -128%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .bot, .bot-in, .bot-sheen, body.rb-talking .bot-mouth { animation: none !important; }
-}
+.agent::after { content: ''; position: absolute; inset: auto 0 0 0; height: 34%; z-index: 1; pointer-events: none; background: linear-gradient(transparent, rgba(2, 8, 5, .85)); }
+.agent .ag-ring, .agent .ag-rain { display: none; }
+.dock-bot { background: #020805; }
+.dock-av { background: #020805; overflow: hidden; }
+.dock-av .bot.tiny { border-radius: inherit; }
+.tile-ag .bot.botsm { inset: 0 0 0 auto; width: 62%; -webkit-mask: linear-gradient(90deg, transparent, #000 30%); mask: linear-gradient(90deg, transparent, #000 30%); }
 
 /* assistant on narrow screens: keep the panel inside the page */
 .ai > * { min-width: 0; }

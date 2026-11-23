@@ -146,7 +146,7 @@
       const box = $('#svcGrid'); if (!box) return;
       $('#svcT').textContent = s('svc_t'); $('#svcS').textContent = s('svc_s');
       box.innerHTML = ORDER.map(k => { const v = SV[k]; const sz = TILE[k] || ''; return `<a class="tile ${sz}" href="?s=${k}" data-sv="${k}" style="--g:${v.g}">
-        ${v.art ? `<img src="${ART(v.art)}" alt="" loading="lazy" decoding="async">` : `<div class="tile-ag">${ROBOT('tile')}</div>`}
+        ${v.art ? `<img src="${ART(v.art)}" alt="" loading="lazy" decoding="async">` : `<div class="tile-ag">${ROBOT('botsm')}</div>`}
         <span class="tile-ic">${ic(v.ic)}</span><span class="tile-tx"><b>${esc(pick(v.t))}</b><i>${esc(pick(v.sub))}</i></span><span class="tile-go">${ic('arrow-up-right')}</span></a>`; }).join('');
     }
 
@@ -320,38 +320,134 @@
     }
     R.map = async () => ({ k: '', m: `<div class="pn wide hub-wrap">${hubHtml(true)}</div>`, after: () => hubInit($('#svMain .hub')) });
 
-    // ---------------- the digital assistant: a robot in a dark green suit; matrix code lives on its glass visor ----------------
-    const BOT = { big: '/portal/art/robot.webp?v=1', mid: '/portal/art/robot.webp?v=1', tile: '/portal/art/robot-sm.webp?v=1', tiny: '/portal/art/robot-head.webp?v=1' };
-    function ROBOT(cls = 'big') {
-      const src = BOT[cls] || BOT.big;
-      return `<div class="bot ${cls}" style="--src:url('${src}')"><div class="bot-in"><img class="bot-img" src="${src}" alt="" decoding="async"${cls === 'big' ? '' : ' loading="lazy"'}>
-<div class="bot-visor"><canvas></canvas></div><i class="bot-mouth"></i><i class="bot-sheen"></i></div></div>`;
+    // ---------------- the whole page sits inside the Matrix: faint code streams behind everything ----------------
+    (function pageRain() {
+      const cv = document.createElement('canvas'); cv.id = 'mxbg'; cv.setAttribute('aria-hidden', 'true'); document.body.prepend(cv);
+      const ctx = cv.getContext('2d'), G = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ0123456789'.split('');
+      let W = 0, H = 0, fs = 16, cols = [], last = 0;
+      const fit = () => { const d = Math.min(1.5, devicePixelRatio || 1); W = cv.width = innerWidth * d; H = cv.height = innerHeight * d; fs = Math.round((innerWidth < 760 ? 14 : 17) * d);
+        cols = Array.from({ length: Math.ceil(W / fs) }, () => ({ y: Math.random() * H / fs, sp: .25 + Math.random() * .7, on: Math.random() > .35, gold: Math.random() > .9 })); ctx.font = `${fs * .82}px monospace`; };
+      fit(); addEventListener('resize', fit);
+      const step = () => {
+        ctx.fillStyle = 'rgba(2, 9, 8, .16)'; ctx.fillRect(0, 0, W, H);
+        cols.forEach((c, i) => { if (!c.on) return; const y = c.y * fs;
+          ctx.fillStyle = c.gold ? 'rgba(240, 190, 100, .55)' : 'rgba(70, 230, 170, .5)'; ctx.fillText(G[(Math.random() * G.length) | 0], i * fs, y);
+          ctx.fillStyle = 'rgba(210, 255, 235, .7)'; if (Math.random() > .7) ctx.fillText(G[(Math.random() * G.length) | 0], i * fs, y + fs);
+          c.y += c.sp; if (y > H && Math.random() > .97) { c.y = -Math.random() * 20; c.sp = .25 + Math.random() * .7; c.on = Math.random() > .35; c.gold = Math.random() > .9; } });
+      };
+      if (RM) { for (let i = 0; i < 60; i++) step(); return; }
+      const loop = now => { requestAnimationFrame(loop); if (document.hidden || now - last < 50) return; last = now; step(); }; requestAnimationFrame(loop);
+    })();
+
+    // ---------------- the digital assistant: a living portrait inside the Matrix ----------------
+    // One picture (assistant.webp, 1200 x 896) brought to life in WebGL: the code tunnel streams outward behind him,
+    // code rain runs over the face and jacket, the head breathes and nods, the lips move with the voice.
+    const AS = { src: '/portal/art/assistant.webp?v=1', mask: '/portal/art/assistant-mask.png?v=1', iw: 1200, ih: 896 };
+    const VIEW = { big: { f: [.556, .5], z: .94 }, mid: { f: [.56, .34], z: 1 }, botsm: { f: [.57, .4], z: 1 }, tiny: { f: [.555, .3], z: .46 } };
+    function ROBOT(cls = 'big') { return `<div class="bot ${cls}" aria-hidden="true"><img class="bot-fb" src="${cls === 'tiny' ? '/portal/art/assistant-head.webp?v=1' : AS.src}" alt="" decoding="async"><canvas class="lv"></canvas></div>`; }
+    const LVS = 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0.,1.);}';
+    const LFS = `precision highp float;
+uniform sampler2D T,M;uniform vec2 F,S;uniform float t,o,ny,nx,as;varying vec2 v;
+const vec2 MC=vec2(.575,.4866);const float MW=.047,LIP=.017,FL=.49,FR=.665,CH=.625,NK=.69;const vec2 TC=vec2(.555,.32);
+float h(float n){return fract(sin(n*12.9898)*43758.5453);}
+float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+void main(){
+ vec2 uv=F+(v-.5)*S;
+ float m=texture2D(M,uv).r;
+ float hm=m*(1.-smoothstep(.55,.70,uv.y));
+ vec2 su=uv-vec2(nx,ny)*hm;
+ vec3 subj;bool mouth=false;
+ if(o>.01&&su.y>MC.y&&su.x>FL&&su.x<FR){
+  float dx=(su.x-MC.x)/MW,sh=sqrt(max(0.,1.-dx*dx));
+  float hx=smoothstep(FL,FL+.04,su.x)*(1.-smoothstep(FR-.04,FR,su.x));
+  float d=o*LIP*hx*mix(sh,1.,smoothstep(MC.y,MC.y+.05,su.y))*(1.-smoothstep(CH,NK,su.y));
+  float sy=su.y-d;
+  if(sy<MC.y&&abs(dx)<1.){mouth=true;float k=(su.y-MC.y)/max(o*LIP*sh,1e-4);
+   subj=vec3(.008,.025,.018)+vec3(.12,.7,.42)*.32*sh*max(0.,1.-abs(k-.62)*1.7)+vec3(.72,.82,.78)*smoothstep(.34,.0,k)*.42*sh;}
+  su.y=sy;
+ }
+ if(!mouth){
+  vec3 b=texture2D(T,su).rgb;
+  float cx=floor(su.x*230.),sp=.07+h(cx)*.16,hd=fract(t*sp+h(cx*3.1));
+  float tr=fract(hd-su.y*.85),trail=exp(-tr*9.)*step(.42,h(cx*7.7));
+  float cell=step(.3,h2(vec2(cx,floor(su.y*150.)+floor(t*9.+h(cx)*9.))));
+  float lum=dot(b,vec3(.3,.59,.11));
+  subj=b*(.92+.1*sin(t*1.3+su.y*9.))+vec3(.35,1.,.62)*trail*cell*(.22+lum*.9)*.55+vec3(.85,1.,.9)*smoothstep(.985,1.,1.-tr)*cell*.5*step(.42,h(cx*7.7));
+ }
+ vec2 dc=uv-TC;float ph=fract(t*.05),p2=fract(ph+.5);
+ vec2 u1=TC+dc*(1.-.06*ph),u2=TC+dc*(1.-.06*p2);
+ vec3 s1=mix(texture2D(T,u1).rgb,texture2D(T,uv).rgb,texture2D(M,u1).r);
+ vec3 s2=mix(texture2D(T,u2).rgb,texture2D(T,uv).rgb,texture2D(M,u2).r);
+ vec3 bg=s1*(1.-abs(2.*ph-1.))+s2*(1.-abs(2.*p2-1.));
+ float an=atan(dc.y,dc.x*1.34),r=length(dc*vec2(1.34,1.)),fa=(an+3.14159)/6.28318*260.,id=floor(fa);
+ float on=step(.5,h(id*3.3)),sx=fract(r*1.6-t*(.18+h(id)*.4)+h(id*7.1));
+ float st=smoothstep(.0,.05,sx)*smoothstep(.35,.05,sx)*smoothstep(.5,.0,abs(fract(fa)-.5))*on*smoothstep(.12,.45,r);
+ bg+=mix(vec3(.25,1.,.6),vec3(1.,.78,.35),step(.86,h(id*1.7)))*st*.55;
+ float gx=floor(uv.x*230.),gy=floor(uv.y*150.);
+ float n=h2(vec2(gx,gy))*.55+uv.y*.45;
+ float vis=smoothstep(n-.06,n+.06,as*1.25-.12);
+ float lum2=dot(texture2D(T,uv).rgb,vec3(.3,.59,.11));
+ float fl=step(.38,h2(vec2(gx,gy+floor(t*14.))));
+ float edge=smoothstep(.0,.06,as*1.25-.12-n)*(1.-smoothstep(.06,.2,as*1.25-.12-n));
+ vec3 code=bg+vec3(.3,1.,.6)*fl*(.25+lum2*1.6)*.7*(1.-vis)+vec3(.9,1.,.92)*edge*fl*.9;
+ subj=mix(code,subj,vis)+vec3(.5,1.,.75)*edge*fl*.5;
+ vec3 c=mix(bg,subj,m);
+ c*=1.-.35*smoothstep(.45,.95,length((v-.5)*vec2(1.,1.15)));
+ gl_FragColor=vec4(c,1.);
+}`;
+    const lives = new Set();
+    let ASimg = null, MKimg = null;
+    const ldImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+    const ASready = Promise.all([ldImg(AS.src), ldImg(AS.mask)]).then(([a, m]) => { ASimg = a; MKimg = m; });
+    function liveInit(bot) {
+      if (bot.dataset.w) return; bot.dataset.w = 1;
+      const kind = ['big', 'mid', 'botsm', 'tiny'].find(k => bot.classList.contains(k)) || 'big';
+      const cv = bot.querySelector('canvas.lv'); const gl = cv.getContext('webgl', { antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: false });
+      if (!gl) return;
+      const sh = (ty, src) => { const o = gl.createShader(ty); gl.shaderSource(o, src); gl.compileShader(o); return o; };
+      const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, LVS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, LFS)); gl.linkProgram(pr);
+      if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return;
+      gl.useProgram(pr); const bf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      const al = gl.getAttribLocation(pr, 'a'); gl.enableVertexAttribArray(al); gl.vertexAttribPointer(al, 2, gl.FLOAT, false, 0, 0);
+      const U = n => gl.getUniformLocation(pr, n); const f = { bot, cv, gl, kind, u: { F: U('F'), S: U('S'), t: U('t'), o: U('o'), ny: U('ny'), nx: U('nx'), as: U('as') }, vis: false, ok: false, born: 0 };
+      ASready.then(() => { if (!ASimg || !MKimg) return;
+        const tex = (img, unit, fmt) => { const tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.texImage2D(gl.TEXTURE_2D, 0, fmt, fmt, gl.UNSIGNED_BYTE, img); };
+        tex(ASimg, 0, gl.RGB); tex(MKimg, 1, gl.LUMINANCE); gl.uniform1i(U('T'), 0); gl.uniform1i(U('M'), 1);
+        f.ok = true; f.born = performance.now(); bot.classList.add('lv-on'); liveDraw(f, f.born, 0, 0, 0, RM ? 1 : 0); });
+      new IntersectionObserver(([e]) => { f.vis = e.isIntersecting; if (!e.isIntersecting) f.seen = 0; }).observe(bot);
+      lives.add(f);
     }
-    // falling code on every visor that is on screen
-    const robots = new Set();
-    const MGL = 'アイウエオカキクケコサシスセソタチツテト0123456789ABCDEF'.split('');
-    function robotsTick() {
-      robots.forEach(r => {
-        if (!r.vis) return; const { cv, ctx } = r; const w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
-        const dpr = Math.min(2, devicePixelRatio || 1); if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); r.fs = Math.max(6, Math.round(w / 22)) * dpr; r.cols = Array(Math.ceil(cv.width / r.fs)).fill(0).map(() => Math.random() * cv.height / r.fs); }
-        ctx.fillStyle = 'rgba(0, 0, 0, .22)'; ctx.globalCompositeOperation = 'destination-out'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.globalCompositeOperation = 'source-over';
-        ctx.font = `${r.fs}px monospace`;
-        r.cols.forEach((y, i) => { const hot = Math.random() > .94; ctx.fillStyle = hot ? '#E6FFF4' : `rgba(52, 230, 150, ${.5 + Math.random() * .4})`; ctx.fillText(MGL[(Math.random() * MGL.length) | 0], i * r.fs, y * r.fs); r.cols[i] = y * r.fs > cv.height && Math.random() > .95 ? 0 : y + (r.talk ? 1.7 : 1); });
-      });
+    function liveDraw(f, now, open, ny, nx, as) {
+      const { cv, gl, u } = f; const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
+      const dpr = Math.min(f.kind === 'big' ? 1.5 : 2, devicePixelRatio || 1);
+      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); gl.viewport(0, 0, cv.width, cv.height); }
+      const IA = AS.iw / AS.ih, A = w / h, V = VIEW[f.kind]; let sx, sy; if (A / IA >= 1) { sx = 1; sy = IA / A; } else { sy = 1; sx = A / IA; } sx *= V.z; sy *= V.z;
+      const fx = Math.min(1 - sx / 2, Math.max(sx / 2, V.f[0])), fy = Math.min(1 - sy / 2, Math.max(sy / 2, V.f[1]));
+      gl.uniform2f(u.F, fx, fy); gl.uniform2f(u.S, sx, sy); gl.uniform1f(u.t, now / 1000); gl.uniform1f(u.o, open); gl.uniform1f(u.ny, ny); gl.uniform1f(u.nx, nx); gl.uniform1f(u.as, as);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
-    if (!RM) { let last = 0; const loop = now => { requestAnimationFrame(loop); if (now - last > 66) { last = now; robotsTick(); } }; requestAnimationFrame(loop); }
-    const vio = new IntersectionObserver(es => es.forEach(e => { const r = [...robots].find(x => x.el === e.target); if (r) r.vis = e.isIntersecting; }));
-    function wireRobots(root = document) {
-      root.querySelectorAll('.bot').forEach(el => { if (el.dataset.w) return; el.dataset.w = 1; const cv = el.querySelector('canvas'); const r = { el, cv, ctx: cv.getContext('2d'), vis: false, talk: false }; robots.add(r); vio.observe(el); });
-    }
-    // the big robots lean a little toward the pointer
-    if (!RM && matchMedia('(pointer: fine)').matches) {
-      let raf = 0; addEventListener('pointermove', e => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => {
-        $$('.bot.big, .bot.mid').forEach(b => { const r = b.getBoundingClientRect(); if (!r.width || r.bottom < 0 || r.top > innerHeight) return;
-          const x = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (innerWidth / 2))), y = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height * .3)) / (innerHeight / 2)));
-          b.style.setProperty('--rx', (-y * 4).toFixed(2) + 'deg'); b.style.setProperty('--ry', (x * 7).toFixed(2) + 'deg'); }); }); }, { passive: true });
-    }
-    const setTalk = on => { robots.forEach(r => { r.talk = on; }); document.body.classList.toggle('rb-talking', on); };
+    // the mouth follows the speech: every spoken word opens it, syllables flutter inside the word
+    let talking = false, wordAt = 0, wordLen = 5, mOpen = 0;
+    window.MZmouth = { word(n) { wordAt = performance.now(); wordLen = Math.max(2, Math.min(12, n || 5)); } };
+    { const loop = now => { requestAnimationFrame(loop);
+      const since = now - wordAt, dur = wordLen * 70 + 120; let target = 0;
+      if (talking) { const inWord = since < dur ? 1 : Math.max(0, 1 - (since - dur) / 160); target = inWord * (.45 + .55 * Math.abs(Math.sin(since / 62 + Math.sin(since / 211) * 1.7)));
+        if (since > 1600) target = .3 + .5 * Math.abs(Math.sin(now / 95) * Math.sin(now / 157)); }
+      mOpen += (target - mOpen) * (target > mOpen ? .55 : .3);
+      const s = now / 1000, ny = talking ? .0035 * Math.sin(s * 5.3) + .0018 * Math.sin(s * 8.1) : .0012 * Math.sin(s * 1.1), nx = talking ? .0022 * Math.sin(s * 3.4) : .0008 * Math.sin(s * .7);
+      lives.forEach(f => { if (!f.ok || !f.vis || (RM && !talking && f.drawnRM)) return; f.drawnRM = RM;
+        if (!f.seen) { f.seen = now; }
+        const age = (now - f.seen) / 1000, cyc = (age - 2.2) % 14, intro = Math.min(1, age / 2.2);
+        let as = intro * intro * (3 - 2 * intro);
+        if (age > 2.2 && !talking) { if (cyc > 11.2 && cyc < 12.6) as = 1 - (cyc - 11.2) / 1.4; else if (cyc >= 12.6) as = (cyc - 12.6) / 1.4; as = Math.max(0, Math.min(1, as)); as = as * as * (3 - 2 * as); }
+        if (talking) f.as = Math.min(1, (f.as || 0) + .08); else f.as = as; if (talking) as = Math.max(as, f.as);
+        liveDraw(f, RM ? 0 : now, mOpen, RM ? 0 : ny, RM ? 0 : nx, RM ? 1 : as); }); }; requestAnimationFrame(loop); }
+    function wireRobots(root = document) { root.querySelectorAll('.bot').forEach(liveInit); }
+    const setTalk = on => { talking = on; if (on) wordAt = performance.now(); document.body.classList.toggle('rb-talking', on); };
+    window.MZtalk = setTalk;
 
     // ---------------- voice: speak replies, listen with the microphone, soft sounds ----------------
     let VOICE = true; try { VOICE = localStorage.getItem('mz-voice') !== '0'; } catch (e) {}
@@ -364,7 +460,9 @@
       if (!VOICE || !window.speechSynthesis) return; const v = pickVoice(); if (!v) return;
       speechSynthesis.cancel(); const clean = String(text).replace(/[•*#]/g, ' ').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim().slice(0, 900);
       const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.lang = v.lang; u.rate = 1.02; u.pitch = .82;
-      u.onstart = () => setTalk(true); u.onend = u.onerror = () => setTalk(false); speechSynthesis.speak(u);
+      u.onstart = () => setTalk(true); u.onend = u.onerror = () => setTalk(false);
+      u.onboundary = e => { if (e.name === 'word' || e.name === undefined) MZmouth.word(e.charLength || (clean.slice(e.charIndex).match(/^\S+/) || [''])[0].length); };
+      speechSynthesis.speak(u);
     }
     if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
     const SRC = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -397,8 +495,8 @@
       const box = $('#agent'); if (!box) return;
       if (box.dataset.w) { const id = box.querySelector('.ag-id'); if (id) id.innerHTML = `<span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i>`; return; }
       box.dataset.w = 1;
-      box.innerHTML = `<canvas class="ag-rain"></canvas><div class="ag-ring"></div>${ROBOT('big')}<div class="ag-id"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i></div>`;
-      wireRobots(box); rain(box.querySelector('.ag-rain'), box);
+      box.innerHTML = `${ROBOT('big')}<div class="ag-id"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i></div>`;
+      wireRobots(box);
     }
     function rain(cv, box) {
       if (RM || !cv) return; const ctx = cv.getContext('2d'); let cols = [], W = 0, H = 0, fs = 14, last = 0, vis = true;
