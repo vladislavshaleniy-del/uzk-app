@@ -298,9 +298,6 @@ section:not(.story) { max-width: var(--max); margin: 0 auto; padding: 110px 28px
 /* ---------- juice pass ---------- */
 @property --g { syntax: '<color>'; inherits: true; initial-value: #F2B45A; }
 .aurora { -webkit-mask-image: linear-gradient(#000 45%, transparent 90%); mask-image: linear-gradient(#000 45%, transparent 90%); }
-.hero h1 { background: linear-gradient(172deg, var(--tx) 0%, var(--tx) 36%, #FFE3AE 52%, var(--acc) 64%, #E89B2F 78%, var(--tx) 100%); background-size: 100% 260%; background-position: 0 0; -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: .08em; }
-.hero h1.rise { animation: rise .9s var(--ease) forwards .08s, shine 7s ease-in-out 1.4s infinite alternate; }
-@keyframes shine { from { background-position: 0 0; } to { background-position: 0 70%; } }
 /* the glow behind the phone takes the colour of the section being told */
 .story { --g: #F2B45A; transition: --g .9s var(--ease); }
 .phone-wrap { z-index: 0; isolation: isolate; }
@@ -309,20 +306,7 @@ section:not(.story) { max-width: var(--max); margin: 0 auto; padding: 110px 28px
 @keyframes breathe { 50% { transform: scale(1.08); opacity: .8; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 .step .ic { position: relative; color: var(--g, var(--acc)); background: color-mix(in srgb, var(--g, #F2B45A) 15%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--g, #F2B45A) 22%, transparent), 0 14px 40px -12px color-mix(in srgb, var(--g, #F2B45A) 60%, transparent); }
-.story-l { counter-reset: st; }
-.step:not(.hero) { counter-increment: st; }
-.step:not(.hero) .ic::after { content: counter(st, decimal-leading-zero) ' / 07'; position: absolute; left: 74px; top: 50%; transform: translateY(-50%); white-space: nowrap; font: 700 13px Manrope, sans-serif; letter-spacing: .12em; color: var(--dim); }
 .step.on h2 { text-shadow: 0 0 40px color-mix(in srgb, var(--g, #F2B45A) 22%, transparent); }
-.facts b { background: linear-gradient(180deg, var(--tx), color-mix(in srgb, var(--g, #F2B45A) 70%, var(--tx))); -webkit-background-clip: text; background-clip: text; color: transparent; }
-/* services ticker */
-.ticker { position: relative; padding: 26px 0; display: grid; gap: 14px; overflow: hidden; -webkit-mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
-.tk-row { display: flex; gap: 12px; width: max-content; animation: tk 60s linear infinite; }
-.tk-row.rev { animation-direction: reverse; animation-duration: 70s; }
-.ticker:hover .tk-row { animation-play-state: paused; }
-.tk { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px 12px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); color: var(--tx); font-weight: 700; font-size: 15.5px; white-space: nowrap; }
-.tk svg { width: 22px; height: 22px; color: var(--c, var(--acc)); }
-.tk.hot { background: linear-gradient(90deg, rgba(242, 180, 90, .2), rgba(242, 180, 90, .06)); border-color: rgba(242, 180, 90, .35); }
-@keyframes tk { to { transform: translateX(-50%); } }
 /* trust visual */
 .b-trust { justify-content: flex-start; }
 .tv { display: grid; gap: 10px; margin-bottom: 34px; max-width: 420px; }
@@ -346,23 +330,17 @@ section:not(.story) { max-width: var(--max); margin: 0 auto; padding: 110px 28px
 @media (max-width: 960px) {
   .phone-wrap::before { width: 380px; height: 380px; }
   .phone-wrap::after { display: none; }
-  .step:not(.hero) .ic::after { left: 70px; }
-  .tk { font-size: 14px; padding: 10px 16px 10px 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero h1.rise { animation: none; opacity: 1; transform: none; }
-  .tk-row, .phone-wrap::before, .phone-wrap::after { animation: none; }
+  .phone-wrap::before, .phone-wrap::after { animation: none; }
   .tv-row { opacity: 1; transform: none; }
 }
 .b-lang { padding: 26px 22px; }
 .lang-flip { font-size: 22px; height: 40px; line-height: 40px; }
-/* headline: cream to amber, with a slow glint passing over it */
-.hero h1 { background: linear-gradient(105deg, transparent 42%, rgba(255, 246, 225, .85) 50%, transparent 58%) no-repeat, linear-gradient(172deg, var(--tx) 0%, var(--tx) 42%, #FFE3AE 60%, var(--acc) 78%, #E89B2F 100%); background-size: 250% 100%, 100% 100%; background-position: 160% 0, 0 0; -webkit-background-clip: text; background-clip: text; color: transparent; }
-.hero h1.rise { animation: rise .9s var(--ease) forwards .08s, glint 6s var(--ease) 1.6s infinite; }
-@keyframes glint { 0% { background-position: 160% 0, 0 0; } 45%, 100% { background-position: -60% 0, 0 0; } }
 /* keep decorative layers from widening the page on phones (clip keeps sticky working) */
 html, body { overflow-x: clip; }
-.story, .ticker { overflow-x: clip; }
+.story { overflow-x: clip; }
 @media (max-width: 960px) { .aurora { left: 0; right: 0; } }
 .mo-track { margin-right: min(-28px, calc((var(--max) - 100vw) / 2 - 28px)); padding-right: max(28px, calc((100vw - var(--max)) / 2 + 28px)); }
 .mo { transition: transform .5s var(--ease), box-shadow .5s var(--ease), border-color .5s var(--ease); }

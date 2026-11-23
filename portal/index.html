@@ -12,8 +12,9 @@
 <link rel="icon" href="/icon-192.png">
 <link rel="preload" href="/portal/assets/fonts/unbounded-cyrillic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/portal/assets/fonts/manrope-cyrillic-500-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/portal/portal.css?v=2">
-<link rel="stylesheet" href="/portal/pages.css?v=2">
+<link rel="stylesheet" href="/portal/portal.css?v=4">
+<link rel="stylesheet" href="/portal/pages.css?v=4">
+<link rel="stylesheet" href="/portal/luxe.css?v=1">
 </head>
 <body>
 <div class="pearl" aria-hidden="true"></div>
@@ -40,8 +41,7 @@
   <div class="story-l">
     <div class="hero step on" data-go="1:1909" style="--g:#F2B45A">
       <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-      <p class="pill rise"><svg><use href="/portal/assets/icons.svg#i-sparkle"/></svg><span data-i="h_eyebrow">Умный город для Узбекистана</span></p>
-      <h1 class="rise" data-i="h_t">Весь город в одном приложении</h1>
+      <h1 class="rise"><span data-i="h_t1">Весь город</span> <em data-i="h_t2">в одном приложении</em></h1>
       <p class="lead rise" data-i="h_s">Транспорт, медицина, госуслуги, махалля и ИИ-помощник. Бесплатно, на трёх языках.</p>
       <div class="cta-row rise">
         <a class="btn btn-acc btn-lg open-app" href="/" data-i="cta_open">Открыть приложение</a>
@@ -101,7 +101,7 @@
       <div class="chip c4" id="cPr" hidden></div>
       <div class="ph-floor" aria-hidden="true"></div>
       <div class="phone" id="phone">
-        <i class="ph-side l" aria-hidden="true"><b></b><b></b><b></b></i><i class="ph-side r" aria-hidden="true"><b></b></i>
+        <span class="ph-ex" aria-hidden="true"><i style="--z:1"></i><i style="--z:2"></i><i style="--z:3"></i><i style="--z:4"></i><i style="--z:5"></i><i style="--z:6"></i><i style="--z:7"></i><i style="--z:8"></i><i style="--z:9"></i><i style="--z:10"></i><i style="--z:11"></i><i style="--z:12"></i><i style="--z:13"></i><i style="--z:14"></i></span><i class="ph-side l" aria-hidden="true"><b></b><b></b><b></b></i><i class="ph-side r" aria-hidden="true"><b></b></i>
         <iframe id="appFrame" title="MyUzCity" loading="lazy"></iframe>
         <i class="ph-glare" aria-hidden="true"></i>
         <button class="try" id="tryBtn"><svg><use href="/portal/assets/icons.svg#i-hand-tap"/></svg><span data-i="try">Нажмите, чтобы попробовать</span></button>
@@ -111,7 +111,6 @@
 </section>
 
 <!-- ============ LIVE CITY NUMBERS ============ -->
-<div class="ticker" aria-hidden="true"><div class="tk-row" id="tk1"></div><div class="tk-row rev" id="tk2"></div></div>
 <section class="services" id="services">
   <div class="sec-head reveal"><h2 id="svcT">Все сервисы города</h2><p id="svcS"></p></div>
   <div class="svc-grid" id="svcGrid"></div>
@@ -245,7 +244,7 @@
 </footer>
 
 <script src="/portal/assets/qrcode.js" defer></script>
-<script src="/portal/portal.js?v=3" defer></script>
-<script src="/portal/pages.js?v=2" defer></script>
+<script src="/portal/portal.js?v=5" defer></script>
+<script src="/portal/pages.js?v=4" defer></script>
 </body>
 </html>

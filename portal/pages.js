@@ -357,6 +357,18 @@
  <g class="rb-mouth" filter="url(#${g('gw')})">${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(k => `<rect x="${174 + k * 6}" y="252" width="3.6" height="8" rx="1.8" fill="#5EEAD4" style="--k:${k}"/>`).join('')}</g>
 </svg></div>`;
     }
+    // real-time 3D robot (three.js), with the drawn robot as a fallback when WebGL is missing
+    let R3 = null; const R3I = new Set();
+    const r3d = () => R3 || (R3 = import('/portal/robot3d.js?v=2').catch(() => null));
+    async function mount3d(host, opts) { const m = await r3d(); if (!m) return null; const inst = m.mountRobot(host, opts); if (inst) { R3I.add(inst); host.parentElement.classList.add('has3d'); } return inst; }
+    async function avatar() {
+      const m = await r3d(); if (!m) return;
+      const tmp = document.createElement('div'); tmp.style.cssText = 'position:fixed;left:-2000px;top:0;width:420px;height:520px'; document.body.appendChild(tmp);
+      const inst = m.mountRobot(tmp, { snapshot: true }); if (!inst) { tmp.remove(); return; }
+      await new Promise(r => setTimeout(r, 120)); const url = inst.snapshot(); inst.dispose(); tmp.remove();
+      $$('.dock-av, .tile-ag').forEach(el => { el.classList.add('has3d'); let im = el.querySelector('img.r3img'); if (!im) { im = document.createElement('img'); im.className = 'r3img'; im.alt = ''; el.appendChild(im); } im.src = url; });
+      document.documentElement.style.setProperty('--robot-img', `url(${url})`);
+    }
     // falling code inside every robot face that is on screen
     const robots = new Set();
     const MGL = 'アイウエオカキクケコサシスセソタチツテト0123456789ABCDEF'.split('');
@@ -374,7 +386,7 @@
       root.querySelectorAll('.robot').forEach(el => { if (el.dataset.w) return; el.dataset.w = 1; const cv = el.querySelector('canvas'); const r = { el, cv, ctx: cv.getContext('2d'), vis: false, talk: false }; robots.add(r); vio.observe(el);
         if (RM) { requestAnimationFrame(() => { cv.width = cv.clientWidth; cv.height = cv.clientHeight; r.ctx.fillStyle = '#05261A'; r.ctx.fillRect(0, 0, cv.width, cv.height); }); } });
     }
-    const setTalk = on => { robots.forEach(r => { r.talk = on; }); document.body.classList.toggle('rb-talking', on); };
+    const setTalk = on => { robots.forEach(r => { r.talk = on; }); R3I.forEach(i => i.setTalking(on)); document.body.classList.toggle('rb-talking', on); };
 
     // ---------------- voice: speak replies, listen with the microphone, soft sounds ----------------
     let VOICE = true; try { VOICE = localStorage.getItem('mz-voice') !== '0'; } catch (e) {}
@@ -418,8 +430,11 @@
     // big robot beside the chat (home section and the assistant page)
     function agentInit() {
       const box = $('#agent'); if (!box) return;
+      if (box.dataset.r3) { const id = box.querySelector('.ag-id'); if (id) id.innerHTML = `<span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i>`; return; }
       box.innerHTML = `<canvas class="ag-rain"></canvas><div class="ag-ring"></div>${ROBOT('big')}<div class="ag-id"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i></div>`;
       wireRobots(box); rain(box.querySelector('.ag-rain'), box);
+      if (!box.dataset.r3) { box.dataset.r3 = 1; const h = document.createElement('div'); h.className = 'ag-3d'; box.insertBefore(h, box.querySelector('.ag-id'));
+        new IntersectionObserver(([e], o) => { if (e.isIntersecting) { o.disconnect(); mount3d(h); } }, { rootMargin: '200px' }).observe(box); }
     }
     function rain(cv, box) {
       if (RM || !cv) return; const ctx = cv.getContext('2d'); let cols = [], W = 0, H = 0, fs = 14, last = 0, vis = true;
@@ -438,7 +453,9 @@
       wireRobots($('#dock'));
       const btn = $('#dockBtn'), panel = $('#dockPanel'), host = $('#dockChat');
       let greeted = false;
+      let mid3 = false;
       const open = () => { const card = $('.ai-card'); host.appendChild(card); panel.hidden = false; $('#dock').classList.add('open'); blip(440, 880, .16);
+        if (!mid3) { mid3 = true; const h = document.createElement('div'); h.className = 'ag-3d'; $('.dock-bot').insertBefore(h, $('.dock-name')); mount3d(h); }
         if (!greeted) { greeted = true; speak(L() === 'en' ? 'Hello! I am the MyUzCity digital assistant. How can I help?' : L() === 'uz' ? "Assalomu alaykum! Men MyUzCity raqamli yordamchisiman. Sizga qanday yordam bera olaman?" : 'Здравствуйте! Я цифровой ассистент MyUzCity. Чем могу помочь?'); }
         setTimeout(() => $('#aiIn').focus(), 300); };
       const close = () => { panel.hidden = true; $('#dock').classList.remove('open'); const ai = $('#ai'); const card = $('.ai-card'); if (ai && card && card.parentElement === host) ai.appendChild(card); };
@@ -484,12 +501,13 @@
       const nav = e.target.closest('.nav a[href^="#"]'); if (nav && cur) { e.preventDefault(); const id = nav.getAttribute('href').slice(1); openSv(null, true).then(() => { const el = document.getElementById(id); el && el.scrollIntoView(); }); }
     });
     addEventListener('popstate', () => openSv(new URLSearchParams(location.search).get('s'), false));
-    document.addEventListener('mz:lang', () => { renderCatalog(); wireRobots($('#svcGrid')); agentInit(); if (cur) { const k = cur; cur = null; openSv(k, false); } });
+    document.addEventListener('mz:lang', () => { renderCatalog(); wireRobots($('#svcGrid')); agentInit(); avatar(); if (cur) { const k = cur; cur = null; openSv(k, false); } });
     document.addEventListener('mz:data', () => { if (cur === 'transport' && !$('#svMain .board')) fill('transport'); });
 
     // story steps and nav links point to the service pages
     $$('.go-app[data-sv]').forEach(a => { a.href = `?s=${a.dataset.sv}`; });
     renderCatalog(); wireRobots($('#svcGrid')); agentInit(); wireChat(); dockInit();
+    (window.requestIdleCallback || (f => setTimeout(f, 800)))(() => avatar());
     const hubHome = $('#hubHome'); if (hubHome) { hubHome.innerHTML = hubHtml(false); hubInit(hubHome.querySelector('.hub')); const hh = $('#hubT'); if (hh) { hh.textContent = s('hub_t'); $('#hubS').textContent = s('hub_s'); } }
     const s0 = new URLSearchParams(location.search).get('s'); if (s0) openSv(s0, false);
   }

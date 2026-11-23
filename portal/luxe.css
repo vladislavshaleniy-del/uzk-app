@@ -1,0 +1,137 @@
+/* MyUzCity portal, final layer "Emerald night".
+   Deep emerald-black canvas, ivory text, one gold accent. Pearl lives only in materials:
+   the titanium phone, the robot, hairline borders. Loaded after portal.css and pages.css. */
+:root {
+  --bg0: #020A06; --bg1: #04110A; --bg2: #081A11; --bg3: #0E2519;
+  --tx: #F4F1E8; --mut: rgba(244, 241, 232, .72); --dim: rgba(244, 241, 232, .5);
+  --line: rgba(244, 241, 232, .085); --glass: rgba(244, 241, 232, .035);
+  --acc: #EDB862; --acc2: #D99A3A; --ink: #1A1206;
+  --em: #34D8A4;
+  --card: rgba(7, 24, 15, .8);
+  --hair: linear-gradient(135deg, rgba(255, 255, 255, .2), rgba(237, 184, 98, .16) 35%, rgba(52, 216, 164, .1) 65%, rgba(255, 255, 255, .05));
+  --ti: linear-gradient(var(--fa, 118deg), #161C19 0%, #4C5852 8%, #C9D1CC 14%, #6B7872 21%, #1F2723 36%, #2F3934 55%, #AEB9B2 68%, #F1F4F0 72%, #66736C 80%, #1A201D 100%);
+}
+
+/* ---------- browser surfaces ---------- */
+html { background: var(--bg1); color-scheme: dark; }
+body { background: var(--bg1); color: var(--tx); }
+::selection { background: rgba(237, 184, 98, .34); color: #fff; }
+* { scrollbar-width: thin; scrollbar-color: rgba(244, 241, 232, .2) transparent; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-thumb { background: rgba(244, 241, 232, .16); border-radius: 10px; border: 3px solid var(--bg1); }
+::-webkit-scrollbar-thumb:hover { background: rgba(237, 184, 98, .5); }
+::-webkit-scrollbar-track { background: transparent; }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+input, textarea { caret-color: var(--acc); }
+a { text-underline-offset: .22em; }
+b, .stat b, .facts b, .kp b, .big { font-variant-numeric: tabular-nums; }
+
+/* ---------- canvas: emerald light pooled at the top, nothing hazy over the content ---------- */
+.pearl { inset: 0; animation: none; background:
+  radial-gradient(55% 45% at 82% -6%, rgba(24, 122, 86, .42), transparent 70%),
+  radial-gradient(42% 36% at 4% 8%, rgba(16, 96, 68, .34), transparent 72%),
+  radial-gradient(60% 40% at 50% 112%, rgba(14, 86, 62, .26), transparent 70%),
+  linear-gradient(180deg, #05150D 0%, #04110A 50%, #030D08 100%); }
+.pearl::after { display: none; }
+.grain { opacity: .03; }
+.story::before { opacity: .22; }
+.aurora i { filter: blur(110px); }
+.aurora i:nth-child(1) { background: radial-gradient(circle, rgba(28, 140, 96, .75) 0%, transparent 64%); opacity: .5; }
+.aurora i:nth-child(2) { background: radial-gradient(circle, rgba(237, 184, 98, .45) 0%, transparent 60%); opacity: .22; }
+.aurora i:nth-child(3) { background: radial-gradient(circle, rgba(18, 104, 92, .8) 0%, transparent 62%); opacity: .34; }
+
+/* ---------- type ---------- */
+.hero h1 { color: var(--tx); font-size: clamp(44px, 5.6vw, 86px); line-height: 1.02; letter-spacing: -.04em; max-width: 11ch; text-wrap: balance; }
+.hero h1 span { display: block; }
+.hero h1 em { display: block; font-style: normal; color: var(--acc); }
+h2 { text-wrap: balance; }
+.step.on h2 { text-shadow: none; }
+.step .ic, .b .ic, .ai-top .ic { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g, #EDB862) 26%, transparent), 0 18px 40px -18px color-mix(in srgb, var(--g, #EDB862) 70%, transparent); }
+.facts b { color: var(--tx); }
+.facts b::after { content: ''; display: block; width: 26px; height: 2px; margin-top: 8px; border-radius: 2px; background: var(--g, var(--acc)); }
+
+/* ---------- buttons: polished gold, a soft offset shadow, a real press ---------- */
+.btn-acc { background: linear-gradient(180deg, #F8D58F 0%, #EDB862 46%, #DB9C40 100%); color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -1px 0 rgba(120, 70, 10, .35), 0 14px 30px -14px rgba(219, 156, 64, .75); }
+.btn-acc:hover { background: linear-gradient(180deg, #FBE0A6 0%, #F2C274 46%, #E3A84C 100%); transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -1px 0 rgba(120, 70, 10, .35), 0 20px 40px -16px rgba(219, 156, 64, .85); }
+.btn-acc:active { transform: translateY(0) scale(.98); }
+.btn-ghost { border-color: rgba(244, 241, 232, .2); background: rgba(244, 241, 232, .03); }
+.btn-ghost:hover { border-color: rgba(237, 184, 98, .5); background: rgba(237, 184, 98, .07); }
+.nav, .nav.solid { background: rgba(4, 17, 10, .72); border: 1px solid transparent; background-clip: padding-box; box-shadow: 0 0 0 1px rgba(244, 241, 232, .08), 0 18px 40px -24px rgba(0, 0, 0, .9); }
+.nav.solid { background: rgba(4, 17, 10, .9); }
+.langs button.on { background: var(--acc); color: var(--ink); }
+
+/* ---------- hairline borders: one quiet pearl edge for every panel ---------- */
+.pb, .pn, .app-card, .hub, .ai-card, .agent { background: linear-gradient(var(--card), var(--card)) padding-box, var(--hair) border-box !important; }
+.stat-grid { background: var(--line); }
+.stat { background: rgba(5, 19, 12, .92); }
+.chip { background: rgba(6, 22, 14, .78); border-color: rgba(244, 241, 232, .12); box-shadow: 0 20px 40px -22px rgba(0, 0, 0, .9); }
+.chip .e { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: rgba(237, 184, 98, .1); color: var(--acc); }
+.chip .e svg { width: 24px; height: 24px; }
+.big svg { width: 46px; height: 46px; vertical-align: -6px; color: var(--acc); }
+.days b svg { width: 18px; height: 18px; vertical-align: -3px; color: var(--acc); margin-right: 2px; }
+.w-wx { background: linear-gradient(160deg, rgba(40, 110, 170, .18), transparent 70%), var(--glass); }
+
+/* ---------- the phone: a real titanium body with depth, glass and a cast shadow ---------- */
+.phone-wrap { perspective: 1900px; perspective-origin: 50% 40%; }
+.phone { --ry: -19deg; --rx: 6deg; width: 348px; height: 720px; padding: 10px; border-radius: 60px; transform-style: preserve-3d;
+  transform: rotateY(var(--ry)) rotateX(var(--rx)) rotateZ(.6deg); transition: transform .9s var(--ease);
+  background: var(--ti);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .6), inset 0 0 0 2.5px rgba(0, 0, 0, .6), inset 0 0 0 4px rgba(255, 255, 255, .14);
+  animation: bob 8s ease-in-out infinite; }
+.ph-ex { position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; border-radius: inherit; }
+.ph-ex i { position: absolute; inset: 0; border-radius: 60px; background: var(--ti); transform: translateZ(calc(var(--z) * -1.4px));
+  box-shadow: inset 0 0 0 400px rgba(0, 0, 0, calc(.12 + var(--z) * .035)); }
+.ph-ex i:last-child { box-shadow: inset 0 0 0 400px rgba(0, 0, 0, .7), 34px 54px 90px -24px rgba(0, 0, 0, .9), 0 50px 120px -40px color-mix(in srgb, var(--g) 55%, transparent); }
+.ph-side { width: 20px; background: linear-gradient(180deg, #2A322E, #9AA7A0 18%, #E6EBE7 30%, #6E7B74 46%, #202824 60%, #B9C3BD 82%, #2A322E); }
+.ph-side b { background: linear-gradient(90deg, rgba(0, 0, 0, .5), rgba(255, 255, 255, .25), rgba(0, 0, 0, .5)); width: 12px; left: 4px; }
+.phone::before { transform: translateX(-50%) translateZ(1px); }
+.phone iframe { transform: translateZ(.5px); box-shadow: 0 0 0 4px #030504, 0 0 0 5px rgba(255, 255, 255, .1); border-radius: 48px; }
+.ph-glare { inset: 10px; border-radius: 48px; transform: translateZ(1px);
+  background: linear-gradient(112deg, transparent 26%, rgba(255, 255, 255, .17) 38%, rgba(255, 255, 255, .04) 47%, transparent 56%),
+    linear-gradient(180deg, rgba(255, 255, 255, .1), transparent 14%),
+    radial-gradient(120% 60% at var(--gx, 30%) -12%, rgba(255, 255, 255, .14), transparent 55%);
+  background-size: 240% 100%, 100% 100%, 100% 100%; background-position: var(--gx, 30%) 0, 0 0, 0 0; }
+.ph-floor { width: 360px; height: 56px; bottom: -26px; translate: -38% 0; background: radial-gradient(closest-side, rgba(0, 0, 0, .7), transparent); filter: blur(10px); }
+.phone-wrap::before { background: radial-gradient(circle, color-mix(in srgb, var(--g) 38%, transparent) 0%, color-mix(in srgb, var(--g) 10%, transparent) 40%, transparent 68%); }
+.phone-wrap::after { border-color: color-mix(in srgb, var(--g) 26%, transparent); }
+.try { transform: translateX(-50%) translateZ(2px); background: rgba(4, 17, 10, .82); }
+.mini-phone { background: var(--ti); animation: none; padding: 6px; border-radius: 32px; transform: perspective(800px) rotateY(-16deg) rotateX(5deg); }
+.mini-phone { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55), inset 0 0 0 2px rgba(0, 0, 0, .5), 7px 3px 0 -1px #3A4540, 18px 34px 50px -24px rgba(0, 0, 0, .9); }
+.mp-screen { border-radius: 27px; }
+@media (max-width: 960px) {
+  .phone-wrap { perspective: 1400px; }
+  .phone { --ry: -9deg !important; --rx: 3deg !important; width: min(330px, 80vw); height: min(690px, 168vw); }
+  .ph-floor { width: 260px; }
+}
+
+/* ---------- catalogue tiles: deeper image grade, gold on hover ---------- */
+.tile { box-shadow: inset 0 0 0 1px rgba(244, 241, 232, .07); }
+.tile:hover { box-shadow: inset 0 0 0 1px rgba(237, 184, 98, .35), 0 30px 60px -30px rgba(0, 0, 0, .9); }
+
+/* ---------- 3D robot assistant ---------- */
+.ag-3d { position: absolute; inset: 0; z-index: 0; }
+.ag-3d canvas.r3d { display: block; width: 100%; height: 100%; }
+.has3d > .robot, .has3d .robot { display: none; }
+.agent.has3d .ag-ring { top: 36%; }
+.r3img { position: absolute; pointer-events: none; max-width: none; user-select: none; }
+.tile-ag .r3img { inset: auto 10% -12% auto; height: 118%; width: auto; object-fit: contain; transform: none; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, .6)); }
+.dock-av .r3img { left: 50%; top: -24%; width: 150%; translate: -50% 0; }
+.dock-av { background: radial-gradient(circle at 50% 30%, #145238, #04130B 72%); }
+.dock-bot .ag-3d { inset: 0; }
+
+/* assistant on narrow screens: keep the panel inside the page */
+.ai > * { min-width: 0; }
+.ag-id { min-width: 0; } .ag-id b, .ag-id i { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 960px) {
+  .ai { grid-template-columns: minmax(0, 1fr); }
+  .ag-id { left: 12px; right: 12px; bottom: 12px; padding: 12px 14px; }
+  .ag-id b { font-size: 13.5px; } .ag-id i { font-size: 13px; }
+}
+@media (max-width: 760px) {
+  .ai-top { flex-wrap: wrap; } .ai-top > div { flex: 1 1 100%; } .ai-top .ic { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .phone { animation: none; }
+}

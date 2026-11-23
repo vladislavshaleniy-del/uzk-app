@@ -16,7 +16,7 @@
   const T = {
     ru: {
       n_feat: 'Сервисы', n_map: 'Город на карте', n_ai: 'ИИ-ассистент', n_biz: 'Бизнесу', n_part: 'Партнёрам', cta_open: 'Открыть приложение',
-      h_eyebrow: 'Умный город для Узбекистана', h_t: 'Весь город в одном приложении', h_s: 'Транспорт, медицина, госуслуги, махалля и ИИ-помощник. Бесплатно, на трёх языках.', h_how: 'Как это работает',
+      h_t1: 'Весь город', h_t2: 'в одном приложении', h_s: 'Транспорт, медицина, госуслуги, махалля и ИИ-помощник. Бесплатно, на трёх языках.', h_how: 'Как это работает',
       st1_t: 'Метро, автобусы, поезда и самолёты', st1_s: 'Станции и маршруты рядом с вами, расписание поездов и живое табло аэропортов Узбекистана.', f_metro: 'станций метро', f_bus: 'маршрутов автобусов', f_air: 'аэропортов на табло',
       st2_t: 'Аптеки и клиники, открытые сейчас', st2_s: 'Карта с часами работы, маршрут пешком или на такси и онлайн-запись к врачу через DMED.', f_med: 'аптек и клиник в Ташкенте', f_103: 'скорая в один тап',
       st3_t: 'Яма, мусор, не горит свет? Сообщите', st3_s: 'Фото и точка на карте. Сообщение видят соседи и ответственные службы, статус приходит вам в Telegram.',
@@ -47,7 +47,7 @@
     },
     uz: {
       n_feat: 'Xizmatlar', n_map: 'Shahar xaritada', n_ai: 'AI-yordamchi', n_biz: 'Biznesga', n_part: 'Hamkorlarga', cta_open: 'Ilovani ochish',
-      h_eyebrow: "O'zbekiston uchun aqlli shahar", h_t: 'Butun shahar bitta ilovada', h_s: "Transport, tibbiyot, davlat xizmatlari, mahalla va AI-yordamchi. Bepul, uch tilda.", h_how: 'Qanday ishlaydi',
+      h_t1: 'Butun shahar', h_t2: 'bitta ilovada', h_s: "Transport, tibbiyot, davlat xizmatlari, mahalla va AI-yordamchi. Bepul, uch tilda.", h_how: 'Qanday ishlaydi',
       st1_t: 'Metro, avtobus, poyezd va samolyot', st1_s: "Yaqin bekat va yo'nalishlar, poyezdlar jadvali va O'zbekiston aeroportlarining jonli tablosi.", f_metro: 'metro bekati', f_bus: "avtobus yo'nalishi", f_air: 'aeroport tablosi',
       st2_t: 'Hozir ochiq dorixona va klinikalar', st2_s: "Ish vaqti ko'rsatilgan xarita, piyoda yoki taksida yo'l va DMED orqali shifokorga onlayn yozilish.", f_med: 'Toshkentdagi dorixona va klinika', f_103: 'tez yordam bir bosishda',
       st3_t: "Chuqur, axlat, chiroq yonmayaptimi? Xabar bering", st3_s: "Surat va xaritadagi nuqta. Xabarni qo'shnilar va mas'ul xizmatlar ko'radi, holati Telegramga keladi.",
@@ -78,7 +78,7 @@
     },
     en: {
       n_feat: 'Services', n_map: 'City map', n_ai: 'AI assistant', n_biz: 'Business', n_part: 'Partners', cta_open: 'Open the app',
-      h_eyebrow: 'A smart city for Uzbekistan', h_t: 'Your whole city in one app', h_s: 'Transport, healthcare, public services, mahalla and an AI assistant. Free, in three languages.', h_how: 'See how it works',
+      h_t1: 'Your whole city', h_t2: 'in one app', h_s: 'Transport, healthcare, public services, mahalla and an AI assistant. Free, in three languages.', h_how: 'See how it works',
       st1_t: 'Metro, buses, trains and flights', st1_s: 'Stops and routes near you, train timetables and live departure boards of Uzbekistan’s airports.', f_metro: 'metro stations', f_bus: 'bus routes', f_air: 'airport boards',
       st2_t: 'Pharmacies and clinics open now', st2_s: 'A map with opening hours, walking or taxi routes and online doctor booking via DMED.', f_med: 'pharmacies and clinics in Tashkent', f_103: 'ambulance in one tap',
       st3_t: 'Pothole, litter, broken light? Report it', st3_s: 'A photo and a point on the map. Neighbours and city services see it, and the status comes to your Telegram.',
@@ -129,23 +129,6 @@
       ['stack', { ru: 'Живые данные', uz: "Jonli ma'lumotlar", en: 'Live data' }, { ru: 'Транспорт, медицина, погода, курсы и новости обновляются автоматически.', uz: "Transport, tibbiyot, ob-havo, kurslar va yangiliklar avtomatik yangilanadi.", en: 'Transport, healthcare, weather, rates and news update automatically.' }],
       ['chart-line-up', { ru: 'Модель роста', uz: "O'sish modeli", en: 'Growth model' }, { ru: 'Подписка для хокимиятов, продвижение бизнеса на карте и партнёрские комиссии за билеты и услуги.', uz: "Hokimliklar uchun obuna, xaritada biznesni targ'ib qilish va chipta va xizmatlar uchun hamkorlik komissiyalari.", en: 'Subscriptions for city halls, business promotion on the map and partner commissions on tickets and services.' }]],
   };
-  const TICK = [
-    ['train', '#EF4444', 'Метро', 'Metro', 'Metro'], ['bus', '#3B82F6', 'Автобусы и маршрутки', 'Avtobuslar', 'Buses'], ['airplane-tilt', '#8B5CF6', 'Табло аэропортов', 'Aeroport tablosi', 'Airport boards'],
-    ['car', '#F59E0B', 'Такси', 'Taksi', 'Taxi'], ['pill', '#22C55E', 'Аптеки 24/7', 'Dorixonalar 24/7', 'Pharmacies 24/7'], ['stethoscope', '#14B8A6', 'Запись к врачу', 'Shifokorga yozilish', 'Doctor booking'],
-    ['bank', '#F2B45A', 'Госуслуги', 'Davlat xizmatlari', 'Public services'], ['scales', '#F87171', 'Штрафы', 'Jarimalar', 'Fines'], ['map-pin', '#60A5FA', 'Парковки', 'Parkovkalar', 'Parking'],
-    ['video-camera', '#F87171', 'Камеры', 'Kameralar', 'Cameras'], ['charging-station', '#FACC15', 'Электрозарядки', 'Elektr zaryadlash', 'EV chargers'], ['cloud-sun', '#38BDF8', 'Погода и воздух', 'Ob-havo va havo', 'Weather and air'],
-    ['currency-dollar', '#4ADE80', 'Курсы валют', 'Valyuta kurslari', 'Exchange rates'], ['moon-stars', '#2DD4BF', 'Время намаза', 'Namoz vaqti', 'Prayer times'], ['mosque', '#2DD4BF', 'Мечети', 'Masjidlar', 'Mosques'],
-    ['graduation-cap', '#A78BFA', 'Школы и детсады', "Maktab va bog'chalar", 'Schools'], ['ticket', '#FB923C', 'Афиша', 'Afisha', 'Events'], ['newspaper', '#94A3B8', 'Новости', 'Yangiliklar', 'News'],
-    ['chart-bar', '#F2B45A', 'Опросы махалли', "Mahalla so'rovnomalari", 'Mahalla polls'], ['chat-circle-dots', '#14B8A6', 'Чат соседей', "Qo'shnilar chati", 'Neighbours chat'], ['storefront', '#FB923C', 'Маркетплейс', 'Marketpleys', 'Marketplace'],
-    ['siren', '#EF4444', 'Тревожная кнопка', 'Xavf tugmasi', 'Panic button'], ['identification-card', '#A78BFA', 'Документы', 'Hujjatlar', 'Documents'], ['megaphone', '#F59E0B', 'Сообщить о проблеме', 'Muammo haqida xabar', 'Report a problem'],
-    ['sparkle', '#F2B45A', 'ИИ-помощник', 'AI-yordamchi', 'AI assistant'], ['microphone', '#F2B45A', 'Голосовой ввод', 'Ovozli kiritish', 'Voice input'], ['compass', '#38BDF8', 'Достопримечательности', 'Diqqatga sazovor joylar', 'Sights'],
-    ['fork-knife', '#FB923C', 'Кафе и рестораны', 'Kafe va restoranlar', 'Cafes'], ['recycle', '#4ADE80', 'Переработка', 'Qayta ishlash', 'Recycling'], ['briefcase', '#94A3B8', 'Бизнесу', 'Biznesga', 'For business'],
-  ];
-  function renderTicker() {
-    const li = TICK.map(([i, c, ru, uz, en]) => `<span class="tk${i === 'sparkle' ? ' hot' : ''}" style="--c:${c}">${ic(i)}${esc(L === 'uz' ? uz : L === 'en' ? en : ru)}</span>`);
-    const half = Math.ceil(li.length / 2), a = li.slice(0, half).join(''), b = li.slice(half).join('');
-    $('#tk1').innerHTML = a + a; $('#tk2').innerHTML = b + b;
-  }
   let L = 'ru';
   try { const q = new URLSearchParams(location.search).get('lang'); L = T[q] ? q : (localStorage.getItem('mz-portal-lang') || ((navigator.language || '').startsWith('uz') ? 'uz' : (navigator.language || '').startsWith('en') ? 'en' : 'ru')); if (!T[L]) L = 'ru'; } catch (e) {}
   const t = k => (T[L][k] != null ? T[L][k] : T.ru[k]);
@@ -161,7 +144,7 @@
     $$('[data-open]').forEach(a => { a.href = appLink(a.dataset.open, a.dataset.p); });
     $$('[data-priv]').forEach(a => { a.href = '/privacy.html?lang=' + L; });
     $$('.install-app').forEach(a => { a.href = APP + '?lang=' + L; });
-    renderTicker(); renderMoments(); renderTabs(curTab); renderSug(); paintWidgets();
+    renderMoments(); renderTabs(curTab); renderSug(); paintWidgets();
     document.dispatchEvent(new CustomEvent('mz:lang', { detail: L }));
     const f = $('#appFrame'); if (f && f.dataset.ready) try { f.contentWindow.postMessage({ mz: 'lang', l: L }, '*'); } catch (e) {}
   }
@@ -201,14 +184,14 @@
   // gentle tilt of the device following the pointer (hero only)
   if (!RM) {
     let raf = 0; const wrap = $('#phoneWrap');
-    wrap.addEventListener('pointermove', e => { if (!story.classList.contains('at-hero') || phone.classList.contains('live')) return; const r = wrap.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { phone.style.setProperty('--ry', (x * 14 - 4) + 'deg'); phone.style.setProperty('--rx', (-y * 10 + 2) + 'deg'); }); });
+    wrap.addEventListener('pointermove', e => { if (!story.classList.contains('at-hero') || phone.classList.contains('live')) return; const r = wrap.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { phone.style.setProperty('--ry', (x * 22 - 17) + 'deg'); phone.style.setProperty('--rx', (-y * 12 + 6) + 'deg'); }); });
     wrap.addEventListener('pointerleave', () => { phone.style.removeProperty('--ry'); phone.style.removeProperty('--rx'); });
     wrap.addEventListener('pointermove', e => { const r = phone.getBoundingClientRect(); phone.style.setProperty('--gx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%'); });
   }
 
   // ---------------- data ----------------
   const D = { wx: null, aq: null, fx: null, fl: null, news: null, poi: null, transit: null, places: null };
-  const WMO = c => c === 0 ? '☀️' : c <= 2 ? '🌤️' : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 67 ? '🌧️' : c <= 77 ? '🌨️' : c <= 82 ? '🌦️' : c <= 86 ? '🌨️' : '⛈️';
+  const WMO = c => ic(c === 0 ? 'sun' : c <= 3 ? 'cloud-sun' : c <= 48 ? 'wind' : c <= 67 ? 'drop' : c <= 77 ? 'thermometer' : c <= 82 ? 'drop' : c <= 86 ? 'thermometer' : 'lightning');
   const AQC = ['#4ADE80', '#FACC15', '#FB923C', '#F87171', '#C084FC', '#9F1239'];
   const aqLvl = v => v == null ? -1 : v <= 50 ? 0 : v <= 100 ? 1 : v <= 150 ? 2 : v <= 200 ? 3 : v <= 300 ? 4 : 5;
   function prayTimes(lat, lon) {
@@ -243,8 +226,8 @@
     const n = new Date(Date.now() + 5 * 3600e3), now = n.getUTCHours() * 60 + n.getUTCMinutes(); let nx = P.findIndex(m => m > now); if (nx < 0) nx = 0;
     if (c) { const e = $('#cWx'); e.hidden = false; e.innerHTML = `<span class="e">${WMO(c.weather_code)}</span><div>${esc(t('w_wx'))}<b>${c.temperature_2m > 0 ? '+' : ''}${Math.round(c.temperature_2m)}°C</b></div>`; }
     if (a && a.us_aqi != null) { const v = Math.round(a.us_aqi), lv = aqLvl(v), e = $('#cAq'); e.hidden = false; e.innerHTML = `<span class="dot" style="background:${AQC[lv]}"></span><div>${esc(t('w_air'))}<b>AQI ${v}</b></div>`; }
-    const u = D.fx && D.fx.list && D.fx.list.find(x => x.c === 'USD'); if (u) { const e = $('#cFx'); e.hidden = false; e.innerHTML = `<span class="e">💵</span><div>USD<b>${fmt(u.r)}</b></div>`; }
-    const e4 = $('#cPr'); e4.hidden = false; e4.innerHTML = `<span class="e">🕌</span><div>${esc(t('pr')[nx])}<b>${hm(P[nx])}</b></div>`;
+    const u = D.fx && D.fx.list && D.fx.list.find(x => x.c === 'USD'); if (u) { const e = $('#cFx'); e.hidden = false; e.innerHTML = `<span class="e">${ic('currency-dollar')}</span><div>USD<b>${fmt(u.r)}</b></div>`; }
+    const e4 = $('#cPr'); e4.hidden = false; e4.innerHTML = `<span class="e">${ic('mosque')}</span><div>${esc(t('pr')[nx])}<b>${hm(P[nx])}</b></div>`;
   }
 
   // animated counters
