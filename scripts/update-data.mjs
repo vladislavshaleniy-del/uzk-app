@@ -152,7 +152,13 @@ async function places() {
   const fresh = prev && prev.v === 2 && Date.now() - Date.parse(prev.updated) < 6 * 864e5;
   if (fresh && !process.env.FORCE_PLACES) { console.log('places: fresh, skipped'); return; }
   const index = { v: 2, updated: new Date().toISOString(), cities: {} };
-  for (let i = 0; i < CITIES.length; i++) {
+  // big and tourist cities first; stop after ~12 minutes and keep the previous files for the rest
+  const BIG = ['Ташкент', 'Самарканд', 'Бухара', 'Хива', 'Ургенч', 'Наманган', 'Андижан', 'Фергана', 'Коканд', 'Маргилан', 'Нукус', 'Карши', 'Шахрисабз', 'Термез', 'Джизак', 'Навои', 'Гулистан', 'Чирчик'];
+  const order = CITIES.map((c, i) => i).filter(i => BIG.includes(CITIES[i][0])).sort((a, b) => BIG.indexOf(CITIES[a][0]) - BIG.indexOf(CITIES[b][0]));
+  const t0 = Date.now();
+  for (const i of CITIES.map((c, k) => k)) if (!order.includes(i) && existsSync(dir + i + '.json')) index.cities[i] = JSON.parse(readFileSync(dir + i + '.json', 'utf8')).length;
+  for (const i of order) {
+    if (Date.now() - t0 > 12 * 60e3) { if (existsSync(dir + i + '.json')) index.cities[i] = JSON.parse(readFileSync(dir + i + '.json', 'utf8')).length; continue; }
     const [, , , , , lat, lon] = CITIES[i];
     const r = i === 0 ? 16000 : 6000;
     const q = `[out:json][timeout:90];nwr["amenity"~"^(restaurant|cafe|fast_food|bar|pub|hookah_lounge|food_court|biergarten)$"]["name"](around:${r},${lat},${lon});out center tags;`;
@@ -163,7 +169,8 @@ async function places() {
       if (list.length) { writeFileSync(dir + i + '.json', JSON.stringify(list)); index.cities[i] = list.length; }
       console.log(`places ${CITIES[i][0]}: ${list.length}`);
     } catch (e) { console.log(`places ${CITIES[i][0]} failed: ${e.message}`); if (existsSync(dir + i + '.json')) index.cities[i] = JSON.parse(readFileSync(dir + i + '.json', 'utf8')).length; }
-    await new Promise(r => setTimeout(r, 2500));
+    writeFileSync(marker, JSON.stringify(index));
+    await new Promise(r => setTimeout(r, 1500));
   }
   writeFileSync(marker, JSON.stringify(index));
 }
