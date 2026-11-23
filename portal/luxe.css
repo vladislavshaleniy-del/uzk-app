@@ -14,7 +14,7 @@
 
 /* ---------- browser surfaces ---------- */
 html { background: var(--bg1); color-scheme: dark; }
-body { background: var(--bg1); color: var(--tx); }
+body { background: transparent; color: var(--tx); }
 ::selection { background: rgba(237, 184, 98, .34); color: #fff; }
 * { scrollbar-width: thin; scrollbar-color: rgba(244, 241, 232, .2) transparent; }
 ::-webkit-scrollbar { width: 11px; height: 11px; }
@@ -39,6 +39,13 @@ b, .stat b, .facts b, .kp b, .big { font-variant-numeric: tabular-nums; }
 .aurora i:nth-child(1) { background: radial-gradient(circle, rgba(28, 140, 96, .75) 0%, transparent 64%); opacity: .5; }
 .aurora i:nth-child(2) { background: radial-gradient(circle, rgba(237, 184, 98, .45) 0%, transparent 60%); opacity: .22; }
 .aurora i:nth-child(3) { background: radial-gradient(circle, rgba(18, 104, 92, .8) 0%, transparent 62%); opacity: .34; }
+
+/* the city at night behind the first screen */
+.hero-bg { position: absolute; top: 0; left: 50%; width: 100vw; height: 100vh; translate: -50% 0; z-index: -2; pointer-events: none; opacity: .62;
+  background: url('/portal/art/city.webp?v=2') 70% 40% / cover no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, #000 35%, transparent 98%); mask-image: linear-gradient(180deg, #000 35%, transparent 98%); }
+.hero-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(4, 17, 10, .96) 0%, rgba(4, 17, 10, .78) 34%, rgba(4, 17, 10, .2) 70%, rgba(4, 17, 10, .35) 100%); }
+@media (max-width: 960px) { .hero-bg { opacity: .45; height: 100svh; } .hero-bg::after { background: linear-gradient(180deg, rgba(4, 17, 10, .55), rgba(4, 17, 10, .85)); } }
 
 /* ---------- type ---------- */
 .hero h1 { color: var(--tx); font-size: clamp(44px, 5.6vw, 86px); line-height: 1.02; letter-spacing: -.04em; max-width: 11ch; text-wrap: balance; }
@@ -110,16 +117,45 @@ h2 { text-wrap: balance; }
 .tile { box-shadow: inset 0 0 0 1px rgba(244, 241, 232, .07); }
 .tile:hover { box-shadow: inset 0 0 0 1px rgba(237, 184, 98, .35), 0 30px 60px -30px rgba(0, 0, 0, .9); }
 
-/* ---------- 3D robot assistant ---------- */
-.ag-3d { position: absolute; inset: 0; z-index: 0; }
-.ag-3d canvas.r3d { display: block; width: 100%; height: 100%; }
-.has3d > .robot, .has3d .robot { display: none; }
-.agent.has3d .ag-ring { top: 36%; }
-.r3img { position: absolute; pointer-events: none; max-width: none; user-select: none; }
-.tile-ag .r3img { inset: auto 10% -12% auto; height: 118%; width: auto; object-fit: contain; transform: none; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, .6)); }
-.dock-av .r3img { left: 50%; top: -24%; width: 150%; translate: -50% 0; }
+/* ---------- the assistant: a robot in a dark green suit, code living on its visor ---------- */
+.bot { position: relative; aspect-ratio: 2 / 3; --vx: 38.3%; --vy: 12.7%; --vw: 40%; --vh: 22.4%; --mx: 58.6%; --my: 30.1%; perspective: 900px; }
+.bot.tiny { aspect-ratio: 1; --vx: 21.1%; --vy: 18.7%; --vw: 57%; --vh: 47.8%; --mx: 50%; --my: 55.8%; }
+.bot-in { position: absolute; inset: 0; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .9s var(--ease); transform-origin: 50% 40%; }
+.bot-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; -webkit-user-drag: none; user-select: none; }
+.bot-visor { position: absolute; left: var(--vx); top: var(--vy); width: var(--vw); height: var(--vh); mix-blend-mode: screen; opacity: .6;
+  -webkit-mask: radial-gradient(closest-side, #000 62%, transparent 100%); mask: radial-gradient(closest-side, #000 62%, transparent 100%); pointer-events: none; }
+.bot-visor canvas { display: block; width: 100%; height: 100%; }
+.bot-mouth { position: absolute; left: var(--mx); top: var(--my); width: calc(var(--vw) * .5); aspect-ratio: 2.4; translate: -50% -50%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(120, 255, 190, .85), rgba(52, 230, 150, .35) 55%, transparent); mix-blend-mode: screen; opacity: 0; }
+body.rb-talking .bot-mouth { animation: botTalk .34s ease-in-out infinite alternate; }
+@keyframes botTalk { from { opacity: .25; transform: scale(.8, .6); } to { opacity: .95; transform: scale(1.1, 1.25); } }
+.bot-visor::after { content: ''; }
+.bot-sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: overlay;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .55) 50%, transparent 60%) no-repeat; background-size: 300% 100%; background-position: 130% 0;
+  -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; animation: botSheen 7s var(--ease) 1.5s infinite; }
+@keyframes botSheen { 0% { background-position: 130% 0; } 40%, 100% { background-position: -30% 0; } }
+.bot.big, .bot.mid { animation: botFloat 7s ease-in-out infinite; }
+@keyframes botFloat { 50% { translate: 0 -8px; } }
+/* placements */
+.agent .bot.big { position: absolute; left: 50%; bottom: 0; height: 97%; width: auto; translate: -50% 0; scale: -1 1; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .55)) drop-shadow(0 0 40px rgba(52, 216, 164, .14)); animation: none; }
+.agent .bot.big .bot-in, .dock-bot .bot.mid .bot-in { transform: rotateX(var(--rx, 0deg)) rotateY(calc(var(--ry, 0deg) * -1)); }
+.agent .bot.big .bot-in { animation: botFloat 7s ease-in-out infinite; }
+.agent .ag-ring { top: 30%; width: 380px; height: 380px; }
+.agent .ag-id { z-index: 2; }
+.dock-bot .bot.mid { position: absolute; left: 50%; bottom: 0; height: 84%; width: auto; translate: -50% 0; scale: -1 1; animation: none; filter: drop-shadow(0 24px 30px rgba(0, 0, 0, .6)); }
+.dock-bot .bot.mid .bot-in { animation: botFloat 7s ease-in-out infinite; }
+.dock-av .bot.tiny { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; }
+.dock-av .bot.tiny .bot-img { object-fit: cover; }
 .dock-av { background: radial-gradient(circle at 50% 30%, #145238, #04130B 72%); }
-.dock-bot .ag-3d { inset: 0; }
+.tile-ag .bot.tile { position: absolute; right: 8%; bottom: -14%; height: 128%; width: auto; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, .6)); }
+.tile .bot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: auto; transform: none; filter: none; }
+.tile:hover .bot img { transform: none; }
+@media (max-width: 760px) {
+  .dock-bot .bot.mid { left: auto; right: 2%; translate: 0 0; height: 200%; bottom: -128%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bot, .bot-in, .bot-sheen, body.rb-talking .bot-mouth { animation: none !important; }
+}
 
 /* assistant on narrow screens: keep the panel inside the page */
 .ai > * { min-width: 0; }

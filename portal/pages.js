@@ -9,7 +9,7 @@
     const { $, $$, esc, ic, getJ, fmt, DATA, API, D } = MZ;
     const t = k => MZ.t(k), L = () => MZ.lang();
     const pick = o => (o && (o[L()] || o.ru)) || '';
-    const ART = n => `/portal/art/${n}.webp`;
+    const ART = n => `/portal/art/${n}.webp?v=2`;
     const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // ---------------- texts of this module ----------------
@@ -320,73 +320,38 @@
     }
     R.map = async () => ({ k: '', m: `<div class="pn wide hub-wrap">${hubHtml(true)}</div>`, after: () => hubInit($('#svMain .hub')) });
 
-    // ---------------- the digital assistant: a robot in a suit with matrix code flowing over its glass face ----------------
-    const FACE = 'M200 118C246 118 268 146 268 190C268 236 250 272 224 290C214 297 207 300 200 300C193 300 186 297 176 290C150 272 132 236 132 190C132 146 154 118 200 118Z';
-    const MASK = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='132 118 136 182' preserveAspectRatio='none'><path d='${FACE}' fill='#fff'/></svg>`)}")`;
-    let rid = 0;
-    function ROBOT(cls = '') {
-      const i = ++rid, g = n => `${n}${i}`;
-      return `<div class="robot ${cls}">
-<svg class="rb-back" viewBox="0 0 400 520" aria-hidden="true"><defs>
- <linearGradient id="${g('sh')}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F7FAF8"/><stop offset=".35" stop-color="#D6E1DC"/><stop offset=".7" stop-color="#9FB3AA"/><stop offset="1" stop-color="#C9D6CF"/></linearGradient>
- <linearGradient id="${g('mt')}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7E918A"/><stop offset=".5" stop-color="#E4EBE7"/><stop offset="1" stop-color="#76887F"/></linearGradient>
- <linearGradient id="${g('su')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3532"/><stop offset="1" stop-color="#0A100D"/></linearGradient>
- <radialGradient id="${g('hl')}" cx=".3" cy=".2" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
-</defs>
- <path d="M10 520C18 432 64 392 150 364L200 520Z" fill="url(#${g('su')})"/><path d="M390 520C382 432 336 392 250 364L200 520Z" fill="url(#${g('su')})"/>
- <path d="M160 368L200 520L240 368L200 404Z" fill="#F5F8F6"/>
- <path d="M152 360L200 432L184 448L132 394Z" fill="#FBFDFC"/><path d="M248 360L200 432L216 448L268 394Z" fill="#E3EAE6"/>
- <path d="M193 410L207 410L212 424L204 498L200 506L196 498L188 424Z" fill="#0E1512"/><path d="M193 410L207 410L204 420L196 420Z" fill="#1B2622"/>
- <path d="M150 364L186 478L150 444L116 400Z" fill="#323D39"/><path d="M250 364L214 478L250 444L284 400Z" fill="#27312D"/>
- <path d="M300 432L340 432L336 448L304 448Z" fill="#F2B45A" opacity=".9"/>
- <rect x="176" y="300" width="48" height="66" rx="8" fill="url(#${g('mt')})"/><rect x="172" y="316" width="56" height="9" rx="4.5" fill="#5F716A"/><rect x="172" y="336" width="56" height="9" rx="4.5" fill="#5F716A"/>
- <line x1="200" y1="78" x2="200" y2="54" stroke="#9FB3AA" stroke-width="4" stroke-linecap="round"/><circle class="rb-ant" cx="200" cy="50" r="6.5" fill="#5EEAD4"/>
- <circle cx="102" cy="200" r="22" fill="url(#${g('mt')})"/><circle cx="298" cy="200" r="22" fill="url(#${g('mt')})"/><circle class="rb-ear" cx="102" cy="200" r="11" fill="#0B1F18" stroke="#5EEAD4" stroke-width="3"/><circle class="rb-ear" cx="298" cy="200" r="11" fill="#0B1F18" stroke="#5EEAD4" stroke-width="3"/>
- <path d="M200 78C262 78 296 120 296 186C296 250 272 300 236 322C224 330 212 334 200 334C188 334 176 330 164 322C128 300 104 250 104 186C104 120 138 78 200 78Z" fill="url(#${g('sh')})"/>
- <path d="M200 78C262 78 296 120 296 186C296 250 272 300 236 322C224 330 212 334 200 334C188 334 176 330 164 322C128 300 104 250 104 186C104 120 138 78 200 78Z" fill="url(#${g('hl')})" opacity=".6"/>
- <path d="M140 108C160 92 240 92 260 108" stroke="#8FA39A" stroke-width="2" fill="none" opacity=".7"/><path d="M118 230C124 270 140 296 166 316" stroke="#8FA39A" stroke-width="1.6" fill="none" opacity=".5"/><path d="M282 230C276 270 260 296 234 316" stroke="#8FA39A" stroke-width="1.6" fill="none" opacity=".5"/>
- <path d="${FACE}" fill="#03140D"/>
-</svg>
-<div class="rb-face" style="-webkit-mask-image:${MASK.replace(/"/g, '&quot;')};mask-image:${MASK.replace(/"/g, '&quot;')}"><canvas></canvas></div>
-<svg class="rb-front" viewBox="0 0 400 520" aria-hidden="true"><defs>
- <linearGradient id="${g('gl')}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
- <filter id="${g('gw')}" x="-60%" y="-200%" width="220%" height="500%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-</defs>
- <path d="${FACE}" fill="url(#${g('gl')})"/><path d="${FACE}" fill="none" stroke="#B9CBC3" stroke-width="3"/><path d="${FACE}" fill="none" stroke="#5EEAD4" stroke-width="1" opacity=".5" transform="translate(200 209) scale(.96) translate(-200 -209)"/>
- <g class="rb-eyes" filter="url(#${g('gw')})"><rect x="152" y="184" width="34" height="11" rx="5.5" fill="#99F6E4"/><rect x="214" y="184" width="34" height="11" rx="5.5" fill="#99F6E4"/></g>
- <g class="rb-mouth" filter="url(#${g('gw')})">${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(k => `<rect x="${174 + k * 6}" y="252" width="3.6" height="8" rx="1.8" fill="#5EEAD4" style="--k:${k}"/>`).join('')}</g>
-</svg></div>`;
+    // ---------------- the digital assistant: a robot in a dark green suit; matrix code lives on its glass visor ----------------
+    const BOT = { big: '/portal/art/robot.webp?v=1', mid: '/portal/art/robot.webp?v=1', tile: '/portal/art/robot-sm.webp?v=1', tiny: '/portal/art/robot-head.webp?v=1' };
+    function ROBOT(cls = 'big') {
+      const src = BOT[cls] || BOT.big;
+      return `<div class="bot ${cls}" style="--src:url('${src}')"><div class="bot-in"><img class="bot-img" src="${src}" alt="" decoding="async"${cls === 'big' ? '' : ' loading="lazy"'}>
+<div class="bot-visor"><canvas></canvas></div><i class="bot-mouth"></i><i class="bot-sheen"></i></div></div>`;
     }
-    // real-time 3D robot (three.js), with the drawn robot as a fallback when WebGL is missing
-    let R3 = null; const R3I = new Set();
-    const r3d = () => R3 || (R3 = import('/portal/robot3d.js?v=2').catch(() => null));
-    async function mount3d(host, opts) { const m = await r3d(); if (!m) return null; const inst = m.mountRobot(host, opts); if (inst) { R3I.add(inst); host.parentElement.classList.add('has3d'); } return inst; }
-    async function avatar() {
-      const m = await r3d(); if (!m) return;
-      const tmp = document.createElement('div'); tmp.style.cssText = 'position:fixed;left:-2000px;top:0;width:420px;height:520px'; document.body.appendChild(tmp);
-      const inst = m.mountRobot(tmp, { snapshot: true }); if (!inst) { tmp.remove(); return; }
-      await new Promise(r => setTimeout(r, 120)); const url = inst.snapshot(); inst.dispose(); tmp.remove();
-      $$('.dock-av, .tile-ag').forEach(el => { el.classList.add('has3d'); let im = el.querySelector('img.r3img'); if (!im) { im = document.createElement('img'); im.className = 'r3img'; im.alt = ''; el.appendChild(im); } im.src = url; });
-      document.documentElement.style.setProperty('--robot-img', `url(${url})`);
-    }
-    // falling code inside every robot face that is on screen
+    // falling code on every visor that is on screen
     const robots = new Set();
     const MGL = 'アイウエオカキクケコサシスセソタチツテト0123456789ABCDEF'.split('');
     function robotsTick() {
       robots.forEach(r => {
         if (!r.vis) return; const { cv, ctx } = r; const w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
-        const dpr = Math.min(2, devicePixelRatio || 1); if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); r.fs = Math.max(7, Math.round(w / 15)) * dpr; r.cols = Array(Math.ceil(cv.width / r.fs)).fill(0).map(() => Math.random() * cv.height / r.fs); }
-        ctx.fillStyle = 'rgba(3, 20, 13, .2)'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.font = `${r.fs}px monospace`;
-        r.cols.forEach((y, i) => { const hot = Math.random() > .93; ctx.fillStyle = hot ? '#E6FFFA' : `rgba(45, 212, 191, ${.45 + Math.random() * .4})`; ctx.fillText(MGL[(Math.random() * MGL.length) | 0], i * r.fs, y * r.fs); r.cols[i] = y * r.fs > cv.height && Math.random() > .95 ? 0 : y + (r.talk ? 1.6 : 1); });
+        const dpr = Math.min(2, devicePixelRatio || 1); if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); r.fs = Math.max(6, Math.round(w / 22)) * dpr; r.cols = Array(Math.ceil(cv.width / r.fs)).fill(0).map(() => Math.random() * cv.height / r.fs); }
+        ctx.fillStyle = 'rgba(0, 0, 0, .22)'; ctx.globalCompositeOperation = 'destination-out'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.globalCompositeOperation = 'source-over';
+        ctx.font = `${r.fs}px monospace`;
+        r.cols.forEach((y, i) => { const hot = Math.random() > .94; ctx.fillStyle = hot ? '#E6FFF4' : `rgba(52, 230, 150, ${.5 + Math.random() * .4})`; ctx.fillText(MGL[(Math.random() * MGL.length) | 0], i * r.fs, y * r.fs); r.cols[i] = y * r.fs > cv.height && Math.random() > .95 ? 0 : y + (r.talk ? 1.7 : 1); });
       });
     }
-    if (!RM) { let last = 0; const loop = now => { requestAnimationFrame(loop); if (now - last > 70) { last = now; robotsTick(); } }; requestAnimationFrame(loop); }
+    if (!RM) { let last = 0; const loop = now => { requestAnimationFrame(loop); if (now - last > 66) { last = now; robotsTick(); } }; requestAnimationFrame(loop); }
     const vio = new IntersectionObserver(es => es.forEach(e => { const r = [...robots].find(x => x.el === e.target); if (r) r.vis = e.isIntersecting; }));
     function wireRobots(root = document) {
-      root.querySelectorAll('.robot').forEach(el => { if (el.dataset.w) return; el.dataset.w = 1; const cv = el.querySelector('canvas'); const r = { el, cv, ctx: cv.getContext('2d'), vis: false, talk: false }; robots.add(r); vio.observe(el);
-        if (RM) { requestAnimationFrame(() => { cv.width = cv.clientWidth; cv.height = cv.clientHeight; r.ctx.fillStyle = '#05261A'; r.ctx.fillRect(0, 0, cv.width, cv.height); }); } });
+      root.querySelectorAll('.bot').forEach(el => { if (el.dataset.w) return; el.dataset.w = 1; const cv = el.querySelector('canvas'); const r = { el, cv, ctx: cv.getContext('2d'), vis: false, talk: false }; robots.add(r); vio.observe(el); });
     }
-    const setTalk = on => { robots.forEach(r => { r.talk = on; }); R3I.forEach(i => i.setTalking(on)); document.body.classList.toggle('rb-talking', on); };
+    // the big robots lean a little toward the pointer
+    if (!RM && matchMedia('(pointer: fine)').matches) {
+      let raf = 0; addEventListener('pointermove', e => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => {
+        $$('.bot.big, .bot.mid').forEach(b => { const r = b.getBoundingClientRect(); if (!r.width || r.bottom < 0 || r.top > innerHeight) return;
+          const x = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (innerWidth / 2))), y = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height * .3)) / (innerHeight / 2)));
+          b.style.setProperty('--rx', (-y * 4).toFixed(2) + 'deg'); b.style.setProperty('--ry', (x * 7).toFixed(2) + 'deg'); }); }); }, { passive: true });
+    }
+    const setTalk = on => { robots.forEach(r => { r.talk = on; }); document.body.classList.toggle('rb-talking', on); };
 
     // ---------------- voice: speak replies, listen with the microphone, soft sounds ----------------
     let VOICE = true; try { VOICE = localStorage.getItem('mz-voice') !== '0'; } catch (e) {}
@@ -430,11 +395,10 @@
     // big robot beside the chat (home section and the assistant page)
     function agentInit() {
       const box = $('#agent'); if (!box) return;
-      if (box.dataset.r3) { const id = box.querySelector('.ag-id'); if (id) id.innerHTML = `<span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i>`; return; }
+      if (box.dataset.w) { const id = box.querySelector('.ag-id'); if (id) id.innerHTML = `<span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i>`; return; }
+      box.dataset.w = 1;
       box.innerHTML = `<canvas class="ag-rain"></canvas><div class="ag-ring"></div>${ROBOT('big')}<div class="ag-id"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i></div>`;
       wireRobots(box); rain(box.querySelector('.ag-rain'), box);
-      if (!box.dataset.r3) { box.dataset.r3 = 1; const h = document.createElement('div'); h.className = 'ag-3d'; box.insertBefore(h, box.querySelector('.ag-id'));
-        new IntersectionObserver(([e], o) => { if (e.isIntersecting) { o.disconnect(); mount3d(h); } }, { rootMargin: '200px' }).observe(box); }
     }
     function rain(cv, box) {
       if (RM || !cv) return; const ctx = cv.getContext('2d'); let cols = [], W = 0, H = 0, fs = 14, last = 0, vis = true;
@@ -453,9 +417,7 @@
       wireRobots($('#dock'));
       const btn = $('#dockBtn'), panel = $('#dockPanel'), host = $('#dockChat');
       let greeted = false;
-      let mid3 = false;
       const open = () => { const card = $('.ai-card'); host.appendChild(card); panel.hidden = false; $('#dock').classList.add('open'); blip(440, 880, .16);
-        if (!mid3) { mid3 = true; const h = document.createElement('div'); h.className = 'ag-3d'; $('.dock-bot').insertBefore(h, $('.dock-name')); mount3d(h); }
         if (!greeted) { greeted = true; speak(L() === 'en' ? 'Hello! I am the MyUzCity digital assistant. How can I help?' : L() === 'uz' ? "Assalomu alaykum! Men MyUzCity raqamli yordamchisiman. Sizga qanday yordam bera olaman?" : 'Здравствуйте! Я цифровой ассистент MyUzCity. Чем могу помочь?'); }
         setTimeout(() => $('#aiIn').focus(), 300); };
       const close = () => { panel.hidden = true; $('#dock').classList.remove('open'); const ai = $('#ai'); const card = $('.ai-card'); if (ai && card && card.parentElement === host) ai.appendChild(card); };
@@ -501,13 +463,12 @@
       const nav = e.target.closest('.nav a[href^="#"]'); if (nav && cur) { e.preventDefault(); const id = nav.getAttribute('href').slice(1); openSv(null, true).then(() => { const el = document.getElementById(id); el && el.scrollIntoView(); }); }
     });
     addEventListener('popstate', () => openSv(new URLSearchParams(location.search).get('s'), false));
-    document.addEventListener('mz:lang', () => { renderCatalog(); wireRobots($('#svcGrid')); agentInit(); avatar(); if (cur) { const k = cur; cur = null; openSv(k, false); } });
+    document.addEventListener('mz:lang', () => { renderCatalog(); wireRobots($('#svcGrid')); agentInit(); if (cur) { const k = cur; cur = null; openSv(k, false); } });
     document.addEventListener('mz:data', () => { if (cur === 'transport' && !$('#svMain .board')) fill('transport'); });
 
     // story steps and nav links point to the service pages
     $$('.go-app[data-sv]').forEach(a => { a.href = `?s=${a.dataset.sv}`; });
     renderCatalog(); wireRobots($('#svcGrid')); agentInit(); wireChat(); dockInit();
-    (window.requestIdleCallback || (f => setTimeout(f, 800)))(() => avatar());
     const hubHome = $('#hubHome'); if (hubHome) { hubHome.innerHTML = hubHtml(false); hubInit(hubHome.querySelector('.hub')); const hh = $('#hubT'); if (hh) { hh.textContent = s('hub_t'); $('#hubS').textContent = s('hub_s'); } }
     const s0 = new URLSearchParams(location.search).get('s'); if (s0) openSv(s0, false);
   }
