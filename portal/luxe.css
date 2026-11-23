@@ -169,19 +169,18 @@ details.kb.hs-hit { outline: 2px solid rgba(237, 184, 98, .55); outline-offset: 
   linear-gradient(180deg, #031210 0%, #020D0B 50%, #020A09 100%) !important; z-index: -4; }
 html { background: #020D0B; }
 
-/* ---------- the assistant: a living portrait inside the Matrix ---------- */
-.bot { position: absolute; inset: 0; overflow: hidden; background: #020805; }
-.bot-fb, .bot canvas.lv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.bot-fb { object-fit: cover; object-position: 56% 40%; }
-.bot.lv-on .bot-fb { visibility: hidden; }
-.agent { background: #020805 !important; }
+/* ---------- the assistant: pure falling code with a face imprinted in it ---------- */
+.bot { position: absolute; inset: 0; overflow: hidden; background: #010604; }
+.bot canvas.lv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.bot.no-gl { background: #010604 url('/portal/art/face-imprint-still.webp?v=1') center 30% / cover no-repeat; }
+.agent { background: #010604 !important; }
 .agent .ag-id { z-index: 2; }
-.agent::after { content: ''; position: absolute; inset: auto 0 0 0; height: 34%; z-index: 1; pointer-events: none; background: linear-gradient(transparent, rgba(2, 8, 5, .85)); }
+.agent::after { content: ''; position: absolute; inset: auto 0 0 0; height: 30%; z-index: 1; pointer-events: none; background: linear-gradient(transparent, rgba(1, 6, 4, .9)); }
 .agent .ag-ring, .agent .ag-rain { display: none; }
-.dock-bot { background: #020805; }
-.dock-av { background: #020805; overflow: hidden; }
+.dock-bot { background: #010604; }
+.dock-av { background: #010604; overflow: hidden; }
 .dock-av .bot.tiny { border-radius: inherit; }
-.tile-ag .bot.botsm { inset: 0 0 0 auto; width: 62%; -webkit-mask: linear-gradient(90deg, transparent, #000 30%); mask: linear-gradient(90deg, transparent, #000 30%); }
+.tile-ag .bot.botsm { inset: 0 0 0 auto; width: 62%; -webkit-mask: linear-gradient(90deg, transparent, #000 35%); mask: linear-gradient(90deg, transparent, #000 35%); }
 
 /* assistant on narrow screens: keep the panel inside the page */
 .ai > * { min-width: 0; }
@@ -206,3 +205,40 @@ html { background: #020D0B; }
 .dock-bub { animation: rise .6s var(--ease) both 1.2s, bubOut .5s var(--ease) forwards 9s; }
 .dock-btn:hover .dock-bub, .dock-btn:focus-visible .dock-bub { animation: none; opacity: 1; transform: none; }
 @keyframes bubOut { to { opacity: 0; transform: translateX(8px); visibility: hidden; } }
+
+/* ---------- assistant panel: a real chat layout; the field is always pinned at the bottom ---------- */
+.dock-panel { height: min(680px, calc(100vh - 150px)); grid-template-rows: minmax(0, 1fr); }
+.dock-chat { min-height: 0; height: 100%; overflow: hidden; }
+.dock-chat .ai-card { display: flex !important; flex-direction: column; height: 100%; min-height: 0; padding: 22px 22px 18px !important; }
+.dock-chat .ai-top { flex: 0 0 auto; padding-right: 44px; }
+.dock-chat .ai-top > div { padding-right: 0; }
+.dock-chat .ai-top h2 { font-size: 20px; line-height: 1.15; }
+.dock-chat .ai-top p { font-size: 13.5px; margin-top: 6px; }
+.dock-chat .ai-snd { position: static; margin-top: 10px; }
+.dock-chat .ai-log { flex: 1 1 auto; min-height: 0; max-height: none !important; margin-top: 16px; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; scroll-behavior: smooth; }
+.dock-chat .ai-sug { flex: 0 0 auto; flex-wrap: nowrap; overflow-x: auto; margin-top: 12px; padding-bottom: 2px; scrollbar-width: none; -webkit-mask: linear-gradient(90deg, #000 88%, transparent); mask: linear-gradient(90deg, #000 88%, transparent); }
+.dock-chat .ai-sug::-webkit-scrollbar { display: none; }
+.dock-chat .ai-sug button { flex: 0 0 auto; white-space: nowrap; }
+.dock-chat .ai-form { flex: 0 0 auto; margin-top: 12px; }
+.dock-x { z-index: 5; }
+html.dock-on .dock-btn .dock-bub { display: none; }
+.ai-log { overscroll-behavior: contain; }
+@media (max-width: 760px) {
+  html.dock-on, html.dock-on body { overflow: hidden; }
+  .dock-panel { inset: auto 0 auto 0; top: var(--vvt, 0px); height: var(--vvh, 100dvh); width: 100vw; grid-template-rows: 88px minmax(0, 1fr); }
+  .dock-bot .dock-name { display: none; }
+  .dock-chat .ai-card { padding: 14px 14px calc(12px + env(safe-area-inset-bottom, 0px)) !important; }
+  .dock-chat .ai-top { padding-right: 0; display: flex; align-items: center; gap: 10px; }
+  .dock-chat .ai-top > div { flex: 1; min-width: 0; }
+  .dock-chat .ai-top h2 { font-size: 17px; }
+  .dock-chat .ai-top p { display: none; }
+  .dock-chat .ai-snd { margin-top: 0; flex: 0 0 auto; height: 32px; padding: 0 10px; font-size: 12px; }
+  .dock-chat .ai-log { margin-top: 12px; }
+  .dock-chat .ai-sug { margin-top: 10px; }
+  .dock-chat .ai-sug button { padding: 8px 12px; font-size: 13px; }
+  .dock-chat .ai-form { margin-top: 10px; gap: 8px; }
+  .dock-chat .ai-form input { height: 50px; font-size: 16px; }
+  .dock-chat .ai-form .btn { width: 50px; height: 50px; flex: 0 0 50px; }
+  .dock-x { top: 10px; right: 10px; background: rgba(1, 6, 4, .6); }
+}
+.ai-snd { white-space: nowrap; }

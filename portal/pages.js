@@ -339,111 +339,115 @@
       const loop = now => { requestAnimationFrame(loop); if (document.hidden || now - last < 50) return; last = now; step(); }; requestAnimationFrame(loop);
     })();
 
-    // ---------------- the digital assistant: a living portrait inside the Matrix ----------------
-    // One picture (assistant.webp, 1200 x 896) brought to life in WebGL: the code tunnel streams outward behind him,
-    // code rain runs over the face and jacket, the head breathes and nods, the lips move with the voice.
-    const AS = { src: '/portal/art/assistant.webp?v=1', mask: '/portal/art/assistant-mask.png?v=1', iw: 1200, ih: 896 };
-    const VIEW = { big: { f: [.556, .5], z: .94 }, mid: { f: [.56, .34], z: 1 }, botsm: { f: [.57, .4], z: 1 }, tiny: { f: [.555, .3], z: .46 } };
-    function ROBOT(cls = 'big') { return `<div class="bot ${cls}" aria-hidden="true"><img class="bot-fb" src="${cls === 'tiny' ? '/portal/art/assistant-head.webp?v=1' : AS.src}" alt="" decoding="async"><canvas class="lv"></canvas></div>`; }
+    // ---------------- the digital assistant: pure falling code; a face presses through it like an imprint ----------------
+    // WebGL: a grid of glyph cells. Rain columns fall; where the face is, the glyphs glow brighter, so the face reads
+    // as an imprint inside the code. It surfaces and sinks back; while it speaks the lips part inside the code.
+    // face-imprint.png: R = face luminance, G = silhouette (380 x 465).
+    const FIM = { src: '/portal/art/face-imprint.png?v=1', w: 380, h: 465 };
+    const VIEW = { big: { f: [.5, .47], z: .96 }, mid: { f: [.5, .4], z: .62 }, botsm: { f: [.5, .4], z: .8 }, tiny: { f: [.5, .35], z: .5 } };
+    function ROBOT(cls = 'big') { return `<div class="bot ${cls}" aria-hidden="true"><canvas class="lv"></canvas></div>`; }
     const LVS = 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0.,1.);}';
     const LFS = `precision highp float;
-uniform sampler2D T,M;uniform vec2 F,S;uniform float t,o,ny,nx,as;varying vec2 v;
-const vec2 MC=vec2(.575,.4866);const float MW=.047,LIP=.017,FL=.49,FR=.665,CH=.625,NK=.69;const vec2 TC=vec2(.555,.32);
+uniform sampler2D FT,GA;uniform vec2 R,F,S;uniform float t,o,ny,nx,as,cs,ng;varying vec2 v;
+const vec2 MC=vec2(.495,.534);const float MW=.075,LIP=.028,FL=.31,FR=.70,CH=.70,NK=.78;
 float h(float n){return fract(sin(n*12.9898)*43758.5453);}
 float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+vec2 face(vec2 uv,out float mouth){
+ mouth=0.;uv-=vec2(nx,ny)*(1.-smoothstep(.6,.8,uv.y));
+ if(o>.01&&uv.y>MC.y&&uv.x>FL&&uv.x<FR){
+  float dx=(uv.x-MC.x)/MW,sh=sqrt(max(0.,1.-dx*dx));
+  float hx=smoothstep(FL,FL+.06,uv.x)*(1.-smoothstep(FR-.06,FR,uv.x));
+  float d=o*LIP*hx*mix(sh,1.,smoothstep(MC.y,MC.y+.06,uv.y))*(1.-smoothstep(CH,NK,uv.y));
+  float sy=uv.y-d;if(sy<MC.y&&abs(dx)<1.){mouth=sh;return vec2(0.,1.);}uv.y=sy;}
+ if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return vec2(0.);
+ return texture2D(FT,uv).rg;
+}
 void main(){
- vec2 uv=F+(v-.5)*S;
- float m=texture2D(M,uv).r;
- float hm=m*(1.-smoothstep(.55,.70,uv.y));
- vec2 su=uv-vec2(nx,ny)*hm;
- vec3 subj;bool mouth=false;
- if(o>.01&&su.y>MC.y&&su.x>FL&&su.x<FR){
-  float dx=(su.x-MC.x)/MW,sh=sqrt(max(0.,1.-dx*dx));
-  float hx=smoothstep(FL,FL+.04,su.x)*(1.-smoothstep(FR-.04,FR,su.x));
-  float d=o*LIP*hx*mix(sh,1.,smoothstep(MC.y,MC.y+.05,su.y))*(1.-smoothstep(CH,NK,su.y));
-  float sy=su.y-d;
-  if(sy<MC.y&&abs(dx)<1.){mouth=true;float k=(su.y-MC.y)/max(o*LIP*sh,1e-4);
-   subj=vec3(.008,.025,.018)+vec3(.12,.7,.42)*.32*sh*max(0.,1.-abs(k-.62)*1.7)+vec3(.72,.82,.78)*smoothstep(.34,.0,k)*.42*sh;}
-  su.y=sy;
- }
- if(!mouth){
-  vec3 b=texture2D(T,su).rgb;
-  float cx=floor(su.x*230.),sp=.07+h(cx)*.16,hd=fract(t*sp+h(cx*3.1));
-  float tr=fract(hd-su.y*.85),trail=exp(-tr*9.)*step(.42,h(cx*7.7));
-  float cell=step(.3,h2(vec2(cx,floor(su.y*150.)+floor(t*9.+h(cx)*9.))));
-  float lum=dot(b,vec3(.3,.59,.11));
-  subj=b*(.92+.1*sin(t*1.3+su.y*9.))+vec3(.35,1.,.62)*trail*cell*(.22+lum*.9)*.55+vec3(.85,1.,.9)*smoothstep(.985,1.,1.-tr)*cell*.5*step(.42,h(cx*7.7));
- }
- vec2 dc=uv-TC;float ph=fract(t*.05),p2=fract(ph+.5);
- vec2 u1=TC+dc*(1.-.06*ph),u2=TC+dc*(1.-.06*p2);
- vec3 s1=mix(texture2D(T,u1).rgb,texture2D(T,uv).rgb,texture2D(M,u1).r);
- vec3 s2=mix(texture2D(T,u2).rgb,texture2D(T,uv).rgb,texture2D(M,u2).r);
- vec3 bg=s1*(1.-abs(2.*ph-1.))+s2*(1.-abs(2.*p2-1.));
- float an=atan(dc.y,dc.x*1.34),r=length(dc*vec2(1.34,1.)),fa=(an+3.14159)/6.28318*260.,id=floor(fa);
- float on=step(.5,h(id*3.3)),sx=fract(r*1.6-t*(.18+h(id)*.4)+h(id*7.1));
- float st=smoothstep(.0,.05,sx)*smoothstep(.35,.05,sx)*smoothstep(.5,.0,abs(fract(fa)-.5))*on*smoothstep(.12,.45,r);
- bg+=mix(vec3(.25,1.,.6),vec3(1.,.78,.35),step(.86,h(id*1.7)))*st*.55;
- float gx=floor(uv.x*230.),gy=floor(uv.y*150.);
- float n=h2(vec2(gx,gy))*.55+uv.y*.45;
- float vis=smoothstep(n-.06,n+.06,as*1.25-.12);
- float lum2=dot(texture2D(T,uv).rgb,vec3(.3,.59,.11));
- float fl=step(.38,h2(vec2(gx,gy+floor(t*14.))));
- float edge=smoothstep(.0,.06,as*1.25-.12-n)*(1.-smoothstep(.06,.2,as*1.25-.12-n));
- vec3 code=bg+vec3(.3,1.,.6)*fl*(.25+lum2*1.6)*.7*(1.-vis)+vec3(.9,1.,.92)*edge*fl*.9;
- subj=mix(code,subj,vis)+vec3(.5,1.,.75)*edge*fl*.5;
- vec3 c=mix(bg,subj,m);
- c*=1.-.35*smoothstep(.45,.95,length((v-.5)*vec2(1.,1.15)));
- gl_FragColor=vec4(c,1.);
+ vec2 px=v*R;vec2 cell=floor(px/cs);vec2 lc=fract(px/cs);
+ vec2 cc=(cell+.5)*cs/R;
+ vec2 uv=F+(cc-.5)*S;
+ float rows=R.y/cs;
+ float sp=.35+h(cell.x)*.9,off=h(cell.x*3.7)*rows*2.;
+ float per=rows*.9;float hd=mod(t*sp*9.+off,per);float hd2=mod(t*sp*9.+off+per*.5,per);
+ float dist=mod(hd-cell.y+per,per),dist2=mod(hd2-cell.y+per,per);
+ float trail=max(exp(-dist*.13),exp(-dist2*.13)*.8);float lead=(dist<1.||dist2<1.)?1.:0.;
+ float mouth;vec2 fm=face(uv,mouth);
+ float n=h2(cell*1.31)*.6+uv.y*.4;
+ float vis=smoothstep(n-.08,n+.08,as*1.3-.15);
+ float fl=fm.g*vis;
+ float L=pow(fm.r,1.1);
+ float b=trail*.62*(1.-fl*.45)+fl*(.16+L*1.45)*(.62+.5*trail)+lead*.9;
+ b+=mouth*fl*0.;
+ float mo=mouth*vis;
+ float gi=floor(h2(cell+floor(t*(2.+h(cell.y)*6.)+h(cell.x)*40.))*16.);
+ vec2 gu=vec2((gi+lc.x)/16.,lc.y);
+ float g=texture2D(GA,gu).a;
+ vec3 base=mix(vec3(.02,.35,.2),vec3(.55,1.,.78),clamp(b*1.1,0.,1.));
+ vec3 col=base*g*b*2.3+vec3(.03,.22,.13)*b*.42;
+ col+=vec3(.85,1.,.92)*lead*g*.8*(1.-fl*.6);
+ col=mix(col,vec3(.0,.02,.01)+vec3(.15,.9,.55)*g*.25*(1.-mo),mo*.9);
+ col+=vec3(.06,.42,.26)*fl*L*.22;
+ float vg=1.-.45*smoothstep(.4,.95,length((v-.5)*vec2(1.,1.1)));
+ gl_FragColor=vec4(col*vg,1.);
 }`;
+    let GAimg = null, FTimg = null;
+    function glyphAtlas() {
+      const c = document.createElement('canvas'), n = 16, s = 48; c.width = n * s; c.height = s; const x = c.getContext('2d');
+      const G = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾ01'.split(''); x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = `600 ${s * .78}px "MS Gothic","Hiragino Kaku Gothic ProN","Noto Sans CJK JP","Noto Sans JP",monospace`;
+      G.forEach((ch, i) => { x.save(); x.translate(i * s + s / 2, s / 2); if (i % 3 === 0) x.scale(-1, 1); x.fillText(ch, 0, 2); x.restore(); });
+      return c;
+    }
     const lives = new Set();
-    let ASimg = null, MKimg = null;
-    const ldImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
-    const ASready = Promise.all([ldImg(AS.src), ldImg(AS.mask)]).then(([a, m]) => { ASimg = a; MKimg = m; });
+    const FTready = new Promise(res => { const i = new Image(); i.onload = () => { FTimg = i; res(); }; i.onerror = () => res(); i.src = FIM.src; });
     function liveInit(bot) {
       if (bot.dataset.w) return; bot.dataset.w = 1;
       const kind = ['big', 'mid', 'botsm', 'tiny'].find(k => bot.classList.contains(k)) || 'big';
-      const cv = bot.querySelector('canvas.lv'); const gl = cv.getContext('webgl', { antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: false });
-      if (!gl) return;
+      const cv = bot.querySelector('canvas.lv'); const gl = cv.getContext('webgl', { antialias: false, premultipliedAlpha: false });
+      if (!gl) { bot.classList.add('no-gl'); return; }
       const sh = (ty, src) => { const o = gl.createShader(ty); gl.shaderSource(o, src); gl.compileShader(o); return o; };
       const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, LVS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, LFS)); gl.linkProgram(pr);
-      if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return;
+      if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { bot.classList.add('no-gl'); return; }
       gl.useProgram(pr); const bf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       const al = gl.getAttribLocation(pr, 'a'); gl.enableVertexAttribArray(al); gl.vertexAttribPointer(al, 2, gl.FLOAT, false, 0, 0);
-      const U = n => gl.getUniformLocation(pr, n); const f = { bot, cv, gl, kind, u: { F: U('F'), S: U('S'), t: U('t'), o: U('o'), ny: U('ny'), nx: U('nx'), as: U('as') }, vis: false, ok: false, born: 0 };
-      ASready.then(() => { if (!ASimg || !MKimg) return;
-        const tex = (img, unit, fmt) => { const tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      const U = n => gl.getUniformLocation(pr, n);
+      const f = { bot, cv, gl, kind, u: { R: U('R'), F: U('F'), S: U('S'), t: U('t'), o: U('o'), ny: U('ny'), nx: U('nx'), as: U('as'), cs: U('cs') }, vis: false, ok: false };
+      FTready.then(() => { if (!FTimg) { bot.classList.add('no-gl'); return; }
+        const tex = (img, unit, fmt, filt) => { const tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filt); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filt);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
           gl.texImage2D(gl.TEXTURE_2D, 0, fmt, fmt, gl.UNSIGNED_BYTE, img); };
-        tex(ASimg, 0, gl.RGB); tex(MKimg, 1, gl.LUMINANCE); gl.uniform1i(U('T'), 0); gl.uniform1i(U('M'), 1);
-        f.ok = true; f.born = performance.now(); bot.classList.add('lv-on'); liveDraw(f, f.born, 0, 0, 0, RM ? 1 : 0); });
+        GAimg = GAimg || glyphAtlas();
+        tex(FTimg, 0, gl.RGB, gl.LINEAR); tex(GAimg, 1, gl.RGBA, gl.LINEAR); gl.uniform1i(U('FT'), 0); gl.uniform1i(U('GA'), 1);
+        f.ok = true; bot.classList.add('lv-on'); });
       new IntersectionObserver(([e]) => { f.vis = e.isIntersecting; if (!e.isIntersecting) f.seen = 0; }).observe(bot);
       lives.add(f);
     }
     function liveDraw(f, now, open, ny, nx, as) {
       const { cv, gl, u } = f; const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
-      const dpr = Math.min(f.kind === 'big' ? 1.5 : 2, devicePixelRatio || 1);
+      const dpr = Math.min(2, devicePixelRatio || 1);
       if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); gl.viewport(0, 0, cv.width, cv.height); }
-      const IA = AS.iw / AS.ih, A = w / h, V = VIEW[f.kind]; let sx, sy; if (A / IA >= 1) { sx = 1; sy = IA / A; } else { sy = 1; sx = A / IA; } sx *= V.z; sy *= V.z;
-      const fx = Math.min(1 - sx / 2, Math.max(sx / 2, V.f[0])), fy = Math.min(1 - sy / 2, Math.max(sy / 2, V.f[1]));
-      gl.uniform2f(u.F, fx, fy); gl.uniform2f(u.S, sx, sy); gl.uniform1f(u.t, now / 1000); gl.uniform1f(u.o, open); gl.uniform1f(u.ny, ny); gl.uniform1f(u.nx, nx); gl.uniform1f(u.as, as);
+      const IA = FIM.w / FIM.h, A = w / h, V = VIEW[f.kind]; let sx, sy; if (A / IA >= 1) { sy = 1; sx = A / IA; } else { sx = 1; sy = IA / A; }
+      // the face fills the height; wider frames show code on both sides
+      sx *= V.z; sy *= V.z;
+      const cell = (f.kind === 'tiny' ? 4.5 : f.kind === 'mid' ? 6.5 : w < 420 ? 7.5 : 8.5) * dpr;
+      gl.uniform2f(u.R, cv.width, cv.height); gl.uniform2f(u.F, V.f[0], V.f[1]); gl.uniform2f(u.S, sx, sy); gl.uniform1f(u.cs, cell);
+      gl.uniform1f(u.t, now / 1000); gl.uniform1f(u.o, open); gl.uniform1f(u.ny, ny); gl.uniform1f(u.nx, nx); gl.uniform1f(u.as, as);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
     // the mouth follows the speech: every spoken word opens it, syllables flutter inside the word
     let talking = false, wordAt = 0, wordLen = 5, mOpen = 0;
     window.MZmouth = { word(n) { wordAt = performance.now(); wordLen = Math.max(2, Math.min(12, n || 5)); } };
-    { const loop = now => { requestAnimationFrame(loop);
+    { let last = 0; const loop = now => { requestAnimationFrame(loop); if (now - last < 33) return; last = now;
       const since = now - wordAt, dur = wordLen * 70 + 120; let target = 0;
       if (talking) { const inWord = since < dur ? 1 : Math.max(0, 1 - (since - dur) / 160); target = inWord * (.45 + .55 * Math.abs(Math.sin(since / 62 + Math.sin(since / 211) * 1.7)));
         if (since > 1600) target = .3 + .5 * Math.abs(Math.sin(now / 95) * Math.sin(now / 157)); }
-      mOpen += (target - mOpen) * (target > mOpen ? .55 : .3);
-      const s = now / 1000, ny = talking ? .0035 * Math.sin(s * 5.3) + .0018 * Math.sin(s * 8.1) : .0012 * Math.sin(s * 1.1), nx = talking ? .0022 * Math.sin(s * 3.4) : .0008 * Math.sin(s * .7);
-      lives.forEach(f => { if (!f.ok || !f.vis || (RM && !talking && f.drawnRM)) return; f.drawnRM = RM;
-        if (!f.seen) { f.seen = now; }
-        const age = (now - f.seen) / 1000, cyc = (age - 2.2) % 14, intro = Math.min(1, age / 2.2);
-        let as = intro * intro * (3 - 2 * intro);
-        if (age > 2.2 && !talking) { if (cyc > 11.2 && cyc < 12.6) as = 1 - (cyc - 11.2) / 1.4; else if (cyc >= 12.6) as = (cyc - 12.6) / 1.4; as = Math.max(0, Math.min(1, as)); as = as * as * (3 - 2 * as); }
-        if (talking) f.as = Math.min(1, (f.as || 0) + .08); else f.as = as; if (talking) as = Math.max(as, f.as);
+      mOpen += (target - mOpen) * (target > mOpen ? .6 : .35);
+      const s = now / 1000, ny = talking ? .004 * Math.sin(s * 5.3) + .002 * Math.sin(s * 8.1) : .0015 * Math.sin(s * 1.1), nx = talking ? .003 * Math.sin(s * 3.4) : .001 * Math.sin(s * .7);
+      lives.forEach(f => { if (!f.ok || !f.vis) return; if (RM && f.drawnRM && !talking) return; f.drawnRM = RM;
+        if (!f.seen) f.seen = now;
+        // surfaces from the code (2.4 s), stays, sinks back into the rain and returns: a 13 s breath; always present while speaking
+        const age = (now - f.seen) / 1000, c = age % 13; let as = c < 2.4 ? c / 2.4 : c < 9.6 ? 1 : c < 11.2 ? 1 - (c - 9.6) / 1.6 : 0;
+        as = as * as * (3 - 2 * as); f.as = talking ? Math.min(1, (f.as || 0) + .06) : as; if (talking) as = f.as;
         liveDraw(f, RM ? 0 : now, mOpen, RM ? 0 : ny, RM ? 0 : nx, RM ? 1 : as); }); }; requestAnimationFrame(loop); }
     function wireRobots(root = document) { root.querySelectorAll('.bot').forEach(liveInit); }
     const setTalk = on => { talking = on; if (on) wordAt = performance.now(); document.body.classList.toggle('rb-talking', on); };
@@ -515,13 +519,17 @@ void main(){
       wireRobots($('#dock'));
       const btn = $('#dockBtn'), panel = $('#dockPanel'), host = $('#dockChat');
       let greeted = false;
-      const open = () => { const card = $('.ai-card'); host.appendChild(card); panel.hidden = false; $('#dock').classList.add('open'); blip(440, 880, .16);
+      const open = () => { const card = $('.ai-card'); host.appendChild(card); panel.hidden = false; $('#dock').classList.add('open'); $('#dock').classList.remove('away'); document.documentElement.classList.add('dock-on'); fitVV(); blip(440, 880, .16);
         if (!greeted) { greeted = true; speak(L() === 'en' ? 'Hello! I am the MyUzCity digital assistant. How can I help?' : L() === 'uz' ? "Assalomu alaykum! Men MyUzCity raqamli yordamchisiman. Sizga qanday yordam bera olaman?" : 'Здравствуйте! Я цифровой ассистент MyUzCity. Чем могу помочь?'); }
         setTimeout(() => $('#aiIn').focus(), 300); };
-      const close = () => { panel.hidden = true; $('#dock').classList.remove('open'); const ai = $('#ai'); const card = $('.ai-card'); if (ai && card && card.parentElement === host) ai.appendChild(card); };
+      const close = () => { panel.hidden = true; $('#dock').classList.remove('open'); document.documentElement.classList.remove('dock-on'); const ai = $('#ai'); const card = $('.ai-card'); if (ai && card && card.parentElement === host) ai.appendChild(card); };
       btn.onclick = () => (panel.hidden ? open() : close()); panel.querySelector('.dock-x').onclick = close;
-      // hide while the big assistant is on screen
-      const ai = $('#ai'); if (ai) new IntersectionObserver(([e]) => { $('#dock').classList.toggle('away', e.isIntersecting && !ai.closest('#svView')); if (e.isIntersecting && !panel.hidden) close(); }, { threshold: .25 }).observe(ai);
+      // the round button steps aside while the big assistant is on screen; an open conversation is never closed or hidden by scrolling
+      const ai = $('#ai'); if (ai) new IntersectionObserver(([e]) => { $('#dock').classList.toggle('away', e.isIntersecting && panel.hidden && !ai.closest('#svView')); }, { threshold: .25 }).observe(ai);
+      // phones: the panel follows the visible area, so the field stays above the keyboard
+      function fitVV() { const vv = window.visualViewport; const r = document.documentElement.style; if (!vv) return; r.setProperty('--vvh', vv.height + 'px'); r.setProperty('--vvt', vv.offsetTop + 'px'); }
+      if (window.visualViewport) { visualViewport.addEventListener('resize', fitVV); visualViewport.addEventListener('scroll', fitVV); }
+      addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) close(); });
       document.addEventListener('mz:lang', () => { $('.dock-bub').textContent = L() === 'en' ? 'Ask me anything' : L() === 'uz' ? 'Menga savol bering' : 'Спросите меня'; $('.dock-name b').textContent = s('ag_name'); $('.dock-name i').textContent = s('ag_status'); });
       window.MZdock = { close, open };
     }
