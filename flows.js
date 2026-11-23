@@ -3526,3 +3526,151 @@ for (const k of ['home', 'services', 'profile']) AI_HIDE.delete && AI_HIDE.delet
 XACT.delacc = () => sheet(lt('p_del'), lt('p_del_q'), [[lt('p_del'), () => api('/api/me', { action: 'delete' }).then(j => { if (!j.ok) return toast(t('po_err')); try { ['uzk-user', 'uzk-session', 'uzk-auth'].forEach(k => localStorage.removeItem(k)); } catch (e) {} CARS = null; DC = null; PREFS = null; EHA = null; toast(lt('p_del_ok')); history.replaceState({ id: 'h:welcome', depth: 0 }, '', location.pathname); render('h:welcome'); })], [t('cancel'), null]]);
 const _welcome = HS.welcome;
 HS.welcome = () => { const h = _welcome(), i = h.lastIndexOf('</div>'); return h.slice(0, i) + `<a class="lv-consent light" href="privacy.html?lang=${LANG}" target="_blank" rel="noopener">${esc(lt('p_priv'))}</a>` + h.slice(i); };
+
+// ======================= City marketplace: residents' own listings + the big platforms =======================
+const MK_I = {
+  ru: { mk_t: 'Маркетплейс', mk_s: 'Объявления жителей вашего города', mk_add: 'Разместить объявление', mk_none: 'В этом городе пока нет объявлений — разместите первое', mk_q: 'Поиск по объявлениям', mk_all: 'Все', mk_free: 'Даром', mk_deal: 'Договорная',
+    mkc_tech: 'Электроника', mkc_home: 'Для дома', mkc_clothes: 'Одежда', mkc_kids: 'Детское', mkc_auto: 'Авто', mkc_realty: 'Недвижимость', mkc_services: 'Услуги', mkc_free: 'Отдам даром', mkc_other: 'Другое',
+    mk_title: 'Что продаёте', mk_title_ph: 'Например: детская коляска', mk_price: 'Цена, сум', mk_price_ph: '0 — договорная', mk_cat: 'Категория', mk_descr: 'Описание', mk_descr_ph: 'Состояние, размер, где забрать…', mk_photos: 'Фото (до 4)', mk_phone: 'Показывать мой телефон покупателям', mk_pub: 'Опубликовать', mk_ok: 'Объявление опубликовано', mk_bad: 'Напишите название', mk_limit: 'Не больше 10 объявлений в сутки',
+    mk_seller: 'Продавец', mk_write: 'Написать в Telegram', mk_call: 'Позвонить', mk_nocontact: 'Продавец не оставил контактов в профиле', mk_sold: 'Продано', mk_rm: 'Снять с продажи', mk_rm_q: 'Снять объявление?', mk_report: 'Пожаловаться', mk_reported: 'Спасибо, модератор проверит', mk_mine: 'Мои объявления', mk_ext: 'Ещё больше товаров', mk_olx: 'OLX — объявления по всему Узбекистану', mk_uzum: 'Uzum Market — интернет-магазин с доставкой', mk_safe: 'Встречайтесь в людных местах и не переводите предоплату незнакомцам.' },
+  uz: { mk_t: 'Marketpleys', mk_s: "Shahringiz aholisining e'lonlari", mk_add: "E'lon joylash", mk_none: "Bu shaharda hozircha e'lonlar yo'q — birinchisini joylang", mk_q: "E'lonlarni qidirish", mk_all: 'Barchasi', mk_free: 'Tekin', mk_deal: 'Kelishiladi',
+    mkc_tech: 'Elektronika', mkc_home: 'Uy uchun', mkc_clothes: 'Kiyim', mkc_kids: 'Bolalar uchun', mkc_auto: 'Avto', mkc_realty: "Ko'chmas mulk", mkc_services: 'Xizmatlar', mkc_free: 'Tekinga beraman', mkc_other: 'Boshqa',
+    mk_title: 'Nima sotasiz', mk_title_ph: 'Masalan: bolalar aravachasi', mk_price: "Narxi, so'm", mk_price_ph: '0 — kelishiladi', mk_cat: 'Toifa', mk_descr: 'Tavsif', mk_descr_ph: 'Holati, o‘lchami, qayerdan olish…', mk_photos: 'Surat (4 tagacha)', mk_phone: 'Telefonimni xaridorlarga ko‘rsatish', mk_pub: "E'lon qilish", mk_ok: "E'lon joylandi", mk_bad: 'Nomini yozing', mk_limit: "Kuniga 10 tadan ko'p e'lon mumkin emas",
+    mk_seller: 'Sotuvchi', mk_write: 'Telegramda yozish', mk_call: "Qo'ng'iroq qilish", mk_nocontact: 'Sotuvchi profilida kontakt qoldirmagan', mk_sold: 'Sotildi', mk_rm: 'Sotuvdan olish', mk_rm_q: "E'lon olib tashlansinmi?", mk_report: 'Shikoyat qilish', mk_reported: 'Rahmat, moderator tekshiradi', mk_mine: "Mening e'lonlarim", mk_ext: "Ko'proq mahsulotlar", mk_olx: "OLX — butun O'zbekiston bo'yicha e'lonlar", mk_uzum: 'Uzum Market — yetkazib berish bilan internet-do‘kon', mk_safe: "Odamlar ko'p joyda uchrashing va notanishlarga oldindan pul o'tkazmang." },
+  en: { mk_t: 'Marketplace', mk_s: 'Listings from people in your city', mk_add: 'Post a listing', mk_none: 'No listings in this city yet — post the first one', mk_q: 'Search listings', mk_all: 'All', mk_free: 'Free', mk_deal: 'Negotiable',
+    mkc_tech: 'Electronics', mkc_home: 'Home', mkc_clothes: 'Clothes', mkc_kids: 'Kids', mkc_auto: 'Cars', mkc_realty: 'Property', mkc_services: 'Services', mkc_free: 'Giveaway', mkc_other: 'Other',
+    mk_title: 'What are you selling', mk_title_ph: 'e.g. baby stroller', mk_price: 'Price, UZS', mk_price_ph: '0 — negotiable', mk_cat: 'Category', mk_descr: 'Description', mk_descr_ph: 'Condition, size, pick-up place…', mk_photos: 'Photos (up to 4)', mk_phone: 'Show my phone to buyers', mk_pub: 'Publish', mk_ok: 'Listing published', mk_bad: 'Add a title', mk_limit: 'No more than 10 listings a day',
+    mk_seller: 'Seller', mk_write: 'Message on Telegram', mk_call: 'Call', mk_nocontact: 'The seller left no contacts', mk_sold: 'Sold', mk_rm: 'Remove listing', mk_rm_q: 'Remove this listing?', mk_report: 'Report', mk_reported: 'Thanks, a moderator will check it', mk_mine: 'My listings', mk_ext: 'Even more goods', mk_olx: 'OLX — listings across Uzbekistan', mk_uzum: 'Uzum Market — online store with delivery', mk_safe: 'Meet in busy places and never prepay strangers.' },
+};
+MK_I.zh = MK_I.en; for (const l in MK_I) Object.assign(I[l] || (I[l] = {}), MK_I[l]);
+const MK_CATS = ['tech', 'home', 'clothes', 'kids', 'auto', 'realty', 'services', 'free', 'other'];
+const MK_IC = { tech: '📱', home: '🛋️', clothes: '👕', kids: '🧸', auto: '🚗', realty: '🏠', services: '🛠️', free: '🎁', other: '📦' };
+const mks = () => (window.__mk = window.__mk || { cat: 'all', q: '', list: null, mine: false });
+const mkPrice = a => a.cat === 'free' ? t('mk_free') : a.price ? money(a.price) : t('mk_deal');
+const mkImg = (a, i = 0) => `${API}/api/market/photo?id=${a.id}&i=${i}`;
+const mkAgo = ts => { const d = Math.max(0, Date.now() / 1000 - ts); return d < 3600 ? Math.max(1, Math.round(d / 60)) + ' ' + (LANG === 'en' ? 'min' : LANG === 'uz' ? 'daq' : 'мин') : d < 86400 ? Math.round(d / 3600) + ' ' + (LANG === 'en' ? 'h' : LANG === 'uz' ? 'soat' : 'ч') : fmtDate(new Date(ts * 1000).toISOString()); };
+HS.market = () => {
+  const s = mks();
+  return `${lvHdr(t('mk_t'))}<main class="lv-body vs">
+    <input class="h-search" id="mkQ" type="search" placeholder="${esc(t('mk_q'))}" value="${esc(s.q)}" autocomplete="off">
+    <div class="mk-chips">${['all', ...MK_CATS].map(c => `<button class="h-chip ${s.cat === c ? 'on' : ''}" data-act="mkcat:${c}">${c === 'all' ? esc(t('mk_all')) : MK_IC[c] + ' ' + esc(t('mkc_' + c))}</button>`).join('')}</div>
+    ${btn('＋ ' + t('mk_add'), 'mkadd', 'primary')}
+    ${authUser() ? `<button class="hov-link mk-mine" data-act="mkmine">${esc(t('mk_mine'))} ›</button>` : ''}
+    <div class="mk-grid" id="mkGrid"><div class="hv-sk"></div><div class="hv-sk"></div></div>
+    <div class="lv-sec">${esc(t('mk_ext'))}</div>
+    <div class="lv-card">${lvLink('bag', 'OLX', t('mk_olx'), 'https://www.olx.uz', { bg: '#002F34', col: '#23E5DB' })}${lvLink('store', 'Uzum Market', t('mk_uzum'), 'https://uzum.uz', { bg: '#7000FF', col: '#fff' })}</div>
+    <div class="h-muted small">🛡️ ${esc(t('mk_safe'))}</div><div class="lv-pad"></div></main>`;
+};
+function mkPaint(el) {
+  const g = (el || document).querySelector('#mkGrid'); if (!g) return; const s = mks(), q = s.q.trim().toLowerCase();
+  const l = (s.list || []).filter(a => (s.cat === 'all' || a.cat === s.cat) && (!q || (a.title + ' ' + (a.descr || '')).toLowerCase().includes(q)));
+  g.innerHTML = l.length ? l.map(a => `<button class="mk-card" data-act="mkopen:${a.id}"><span class="mk-ph">${a.photos ? `<img src="${mkImg(a)}" alt="" loading="lazy">` : `<span>${MK_IC[a.cat] || '📦'}</span>`}${a.status === 'sold' ? `<em>${esc(t('mk_sold'))}</em>` : ''}</span><b>${esc(mkPrice(a))}</b><i>${esc(a.title)}</i><small>${esc(mkAgo(a.created))}</small></button>`).join('')
+    : `<div class="cf-empty mk-empty">${esc(s.list ? t('mk_none') : t('po_load'))}</div>`;
+}
+function mkLoad() { const s = mks(); return api(s.mine ? '/api/market?mine=1' : `/api/market?city=${cityIdx()}`).then(j => { s.list = j.ok ? j.list : []; }); }
+HS.market.mount = el => {
+  const s = mks(); s.list = null; mkPaint(el); mkLoad().then(() => mkPaint(el));
+  const q = el.querySelector('#mkQ'); q.addEventListener('input', () => { s.q = q.value; mkPaint(el); });
+};
+XACT.mkcat = c => { mks().cat = c; document.querySelectorAll('.mk-chips .h-chip').forEach(b => b.classList.toggle('on', b.dataset.act === 'mkcat:' + c)); mkPaint(); };
+XACT.mkmine = () => { const s = mks(); s.mine = !s.mine; const b = document.querySelector('.mk-mine'); if (b) b.textContent = s.mine ? '← ' + t('mk_all') : t('mk_mine') + ' ›'; s.list = null; mkPaint(); mkLoad().then(() => mkPaint()); };
+XACT.mkopen = id => {
+  const a = (mks().list || []).find(x => String(x.id) === String(id)); if (!a) return;
+  const ph = a.photos ? `<div class="mk-gal">${Array.from({ length: a.photos }, (_, i) => `<img src="${mkImg(a, i)}" alt="">`).join('')}</div>` : '';
+  const w = bsheet(`${ph}<div class="mk-price">${esc(mkPrice(a))}</div><div class="hv-h" style="height:auto;margin:4px 0 8px">${esc(a.title)}</div>
+    <div class="cf-tags"><span>${MK_IC[a.cat]} ${esc(t('mkc_' + a.cat))}</span><span>${esc(mkAgo(a.created))}</span><span>№${a.id}</span></div>
+    ${a.descr ? `<p class="bs-p" style="white-space:pre-wrap;margin-top:10px">${esc(a.descr)}</p>` : ''}
+    <div class="h-muted small" style="margin:6px 0 12px">${esc(t('mk_seller'))}: ${esc(a.seller || '—')}</div>
+    <div id="mkC">${a.own ? '' : `<div class="hv-sk"></div>`}</div>
+    ${a.own ? `${a.status === 'active' ? `<button class="h-btn h-primary" data-act="mkset:sold:${a.id}">✓ ${esc(t('mk_sold'))}</button>` : ''}<button class="h-btn h-ghostd" data-act="mkset:removed:${a.id}">${esc(t('mk_rm'))}</button>` : `<button class="hov-link" style="text-align:center;color:#9CA3AF" data-act="mkreport:${a.id}">${esc(t('mk_report'))}</button>`}
+    <div class="h-muted small" style="margin-top:8px">🛡️ ${esc(t('mk_safe'))}</div>`, 'bs-caf');
+  if (a.own) return;
+  const c = w.querySelector('#mkC');
+  if (!authUser()) { c.innerHTML = loginBtn(); return; }
+  api('/api/market/contact?id=' + a.id).then(j => {
+    if (!document.body.contains(c)) return;
+    const tg = j.tg || a.tg, ph = j.phone;
+    c.innerHTML = (tg ? `<a class="h-btn h-tgbtn" href="https://t.me/${esc(tg)}" target="_blank" rel="noopener">${TG_SVG}<span>${esc(t('mk_write'))}</span></a>` : '') + (ph ? `<a class="h-btn h-ghostd" href="tel:${esc(ph)}">📞 ${esc(t('mk_call'))} ${esc(fmtPhone(ph))}</a>` : '') || `<div class="h-muted small">${esc(t('mk_nocontact'))}</div>`;
+  });
+};
+XACT.mkset = a => { const [st, id] = a.split(':'); const go2 = () => api('/api/market', { action: st === 'sold' ? 'sold' : 'remove', id: +id }).then(j => { if (j.ok) { bsheetClose(true); mkLoad().then(() => mkPaint()); } else toast(t('po_err')); }); if (st === 'sold') go2(); else sheet(t('mk_rm_q'), '', [[t('mk_rm'), go2], [t('cancel'), null]]); };
+XACT.mkreport = id => { if (needLogin()) return; api('/api/market', { action: 'report', id: +id }).then(() => { bsheetClose(true); toast(t('mk_reported')); }); };
+function imgToJpeg(file, max = 1000) { return new Promise(res => { const img = new Image(); img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(img.src); res(c.toDataURL('image/jpeg', .72)); }; img.onerror = () => res(null); img.src = URL.createObjectURL(file); }); }
+XACT.mkadd = () => {
+  if (needLogin()) return;
+  const f = { cat: 'tech', photos: [] };
+  const w = bsheet(`<div class="hv-h" style="margin:0 0 12px">${esc(t('mk_add'))}</div>
+    <label class="h-field"><span>${esc(t('mk_title'))}</span><input class="dc-in" id="mkT" maxlength="70" placeholder="${esc(t('mk_title_ph'))}"></label>
+    <div class="cf-sec">${esc(t('mk_cat'))}</div><div class="rp-kinds" id="mkK">${MK_CATS.map(c => `<button class="h-chip ${c === f.cat ? 'on' : ''}" data-k="${c}">${MK_IC[c]} ${esc(t('mkc_' + c))}</button>`).join('')}</div>
+    <label class="h-field" style="margin-top:12px"><span>${esc(t('mk_price'))}</span><input class="dc-in" id="mkP" inputmode="numeric" placeholder="${esc(t('mk_price_ph'))}"></label>
+    <label class="h-field"><span>${esc(t('mk_descr'))}</span><textarea class="rp-ta" id="mkD" maxlength="1500" placeholder="${esc(t('mk_descr_ph'))}"></textarea></label>
+    <label class="h-btn h-ghostd rp-ph">📷 ${esc(t('mk_photos'))}<input type="file" accept="image/*" multiple id="mkF" hidden></label><div class="mk-thumbs" id="mkTh"></div>
+    <label class="ut-chk" style="margin:12px 0"><input type="checkbox" id="mkPh"> ${esc(t('mk_phone'))}</label>
+    <button class="h-btn h-primary" id="mkS">${esc(t('mk_pub'))}</button>`, 'bs-caf');
+  w.querySelector('#mkK').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); e.stopPropagation(); f.cat = b.dataset.k; w.querySelectorAll('#mkK .h-chip').forEach(x => x.classList.toggle('on', x === b)); });
+  w.querySelector('#mkF').addEventListener('change', async e => { for (const file of [...e.target.files].slice(0, 4 - f.photos.length)) { const d = await imgToJpeg(file); if (d) f.photos.push(d); } w.querySelector('#mkTh').innerHTML = f.photos.map(p => `<img src="${p}" alt="">`).join(''); });
+  w.querySelector('#mkS').addEventListener('click', e => {
+    e.preventDefault(); const title = w.querySelector('#mkT').value.trim(); if (title.length < 3) { toast(t('mk_bad')); return w.querySelector('#mkT').focus(); }
+    e.target.disabled = true;
+    api('/api/market', { title, cat: f.cat, price: +(w.querySelector('#mkP').value || '0').replace(/\D/g, ''), descr: w.querySelector('#mkD').value, photos: f.photos, phone: w.querySelector('#mkPh').checked, city: cityIdx() })
+      .then(j => { e.target.disabled = false; if (j.ok) { bsheetClose(true); toast(t('mk_ok')); const s = mks(); s.mine = false; mkLoad().then(() => mkPaint()); } else toast(j._status === 429 ? t('mk_limit') : t('po_err')); });
+  });
+};
+LIVE['1:5149'] = 'market'; AI_GO.marketplace[0] = '1:5149';
+
+// ======================= Voice assistant: speak a question, hear the answer =======================
+const VC_I = { ru: { vc_on: 'Говорите…', vc_no: 'Голосовой ввод не поддерживается этим браузером', vc_err: 'Не расслышал — попробуйте ещё раз', ai_note: 'ИИ может ошибаться — важное проверяйте в официальных источниках' }, uz: { vc_on: 'Gapiring…', vc_no: 'Bu brauzer ovozli kiritishni qo‘llab-quvvatlamaydi', vc_err: 'Eshitmadim — yana urinib ko‘ring', ai_note: 'AI xato qilishi mumkin — muhim narsalarni rasmiy manbalarda tekshiring' }, en: { vc_on: 'Listening…', vc_no: 'Voice input is not supported in this browser', vc_err: 'Didn’t catch that — try again', ai_note: 'AI can make mistakes — check important things with official sources' } };
+VC_I.zh = VC_I.en; for (const l in VC_I) Object.assign(I[l] || (I[l] = {}), VC_I[l]);
+const VC_LANG = { ru: 'ru-RU', uz: 'uz-UZ', en: 'en-US', zh: 'zh-CN' };
+let VC_SPEAK = false;
+function vcSpeak(text) {
+  if (!window.speechSynthesis || !text) return;
+  const u = new SpeechSynthesisUtterance(text.replace(/\[\[[^\]]*\]\]/g, '').replace(/[*_#>`]/g, '').slice(0, 600)); u.lang = VC_LANG[LANG] || 'ru-RU';
+  const v = speechSynthesis.getVoices().find(x => x.lang && x.lang.toLowerCase().startsWith(u.lang.slice(0, 2).toLowerCase())); if (v) u.voice = v;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+function vcListen(btn) {
+  const R = window.SpeechRecognition || window.webkitSpeechRecognition; if (!R) return toast(t('vc_no'));
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  const r = new R(); r.lang = VC_LANG[LANG] || 'ru-RU'; r.interimResults = true; r.maxAlternatives = 1;
+  const ta = document.getElementById('aiText'); let final = '';
+  btn.classList.add('on'); if (ta) ta.placeholder = t('vc_on');
+  r.onresult = e => { let s = ''; for (const res of e.results) s += res[0].transcript; final = s; if (ta) ta.value = s; };
+  r.onerror = () => { btn.classList.remove('on'); toast(t('vc_err')); };
+  r.onend = () => { btn.classList.remove('on'); if (ta) { ta.placeholder = t('as_ph'); ta.value = ''; } if (final.trim()) { VC_SPEAK = true; aiAsk(final.trim()).then(() => { if (!VC_SPEAK) return; VC_SPEAK = false; const m = [...AIS.msgs].reverse().find(x => x.role === 'assistant'); if (m) vcSpeak(m.content); }); } };
+  try { r.start(); } catch (e) { btn.classList.remove('on'); }
+}
+const _aiOpen0 = aiOpen;
+aiOpen = function () {
+  const had = document.getElementById('aiPanel'); _aiOpen0.apply(this, arguments); if (had) return;
+  const p = document.getElementById('aiPanel'); if (!p) return;
+  const note = p.querySelector('.ai-demo'); if (note) note.textContent = t('ai_note');
+  const f = p.querySelector('#aiForm'); if (!f || f.querySelector('.ai-mic')) return;
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'ai-mic'; b.setAttribute('aria-label', 'voice');
+  b.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/></svg>';
+  b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); vcListen(b); });
+  f.insertBefore(b, f.querySelector('button[type=submit]'));
+};
+const _aiClose0 = aiClose;
+aiClose = function () { if (window.speechSynthesis) speechSynthesis.cancel(); VC_SPEAK = false; return _aiClose0.apply(this, arguments); };
+
+// ======================= Search across all services (home and «All services») =======================
+const SV_I = { ru: { sv_ph: 'Найти услугу: штрафы, аптека, метро…', sv_none: 'Ничего не нашлось — спросите AI Агента' }, uz: { sv_ph: 'Xizmatni topish: jarima, dorixona, metro…', sv_none: 'Hech narsa topilmadi — AI Agentdan so‘rang' }, en: { sv_ph: 'Find a service: fines, pharmacy, metro…', sv_none: 'Nothing found — ask the AI Agent' } };
+SV_I.zh = SV_I.en; for (const l in SV_I) Object.assign(I[l] || (I[l] = {}), SV_I[l]);
+function svcIndex() {
+  const seen = new Set(), out = [];
+  for (const k in AI_GO) { const [to, ...names] = AI_GO[k]; if (seen.has(to)) continue; seen.add(to); out.push({ to, names, label: names[LI[LANG]] || names[0] }); }
+  return out;
+}
+const _svc0 = HS.services;
+HS.services = () => _svc0().replace('<main class="lv-body vs">', `<main class="lv-body vs"><input class="h-search lv-search" id="svQ" type="search" placeholder="${esc(t('sv_ph'))}" autocomplete="off"><div id="svRes" class="lv-card" hidden></div>`);
+HS.services.mount = el => {
+  const q = el.querySelector('#svQ'), res = el.querySelector('#svRes'), idx = svcIndex();
+  q.addEventListener('input', () => {
+    const v = q.value.trim().toLowerCase(); res.hidden = !v; el.querySelectorAll('.lv-sec, .lv-grid').forEach(x => x.style.display = v ? 'none' : '');
+    if (!v) return;
+    const hit = idx.filter(s => s.names.some(n => String(n).toLowerCase().includes(v))).slice(0, 12);
+    res.innerHTML = hit.length ? hit.map(s => `<button class="lv-row" data-act="${s.to.startsWith('a:') ? esc(s.to.slice(2)) : 'go:' + esc(s.to)}"><span class="lv-ri" style="background:${DK};color:${GOLD}">${ico('grid', 22)}</span><span class="lv-rt"><b>${esc(s.label)}</b></span>${IC.chev}</button>`).join('')
+      : `<button class="lv-row" data-act="aiopen"><span class="lv-ri" style="background:#7A4C96;color:#fff">${ico('spark', 22)}</span><span class="lv-rt"><b>${esc(t('sv_none'))}</b></span>${IC.chev}</button>`;
+  });
+};

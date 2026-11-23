@@ -15,6 +15,7 @@ export async function onRequestPost({ request, env }) {
   let b; try { b = await request.json(); } catch { return json({ ok: false }, 400); }
   if (b.action === 'delete') {   // the user's right to erase: everything personal goes; public reports stay without the link to the person
     const del = (sql, ...v) => env.DB.prepare(sql).bind(u.id, ...v).run();
+    await del('DELETE FROM market_photos WHERE ad_id IN (SELECT id FROM market WHERE user_id = ?1)'); await del('DELETE FROM market WHERE user_id = ?1');
     await del('DELETE FROM docs WHERE user_id = ?1'); await del('DELETE FROM cars WHERE user_id = ?1'); await del('DELETE FROM items WHERE user_id = ?1'); await del('DELETE FROM prefs WHERE user_id = ?1');
     await del('DELETE FROM trusted WHERE owner = ?1'); await del('DELETE FROM invites WHERE owner = ?1'); await del('DELETE FROM sos_log WHERE owner = ?1'); await del('DELETE FROM votes WHERE user_id = ?1');
     await del('DELETE FROM chat WHERE user_id = ?1'); await del('DELETE FROM report_ups WHERE user_id = ?1'); await del('UPDATE reports SET user_id = NULL WHERE user_id = ?1'); await del('UPDATE feedback SET user_id = NULL WHERE user_id = ?1');

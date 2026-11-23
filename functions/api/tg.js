@@ -97,6 +97,15 @@ export async function onRequestPost({ request, env }) {
 // Status buttons under a report (admins only): the resident is told about the change.
 async function onButton(env, q) {
   if (q.data === 'noop') { await tg(env, 'answerCallbackQuery', { callback_query_id: q.id }); return; }
+  const md = String(q.data || '').match(/^md:(\d+):del$/);
+  if (md) {
+    const adm0 = await env.DB.prepare('SELECT tg_id FROM admins WHERE tg_id = ?1').bind(q.from.id).first();
+    if (!adm0) { await tg(env, 'answerCallbackQuery', { callback_query_id: q.id, text: 'Нет доступа' }); return; }
+    await env.DB.prepare("UPDATE market SET status = 'removed' WHERE id = ?1").bind(+md[1]).run();
+    await tg(env, 'answerCallbackQuery', { callback_query_id: q.id, text: 'Объявление снято' });
+    if (q.message) await tg(env, 'editMessageReplyMarkup', { chat_id: q.message.chat.id, message_id: q.message.message_id, reply_markup: { inline_keyboard: [[{ text: '• Снято', callback_data: 'noop' }]] } });
+    return;
+  }
   const m = String(q.data || '').match(/^rs:(\d+):(work|done|rej)$/);
   const adm = await env.DB.prepare('SELECT tg_id FROM admins WHERE tg_id = ?1').bind(q.from.id).first();
   if (!m || !adm) { await tg(env, 'answerCallbackQuery', { callback_query_id: q.id, text: 'Нет доступа' }); return; }
