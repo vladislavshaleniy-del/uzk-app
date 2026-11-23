@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MyUzCity · Весь город в одном приложении</title>
+<meta name="description" content="Транспорт, медицина, госуслуги, махалля и ИИ-помощник для жителей Узбекистана. Бесплатно, на узбекском, русском и английском.">
+<meta name="theme-color" content="#0B2413">
+<meta property="og:title" content="MyUzCity · Весь город в одном приложении">
+<meta property="og:description" content="Транспорт, медицина, госуслуги, махалля и ИИ-помощник для жителей Узбекистана.">
+<meta property="og:image" content="/icon-512.png">
+<link rel="icon" href="/icon-192.png">
+<link rel="preload" href="/portal/assets/fonts/unbounded-cyrillic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/portal/assets/fonts/manrope-cyrillic-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/portal/portal.css?v=1">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="MyUzCity"><img src="/icon-192.png" alt="" width="36" height="36"><span>MyUzCity</span></a>
+  <nav class="links">
+    <a href="#story" data-i="n_feat">Возможности</a>
+    <a href="#map" data-i="n_map">Город на карте</a>
+    <a href="#ai" data-i="n_ai">ИИ-помощник</a>
+    <a href="#partners" data-i="n_part">Партнёрам</a>
+  </nav>
+  <div class="nav-r">
+    <div class="langs" role="group" aria-label="Language"><button data-lang="ru">RU</button><button data-lang="uz">UZ</button><button data-lang="en">EN</button></div>
+    <a class="btn btn-acc open-app" href="/" data-i="cta_open">Открыть приложение</a>
+  </div>
+</header>
+
+<main id="top">
+<!-- ============ HERO + STORY: the phone stays pinned and shows the real app ============ -->
+<section class="story" id="story">
+  <div class="story-l">
+    <div class="hero step on" data-go="1:1909" style="--g:#F2B45A">
+      <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="pill rise"><svg><use href="/portal/assets/icons.svg#i-sparkle"/></svg><span data-i="h_eyebrow">Умный город для Узбекистана</span></p>
+      <h1 class="rise" data-i="h_t">Весь город в одном приложении</h1>
+      <p class="lead rise" data-i="h_s">Транспорт, медицина, госуслуги, махалля и ИИ-помощник. Бесплатно, на трёх языках.</p>
+      <div class="cta-row rise">
+        <a class="btn btn-acc btn-lg open-app" href="/" data-i="cta_open">Открыть приложение</a>
+        <a class="btn btn-ghost btn-lg" href="#s-transport" data-i="h_how">Как это работает</a>
+      </div>
+    </div>
+    <article class="step" id="s-transport" data-go="h:transport" style="--g:#3B82F6">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-bus"/></svg></span>
+      <h2 data-i="st1_t">Метро, автобусы, поезда и самолёты</h2>
+      <p data-i="st1_s">Станции и маршруты рядом с вами, расписание поездов и живое табло аэропортов Узбекистана.</p>
+      <ul class="facts"><li><b data-n="metro">49</b><span data-i="f_metro">станций метро</span></li><li><b data-n="bus">61</b><span data-i="f_bus">маршрут автобусов</span></li><li><b>11</b><span data-i="f_air">аэропортов на табло</span></li></ul>
+      <a class="go-app" data-open="h:transport" href="/" data-i="go_open">Открыть раздел</a>
+    </article>
+    <article class="step" data-go="h:poi" data-p="med" style="--g:#22C55E">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-first-aid-kit"/></svg></span>
+      <h2 data-i="st2_t">Аптеки и клиники, открытые сейчас</h2>
+      <p data-i="st2_s">Карта с часами работы, маршрут пешком или на такси и онлайн-запись к врачу через DMED.</p>
+      <ul class="facts"><li><b data-n="med">1808</b><span data-i="f_med">аптек и клиник в Ташкенте</span></li><li><b>103</b><span data-i="f_103">скорая в один тап</span></li></ul>
+      <a class="go-app" data-open="h:poi" data-p="med" href="/" data-i="go_open">Открыть раздел</a>
+    </article>
+    <article class="step" data-go="h:reports" data-p="road" style="--g:#F59E0B">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-megaphone"/></svg></span>
+      <h2 data-i="st3_t">Яма, мусор, не горит свет? Сообщите</h2>
+      <p data-i="st3_s">Фото и точка на карте. Сообщение видят соседи и ответственные службы, статус приходит вам в Telegram.</p>
+      <a class="go-app" data-open="h:reports" data-p="road" href="/" data-i="go_open">Открыть раздел</a>
+    </article>
+    <article class="step" data-go="1:996" style="--g:#14B8A6">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-users-three"/></svg></span>
+      <h2 data-i="st4_t">Махалля онлайн</h2>
+      <p data-i="st4_s">Чат соседей, опросы махалли с честным подсчётом голосов и мечети рядом со временем намаза.</p>
+      <a class="go-app" data-open="1:996" href="/" data-i="go_open">Открыть раздел</a>
+    </article>
+    <article class="step" data-go="1:4475" style="--g:#EF4444">
+      <span class="ic red"><svg><use href="/portal/assets/icons.svg#i-siren"/></svg></span>
+      <h2 data-i="st5_t">Тревожная кнопка</h2>
+      <p data-i="st5_s">Одно нажатие, и близкие получают вашу геолокацию в Telegram. Плюс экстренные службы 101, 102, 103, 104.</p>
+      <a class="go-app" data-open="1:4475" href="/" data-i="go_open">Открыть раздел</a>
+    </article>
+    <article class="step" data-go="1:19" style="--g:#A78BFA">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-identification-card"/></svg></span>
+      <h2 data-i="st6_t">Документы под контролем</h2>
+      <p data-i="st6_s">Сроки паспорта, прав, страховки и техосмотра. Бот напомнит за 30, 7 и 1 день.</p>
+      <a class="go-app" data-open="1:19" href="/" data-i="go_open">Открыть раздел</a>
+    </article>
+    <article class="step" data-go="1:5149" style="--g:#FB923C">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-storefront"/></svg></span>
+      <h2 data-i="st7_t">Маркетплейс соседей</h2>
+      <p data-i="st7_s">Продайте ненужное или отдайте даром людям из вашего города. Связь через Telegram.</p>
+      <a class="go-app" data-open="1:5149" href="/" data-i="go_open">Открыть раздел</a>
+    </article>
+  </div>
+  <div class="story-r">
+    <div class="phone-wrap" id="phoneWrap">
+      <div class="chip c1" id="cWx" hidden></div>
+      <div class="chip c2" id="cAq" hidden></div>
+      <div class="chip c3" id="cFx" hidden></div>
+      <div class="chip c4" id="cPr" hidden></div>
+      <div class="phone" id="phone">
+        <iframe id="appFrame" title="MyUzCity" loading="lazy"></iframe>
+        <button class="try" id="tryBtn"><svg><use href="/portal/assets/icons.svg#i-hand-tap"/></svg><span data-i="try">Нажмите, чтобы попробовать</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LIVE CITY NUMBERS ============ -->
+<div class="ticker" aria-hidden="true"><div class="tk-row" id="tk1"></div><div class="tk-row rev" id="tk2"></div></div>
+<section class="stats" id="stats">
+  <h2 class="reveal" data-i="stats_t">Ташкент в приложении уже сегодня</h2>
+  <div class="stat-grid">
+    <div class="stat reveal"><b data-count="cafes">0</b><span data-i="s_cafes">кафе и ресторанов</span></div>
+    <div class="stat reveal"><b data-count="parking">0</b><span data-i="s_parking">парковок</span></div>
+    <div class="stat reveal"><b data-count="med">0</b><span data-i="s_med">аптек и клиник</span></div>
+    <div class="stat reveal"><b data-count="edu">0</b><span data-i="s_edu">школ, детсадов и вузов</span></div>
+    <div class="stat reveal"><b data-count="gov">0</b><span data-i="s_gov">госучреждений</span></div>
+    <div class="stat reveal"><b data-count="mosque">0</b><span data-i="s_mosque">мечетей</span></div>
+    <div class="stat reveal"><b data-count="stops">0</b><span data-i="s_stops">остановок транспорта</span></div>
+    <div class="stat reveal"><b data-count="speedcam">0</b><span data-i="s_cams">камер скорости</span></div>
+  </div>
+  <p class="note reveal" data-i="stats_src">Данные OpenStreetMap и открытых источников. Обновляются автоматически каждые 2 часа.</p>
+</section>
+
+<!-- ============ LIFE MOMENTS ============ -->
+<section class="moments" id="moments">
+  <div class="sec-head reveal">
+    <h2 data-i="mo_t">Сервисы под ваши жизненные ситуации</h2>
+    <p data-i="mo_s">Не ищите нужную госслужбу или приложение. Выберите ситуацию, всё нужное уже собрано.</p>
+  </div>
+  <div class="mo-track" id="moTrack"></div>
+</section>
+
+<!-- ============ THREE PILLARS (bento) ============ -->
+<section class="pillars" id="pillars">
+  <h2 class="reveal" data-i="pi_t">Три опоры умного города</h2>
+  <div class="bento">
+    <article class="b b-trust reveal">
+      <div class="tv" aria-hidden="true"><div class="tv-row"><span data-i="tv1">Паспортные данные не нужны</span><i></i></div><div class="tv-row"><span data-i="tv2">Документы видите только вы</span><i></i></div><div class="tv-row"><span data-i="tv3">Удалить аккаунт в один тап</span><i></i></div></div>
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-shield-check"/></svg></span>
+      <h3 data-i="pi1_t">Доверие</h3>
+      <p data-i="pi1_s">Вход через Telegram без паспортных данных. Ваши документы и машины видите только вы. Аккаунт удаляется в один тап.</p>
+      <a class="lnk" href="/privacy.html" data-priv data-i="pi1_l">Политика конфиденциальности</a>
+    </article>
+    <article class="b b-comm reveal">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-users-three"/></svg></span>
+      <h3 data-i="pi2_t">Сообщество</h3>
+      <p data-i="pi2_s">Сообщения о проблемах, опросы и чат махалли. Голос каждого жителя виден и учтён.</p>
+      <div class="live-line" id="liveComm" hidden></div>
+    </article>
+    <article class="b b-grow reveal">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-trend-up"/></svg></span>
+      <h3 data-i="pi3_t">Рост</h3>
+      <p data-i="pi3_s">Маркетплейс соседей, программы для бизнеса, IPO госкомпаний и недвижимость.</p>
+    </article>
+    <article class="b b-lang reveal">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-translate"/></svg></span>
+      <h3 data-i="pi4_t">Говорит на вашем языке</h3>
+      <div class="lang-flip" aria-hidden="true"><span>Salom</span><span>Привет</span><span>Hello</span><span>你好</span></div>
+    </article>
+    <article class="b b-ai reveal">
+      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-sparkle"/></svg></span>
+      <h3 data-i="pi5_t">ИИ, который знает город</h3>
+      <p data-i="pi5_s">Подскажет ближайшую аптеку, время намаза и как оформить загранпаспорт. Голосом или текстом.</p>
+      <a class="lnk" href="#ai" data-i="pi5_l">Спросить сейчас</a>
+    </article>
+  </div>
+</section>
+
+<!-- ============ LIVE MAP ============ -->
+<section class="mapsec" id="map">
+  <div class="map-head reveal">
+    <h2 data-i="map_t">Город на карте</h2>
+    <p data-i="map_s">Включайте слои и смотрите, что рядом. Это живые данные из приложения.</p>
+    <div class="layers" id="layers"></div>
+  </div>
+  <div class="map" id="cityMap"><div class="map-count" id="mapCount"></div></div>
+</section>
+
+<!-- ============ AI LIVE ============ -->
+<section class="ai" id="ai">
+  <div class="ai-card reveal">
+    <div class="ai-top"><span class="ic"><svg><use href="/portal/assets/icons.svg#i-sparkle"/></svg></span><div><h2 data-i="ai_t">Спросите что угодно о городе</h2><p data-i="ai_s">Это настоящий ИИ-помощник MyUzCity. Отвечает на узбекском, русском и английском.</p></div></div>
+    <div class="ai-log" id="aiLog" aria-live="polite"></div>
+    <div class="ai-sug" id="aiSug"></div>
+    <form class="ai-form" id="aiForm"><label class="sr" for="aiIn" data-i="ai_ph">Ваш вопрос</label><input id="aiIn" autocomplete="off" maxlength="400" placeholder="Например: где ближайшая аптека 24/7?"><button class="btn btn-acc" type="submit" aria-label="send"><svg><use href="/portal/assets/icons.svg#i-arrow-right"/></svg></button></form>
+  </div>
+</section>
+
+<!-- ============ LIVE WIDGETS ============ -->
+<section class="live" id="live">
+  <h2 class="reveal" data-i="lv_t">Город прямо сейчас</h2>
+  <div class="lv-grid">
+    <article class="w w-wx reveal" id="wWx"><div class="sk"></div></article>
+    <article class="w w-fx reveal" id="wFx"><div class="sk"></div></article>
+    <article class="w w-pr reveal" id="wPr"><div class="sk"></div></article>
+    <article class="w w-fl reveal" id="wFl"><div class="sk"></div></article>
+    <article class="w w-nw reveal" id="wNw"><div class="sk"></div></article>
+  </div>
+</section>
+
+<!-- ============ PARTNERS ============ -->
+<section class="partners" id="partners">
+  <div class="pt-l reveal">
+    <h2 data-i="pt_t">Для города, бизнеса и инвесторов</h2>
+    <div class="tabs" role="tablist"><button role="tab" class="on" data-tab="gov" data-i="pt_gov">Хокимиятам</button><button role="tab" data-tab="biz" data-i="pt_biz">Бизнесу</button><button role="tab" data-tab="inv" data-i="pt_inv">Инвесторам</button></div>
+    <div class="tab-body" id="tabBody"></div>
+  </div>
+  <form class="pt-form reveal" id="ptForm">
+    <h3 data-i="pf_t">Обсудим сотрудничество</h3>
+    <label><span data-i="pf_name">Имя и организация</span><input id="pfN" required maxlength="80" autocomplete="organization"></label>
+    <label><span data-i="pf_contact">Телефон или Telegram</span><input id="pfC" required maxlength="60" autocomplete="tel"></label>
+    <label><span data-i="pf_msg">Чем можем быть полезны</span><textarea id="pfM" rows="3" maxlength="800"></textarea></label>
+    <button class="btn btn-acc" type="submit" data-i="pf_send">Отправить заявку</button>
+    <p class="form-msg" id="pfMsg" role="status"></p>
+  </form>
+</section>
+
+<!-- ============ GET THE APP ============ -->
+<section class="get" id="get">
+  <div class="get-card reveal">
+    <div class="get-l">
+      <h2 data-i="g_t">Откройте MyUzCity</h2>
+      <p data-i="g_s">Работает в браузере на любом телефоне. Добавьте на главный экран, и приложение будет открываться с иконки.</p>
+      <div class="cta-row"><a class="btn btn-acc btn-lg open-app" href="/" data-i="cta_open">Открыть приложение</a><a class="btn btn-ghost btn-lg" href="https://t.me/MyUzCity_bot" target="_blank" rel="noopener"><svg><use href="/portal/assets/icons.svg#i-telegram-logo"/></svg><span data-i="g_bot">Бот в Telegram</span></a></div>
+    </div>
+    <div class="get-r"><div class="qr" id="qr" aria-label="QR"></div><p data-i="g_qr">Наведите камеру телефона</p></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="f-brand"><img src="/icon-192.png" alt="" width="32" height="32"><b>MyUzCity</b></div>
+  <nav><a href="/privacy.html" data-priv data-i="f_priv">Политика конфиденциальности</a><a href="https://t.me/MyUzCity_bot" target="_blank" rel="noopener">@MyUzCity_bot</a><a class="open-app" href="/" data-i="f_app">Приложение</a></nav>
+  <p class="f-src" data-i="f_src">Данные: OpenStreetMap, Open-Meteo, ЦБ Республики Узбекистан, Uzbekistan Airports, новостные издания Узбекистана.</p>
+  <p class="f-c">© 2026 MyUzCity</p>
+</footer>
+
+<script src="/portal/assets/qrcode.js" defer></script>
+<script src="/portal/portal.js?v=1" defer></script>
+</body>
+</html>

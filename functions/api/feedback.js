@@ -13,6 +13,6 @@ export async function onRequestPost({ request, env }) {
   const u = s ? await env.DB.prepare('SELECT * FROM users WHERE id = ?1').bind(s.u).first() : null;
   const r = await env.DB.prepare('INSERT INTO feedback (user_id, text, created) VALUES (?1, ?2, ?3) RETURNING id').bind(u ? u.id : null, text, now).first();
   const who = u ? `${[u.first_name, u.last_name].filter(Boolean).join(' ')} ${fmtPhone(u.phone)}${u.username ? ' @' + u.username : ''}` : 'гость' + (ip ? ' (' + ip + ')' : '');
-  const sent = await notifyAdmins(env, 'sendMessage', { text: `✉️ Обращение в поддержку №${r.id}\n${who}\n\n${text}` });
+  const sent = await notifyAdmins(env, 'sendMessage', { text: `${text.startsWith('[Партнёрство') ? '🤝 Заявка с сайта' : '✉️ Обращение в поддержку'} №${r.id}\n${who}\n\n${text}` });
   return json({ ok: true, id: r.id, delivered: sent > 0 });
 }
