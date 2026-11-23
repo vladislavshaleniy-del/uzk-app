@@ -62,7 +62,7 @@
       business: { art: 'business', ic: 'briefcase', g: '#F2B45A', app: '1:2573', size: '', t: tr3('Бизнесу', 'Biznesga', 'Business'),
         sub: tr3('Открыть ИП, налоги, реклама на карте', "YaTT ochish, soliqlar, xaritada reklama", 'Start a business, taxes, map placement'),
         lead: tr3('Как открыть ИП или стать самозанятым, какие налоги платить и как MyUzCity приводит жителей к вашему бизнесу.', "YaTT ochish yoki o'zini o'zi band qilish, qaysi soliqlarni to'lash va MyUzCity aholini biznesingizga qanday olib keladi.", 'How to register a business or become self-employed, which taxes apply and how MyUzCity brings residents to your business.') },
-      safety: { art: 'city', ic: 'siren', g: '#EF4444', app: '1:4475', size: 'wide', t: tr3('Безопасность', 'Xavfsizlik', 'Safety'),
+      safety: { art: 'safety', ic: 'siren', g: '#EF4444', app: '1:4475', size: 'wide', t: tr3('Безопасность', 'Xavfsizlik', 'Safety'),
         sub: tr3('Тревожная кнопка, экстренные номера', 'Xavf tugmasi, favqulodda raqamlar', 'Panic button, emergency numbers'),
         lead: tr3('Все экстренные службы в один тап и тревожная кнопка: близкие сразу получают вашу геолокацию в Telegram.', "Barcha favqulodda xizmatlar bir bosishda va xavf tugmasi: yaqinlaringiz darhol Telegramda joylashuvingizni oladi.", 'Every emergency service in one tap and a panic button that sends your location to loved ones in Telegram.') },
       map: { art: 'city', ic: 'map-trifold', g: '#F2B45A', size: 'wide', t: tr3('Город на карте', 'Shahar xaritada', 'City map'),
@@ -463,12 +463,86 @@
       const nav = e.target.closest('.nav a[href^="#"]'); if (nav && cur) { e.preventDefault(); const id = nav.getAttribute('href').slice(1); openSv(null, true).then(() => { const el = document.getElementById(id); el && el.scrollIntoView(); }); }
     });
     addEventListener('popstate', () => openSv(new URLSearchParams(location.search).get('s'), false));
-    document.addEventListener('mz:lang', () => { renderCatalog(); wireRobots($('#svcGrid')); agentInit(); if (cur) { const k = cur; cur = null; openSv(k, false); } });
+    document.addEventListener('mz:lang', () => { renderCatalog(); wireRobots($('#svcGrid')); agentInit(); hsInit(); if (cur) { const k = cur; cur = null; openSv(k, false); } });
     document.addEventListener('mz:data', () => { if (cur === 'transport' && !$('#svMain .board')) fill('transport'); });
+
+    // ---------------- city search on the first screen: sections, how-tos for public services, or ask the assistant ----------------
+    const HS = {
+      ph: tr3('Что вы хотите сделать?', 'Nima qilmoqchisiz?', 'What do you want to do?'),
+      ex: { ru: ['Оформить загранпаспорт', 'Найти аптеку рядом', 'Время намаза сегодня', 'Оплатить штраф ПДД', 'Записать ребёнка в детсад', 'Расписание поездов'],
+            uz: ['Xorijga chiqish pasporti olish', 'Yaqin dorixonani topish', 'Bugungi namoz vaqti', "YHQ jarimasini to'lash", "Bolani bog'chaga yozish", 'Poyezdlar jadvali'],
+            en: ['Get a travel passport', 'Find a pharmacy nearby', "Today's prayer times", 'Pay a traffic fine', 'Enrol a child in kindergarten', 'Train timetable'] },
+      pop: tr3('Часто ищут', "Ko'p qidiriladi", 'Popular'),
+      sec: tr3('Разделы', "Bo'limlar", 'Sections'), how: tr3('Как оформить', 'Qanday rasmiylashtirish', 'How to'),
+      ask: tr3('Спросить ассистента', "Yordamchidan so'rash", 'Ask the assistant'), go: tr3('Найти', 'Topish', 'Search'),
+    };
+    const KW = {
+      transport: 'метро автобус маршрутк поезд электричк самолет рейс аэропорт такси парковк проезд транспорт билет metro avtobus poyezd samolyot aeroport taksi parkovka chipta bus train flight airport taxi parking ticket',
+      health: 'аптек врач клиник больниц поликлиник скорая доктор лекарств анализ dmed dorixona shifokor klinika kasalxona poliklinika pharmacy doctor clinic hospital medicine',
+      gov: 'документ паспорт справк пошлин госуслуг права штраф прописк загран id hujjat pasport malumotnoma jarima propiska document passport certificate fine licence',
+      edu: 'детсад детский сад школ класс учеб ребен bogcha maktab sinf bola kindergarten school child',
+      mahalla: 'махалл сосед жалоб яма мусор обращен свет вода опрос mahalla qoshni shikoyat chiqindi murojaat sorovnoma neighbour complaint pothole garbage poll',
+      faith: 'намаз мечет молитв ифтар рамадан пятничн namoz masjid ibodat prayer mosque',
+      leisure: 'кафе ресторан афиш отдых кино театр парк концерт выходн еда kafe restoran afisha dam kino teatr bogi cafe restaurant event cinema park weekend food',
+      market: 'продать купить объявлен отдам даром барахолк sotish sotib elon tekin sell buy listing free',
+      business: 'бизнес ип налог самозанят предприним реклам biznes yatt soliq tadbirkor business tax self-employed advert',
+      safety: 'безопасн тревож полиц пожар скорая 101 102 103 104 sos xavf militsiya politsiya yongin safety police fire ambulance emergency',
+      map: 'карт рядом где xarita yaqin qayerda map near where',
+    };
+    const norm = x => String(x || '').toLowerCase().replace(/ё/g, 'е').replace(/[ʻʼ'`’‘]/g, '').replace(/[^a-zа-я0-9\s-]/g, ' ').replace(/\s+/g, ' ').trim();
+    function hsFind(q) {
+      const n = norm(q); if (!n) return { sv: [], kb: [] }; const words = n.split(' ').filter(w => w.length > 1);
+      const score = (title, extra) => { const tt = norm(title), ex = norm(extra); let sc = 0;
+        if (tt.startsWith(n)) sc += 6; else if (tt.includes(n)) sc += 4;
+        words.forEach(w => { if (tt.split(' ').some(x => x.startsWith(w))) sc += 3; if (ex.split(' ').some(x => x.startsWith(w) || (x.length > 3 && w.startsWith(x)))) sc += 2; }); return sc; };
+      const sv = ORDER.filter(k => SV[k]).map(k => ({ k, sc: score(pick(SV[k].t), [SV[k].t.ru, SV[k].t.uz, SV[k].t.en, pick(SV[k].sub), KW[k] || ''].join(' ')) })).filter(x => x.sc > 1).sort((a, b) => b.sc - a.sc).slice(0, 4);
+      const kbi = Object.keys(KBT).map(id => ({ id, sc: score(pick(KBT[id]), [KBT[id].ru, KBT[id].uz, KBT[id].en, askQ[id] || '', (KBD && (KBD.list.find(x => x.id === id) || {}).t || '').slice(0, 160)].join(' ')) })).filter(x => x.sc > 1).sort((a, b) => b.sc - a.sc).slice(0, 4);
+      return { sv, kb: kbi };
+    }
+    function hsInit() {
+      const box = $('#hs'); if (!box) return;
+      const ex = () => HS.ex[L()] || HS.ex.ru;
+      box.innerHTML = `<form class="hs-f" role="search" autocomplete="off"><span class="hs-i">${ic('magnifying-glass')}</span>
+        <input id="hsQ" type="search" enterkeyhint="search" aria-label="${esc(pick(HS.ph))}" placeholder="${esc(pick(HS.ph))}" aria-controls="hsDrop" aria-expanded="false">
+        <button class="btn btn-acc hs-go" type="submit"><span>${esc(pick(HS.go))}</span>${ic('arrow-right')}</button></form>
+        <div class="hs-drop" id="hsDrop" role="listbox" hidden></div>
+        <div class="hs-pop"><span>${esc(pick(HS.pop))}</span>${ex().slice(0, 4).map(q => `<button type="button" data-hsq="${esc(q)}">${esc(q)}</button>`).join('')}</div>`;
+      const f = box.querySelector('form'), inp = $('#hsQ'), drop = $('#hsDrop'); let items = [], act = -1;
+      const askIt = q => { inp.blur(); close(); if (window.MZdock) { MZdock.open(); setTimeout(() => MZ.ask(q), 250); } else openSv('ai', true).then(() => MZ.ask(q)); };
+      const openKb = id => { close(); openSv('gov', true).then(() => { let n = 0; const tk = setInterval(() => { const d = $(`#svMain details.kb[data-k="${id}"]`); if (d || ++n > 40) { clearInterval(tk); if (d) { d.open = true; d.scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' }); d.classList.add('hs-hit'); } } }, 100); }); };
+      const run = it => { if (!it) return; if (it.t === 'sv') { close(); openSv(it.k, true); } else if (it.t === 'kb') openKb(it.k); else askIt(it.q); };
+      function paint() {
+        const q = inp.value.trim(); kb().then(() => {});
+        const r = hsFind(q); items = [];
+        let h = '';
+        if (r.sv.length) { h += `<div class="hs-g">${esc(pick(HS.sec))}</div>`; r.sv.forEach(({ k }) => { items.push({ t: 'sv', k }); h += `<button type="button" class="hs-it" role="option" data-i="${items.length - 1}" style="--g:${SV[k].g}"><i class="hs-ic">${ic(SV[k].ic)}</i><span><b>${esc(pick(SV[k].t))}</b><em>${esc(pick(SV[k].sub))}</em></span>${ic('arrow-up-right')}</button>`; }); }
+        if (r.kb.length) { h += `<div class="hs-g">${esc(pick(HS.how))}</div>`; r.kb.forEach(({ id }) => { items.push({ t: 'kb', k: id }); const first = kbText(id, true).replace(/^[^.:]{3,80}[.:]\s+/, ''); h += `<button type="button" class="hs-it" role="option" data-i="${items.length - 1}" style="--g:#A78BFA"><i class="hs-ic">${ic('identification-card')}</i><span><b>${esc(pick(KBT[id]))}</b><em>${esc(first.slice(0, 96))}</em></span>${ic('arrow-up-right')}</button>`; }); }
+        if (q) { items.push({ t: 'ask', q }); h += `<button type="button" class="hs-it hs-ask" role="option" data-i="${items.length - 1}"><i class="hs-ic">${ic('sparkle')}</i><span><b>${esc(pick(HS.ask))}</b><em>«${esc(q.slice(0, 80))}»</em></span>${ic('arrow-right')}</button>`; }
+        drop.innerHTML = h; drop.hidden = !h; inp.setAttribute('aria-expanded', String(!!h)); act = -1;
+      }
+      const close = () => { drop.hidden = true; inp.setAttribute('aria-expanded', 'false'); act = -1; };
+      const mark = () => drop.querySelectorAll('.hs-it').forEach((b, i) => b.classList.toggle('on', i === act));
+      inp.addEventListener('input', paint);
+      inp.addEventListener('focus', () => { kb().then(() => { if (document.activeElement === inp && inp.value.trim()) paint(); }); });
+      inp.addEventListener('keydown', e => {
+        if (drop.hidden) return; const n = items.length;
+        if (e.key === 'ArrowDown') { e.preventDefault(); act = (act + 1) % n; mark(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); act = (act - 1 + n) % n; mark(); }
+        else if (e.key === 'Escape') close();
+      });
+      f.addEventListener('submit', e => { e.preventDefault(); const q = inp.value.trim(); if (!q) { inp.focus(); return; } if (act >= 0) return run(items[act]); const r = hsFind(q); const top = r.sv[0] && (!r.kb[0] || r.sv[0].sc >= r.kb[0].sc) ? { t: 'sv', k: r.sv[0].k } : r.kb[0] ? { t: 'kb', k: r.kb[0].id } : null; run(top && (top.t === 'sv' ? r.sv[0].sc : r.kb[0].sc) >= 6 ? top : { t: 'ask', q }); });
+      drop.addEventListener('mousedown', e => e.preventDefault());
+      drop.addEventListener('click', e => { const b = e.target.closest('.hs-it'); if (b) run(items[+b.dataset.i]); });
+      box.querySelector('.hs-pop').addEventListener('click', e => { const b = e.target.closest('[data-hsq]'); if (!b) return; inp.value = b.dataset.hsq; inp.focus(); paint(); });
+      // the placeholder cycles through real tasks while the field is idle
+      if (!RM) { let i = 0; clearInterval(window.__hsT); window.__hsT = setInterval(() => { if (document.activeElement === inp || inp.value) return; i = (i + 1) % ex().length; inp.placeholder = `${pick(HS.ph)} ${L() === 'en' ? 'e.g.' : L() === 'uz' ? 'Masalan:' : 'Например:'} ${ex()[i].toLowerCase()}`; }, 2800); }
+    }
+    document.addEventListener('click', e => { const b = $('#hs'), d = $('#hsDrop'); if (b && d && !b.contains(e.target)) { d.hidden = true; } });
+    addEventListener('keydown', e => { const q = $('#hsQ'); if (q && e.key === '/' && !/input|textarea/i.test((document.activeElement || {}).tagName || '') && !cur) { e.preventDefault(); q.focus(); } });
 
     // story steps and nav links point to the service pages
     $$('.go-app[data-sv]').forEach(a => { a.href = `?s=${a.dataset.sv}`; });
-    renderCatalog(); wireRobots($('#svcGrid')); agentInit(); wireChat(); dockInit();
+    renderCatalog(); wireRobots($('#svcGrid')); agentInit(); wireChat(); dockInit(); hsInit();
     const hubHome = $('#hubHome'); if (hubHome) { hubHome.innerHTML = hubHtml(false); hubInit(hubHome.querySelector('.hub')); const hh = $('#hubT'); if (hh) { hh.textContent = s('hub_t'); $('#hubS').textContent = s('hub_s'); } }
     const s0 = new URLSearchParams(location.search).get('s'); if (s0) openSv(s0, false);
   }
