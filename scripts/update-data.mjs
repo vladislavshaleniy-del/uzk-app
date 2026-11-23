@@ -20,7 +20,9 @@ async function get(url, ms = 15000) {
   } finally { clearTimeout(tm); }
 }
 const decode = s => s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-  .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&nbsp;/g, ' ').replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n));
+  .replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&nbsp;/g, ' ').replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
+  .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))).replace(/&([a-z]+);/gi, (m, k) => ENT[k.toLowerCase()] ?? m);
+const ENT = { laquo: '«', raquo: '»', mdash: '—', ndash: '–', hellip: '…', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”', bdquo: '„', shy: '', times: '×', copy: '©', deg: '°', euro: '€', minus: '−', middot: '·', bull: '•', laquo2: '«' };
 const strip = s => decode(decode(s || '')).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const tag = (it, t) => { const m = it.match(new RegExp(`<${t}[^>]*>([\\s\\S]*?)</${t}>`)); return m ? m[1] : ''; };
 
@@ -91,7 +93,7 @@ async function news() {
 }
 
 // ---------------------------------------------------------------- places (OpenStreetMap)
-const OVERPASS = ['https://overpass.kumi.systems/api/interpreter', 'https://overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+const OVERPASS = ['https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass-api.de/api/interpreter'];
 const has = (s, re) => re.test(s || '');
 function cats(t) {
   const name = [t.name, t['name:ru'], t['name:uz'], t['name:en']].join(' ');
@@ -145,20 +147,19 @@ async function overpass(q) {
   throw new Error('all overpass servers failed');
 }
 async function places() {
+  // each run refreshes the cities whose data is older than 6 days, within a time budget
   const dir = ROOT + 'data/places/';
   mkdirSync(dir, { recursive: true });
   const marker = dir + 'index.json';
-  const prev = existsSync(marker) ? JSON.parse(readFileSync(marker, 'utf8')) : null;
-  const fresh = prev && prev.v === 2 && Date.now() - Date.parse(prev.updated) < 6 * 864e5;
-  if (fresh && !process.env.FORCE_PLACES) { console.log('places: fresh, skipped'); return; }
-  const index = { v: 2, updated: new Date().toISOString(), cities: {} };
-  // big and tourist cities first; stop after ~12 minutes and keep the previous files for the rest
+  const prev = existsSync(marker) ? JSON.parse(readFileSync(marker, 'utf8')) : {};
+  const index = { v: 3, updated: new Date().toISOString(), cities: prev.cities || {}, at: prev.at || {} };
   const BIG = ['Ташкент', 'Самарканд', 'Бухара', 'Хива', 'Ургенч', 'Наманган', 'Андижан', 'Фергана', 'Коканд', 'Маргилан', 'Нукус', 'Карши', 'Шахрисабз', 'Термез', 'Джизак', 'Навои', 'Гулистан', 'Чирчик'];
   const order = CITIES.map((c, i) => i).filter(i => BIG.includes(CITIES[i][0])).sort((a, b) => BIG.indexOf(CITIES[a][0]) - BIG.indexOf(CITIES[b][0]));
+  const stale = i => process.env.FORCE_PLACES || !index.at[i] || Date.now() - Date.parse(index.at[i]) > 6 * 864e5;
   const t0 = Date.now();
-  for (const i of CITIES.map((c, k) => k)) if (!order.includes(i) && existsSync(dir + i + '.json')) index.cities[i] = JSON.parse(readFileSync(dir + i + '.json', 'utf8')).length;
   for (const i of order) {
-    if (Date.now() - t0 > 12 * 60e3) { if (existsSync(dir + i + '.json')) index.cities[i] = JSON.parse(readFileSync(dir + i + '.json', 'utf8')).length; continue; }
+    if (!stale(i)) continue;
+    if (Date.now() - t0 > 9 * 60e3) { console.log('places: time budget used, the rest next run'); break; }
     const [, , , , , lat, lon] = CITIES[i];
     const r = i === 0 ? 16000 : 6000;
     const q = `[out:json][timeout:90];nwr["amenity"~"^(restaurant|cafe|fast_food|bar|pub|hookah_lounge|food_court|biergarten)$"]["name"](around:${r},${lat},${lon});out center tags;`;
@@ -167,9 +168,10 @@ async function places() {
       const items = j.elements.map(e => place(e, i)).filter(Boolean);
       const seen = new Set(); const list = items.filter(p => { const k = p.n.toLowerCase() + Math.round(p.la * 2000) + Math.round(p.lo * 2000); return !seen.has(k) && seen.add(k); });
       if (list.length) { writeFileSync(dir + i + '.json', JSON.stringify(list)); index.cities[i] = list.length; }
+      index.at[i] = new Date().toISOString();
+      writeFileSync(marker, JSON.stringify(index));
       console.log(`places ${CITIES[i][0]}: ${list.length}`);
-    } catch (e) { console.log(`places ${CITIES[i][0]} failed: ${e.message}`); if (existsSync(dir + i + '.json')) index.cities[i] = JSON.parse(readFileSync(dir + i + '.json', 'utf8')).length; }
-    writeFileSync(marker, JSON.stringify(index));
+    } catch (e) { console.log(`places ${CITIES[i][0]} failed: ${e.message}`); }
     await new Promise(r => setTimeout(r, 1500));
   }
   writeFileSync(marker, JSON.stringify(index));
