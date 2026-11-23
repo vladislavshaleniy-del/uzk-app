@@ -41,7 +41,7 @@
       fls: { sc: 'По расписанию', dl: 'Задерживается', cx: 'Отменён', bd: 'Посадка', dp: 'Вылетел', ld: 'Прибыл', ex: 'Ожидается', ci: 'Регистрация' },
       pt_t: 'Для города, бизнеса и инвесторов', pt_gov: 'Хокимиятам', pt_biz: 'Бизнесу', pt_inv: 'Инвесторам',
       pf_t: 'Обсудим сотрудничество', pf_name: 'Имя и организация', pf_contact: 'Телефон или Telegram', pf_msg: 'Чем можем быть полезны', pf_send: 'Отправить заявку', pf_ok: 'Спасибо! Заявка у команды, мы свяжемся с вами.', pf_err: 'Не отправилось. Напишите нам в Telegram: @MyUzCity_bot',
-      g_t: 'Откройте MyUzCity', g_s: 'Работает в браузере на любом телефоне. Добавьте на главный экран, и приложение будет открываться с иконки.', g_bot: 'Бот в Telegram', g_qr: 'Наведите камеру телефона',
+      g_t: 'Откройте MyUzCity', g_s: 'Работает в браузере на любом телефоне. Добавьте на главный экран, и приложение будет открываться с иконки.', g_bot: 'Бот в Telegram', g_inst: 'Установить на телефон', g_inst_s: 'Установить', g_ios: 'Safari → «Поделиться» → «На экран „Домой“»', g_and: 'Chrome → меню ⋮ → «Установить приложение»', g_scan: 'Отсканируйте QR камерой телефона: откроется установка', g_qr: 'Наведите камеру телефона',
       f_priv: 'Политика конфиденциальности', f_app: 'Приложение', f_src: 'Данные: OpenStreetMap, Open-Meteo, ЦБ Республики Узбекистан, Uzbekistan Airports, новостные издания Узбекистана.',
       title: 'MyUzCity · Весь город в одном приложении',
     },
@@ -72,7 +72,7 @@
       fls: { sc: "Jadval bo'yicha", dl: 'Kechikmoqda', cx: 'Bekor qilindi', bd: 'Chiqish', dp: 'Uchib ketdi', ld: 'Yetib keldi', ex: 'Kutilmoqda', ci: "Ro'yxatdan o'tish" },
       pt_t: 'Shahar, biznes va investorlar uchun', pt_gov: 'Hokimliklarga', pt_biz: 'Biznesga', pt_inv: 'Investorlarga',
       pf_t: 'Hamkorlikni muhokama qilamiz', pf_name: 'Ism va tashkilot', pf_contact: 'Telefon yoki Telegram', pf_msg: 'Qanday yordam bera olamiz', pf_send: 'Ariza yuborish', pf_ok: "Rahmat! Ariza jamoada, siz bilan bog'lanamiz.", pf_err: 'Yuborilmadi. Telegramda yozing: @MyUzCity_bot',
-      g_t: "MyUzCity'ni oching", g_s: "Har qanday telefonda brauzerda ishlaydi. Bosh ekranga qo'shing, ilova belgidan ochiladi.", g_bot: 'Telegram bot', g_qr: 'Telefon kamerasini qarating',
+      g_t: "MyUzCity'ni oching", g_s: "Har qanday telefonda brauzerda ishlaydi. Bosh ekranga qo'shing, ilova belgidan ochiladi.", g_bot: 'Telegram bot', g_qr: 'Telefon kamerasini qarating', g_inst: "Telefonga o'rnatish", g_inst_s: "O'rnatish", g_ios: "Safari → «Ulashish» → «Bosh ekranga»", g_and: "Chrome → menyu ⋮ → «Ilovani o'rnatish»", g_scan: "QR-kodni telefon kamerasi bilan skanerlang: o'rnatish ochiladi",
       f_priv: 'Maxfiylik siyosati', f_app: 'Ilova', f_src: "Ma'lumotlar: OpenStreetMap, Open-Meteo, O'zbekiston Respublikasi Markaziy banki, Uzbekistan Airports, O'zbekiston nashrlari.",
       title: 'MyUzCity · Butun shahar bitta ilovada',
     },
@@ -103,7 +103,7 @@
       fls: { sc: 'Scheduled', dl: 'Delayed', cx: 'Cancelled', bd: 'Boarding', dp: 'Departed', ld: 'Landed', ex: 'Expected', ci: 'Check-in' },
       pt_t: 'For the city, business and investors', pt_gov: 'City halls', pt_biz: 'Business', pt_inv: 'Investors',
       pf_t: 'Let’s work together', pf_name: 'Name and organisation', pf_contact: 'Phone or Telegram', pf_msg: 'How can we help', pf_send: 'Send request', pf_ok: 'Thank you! The team has your request and will contact you.', pf_err: 'Not sent. Write to us on Telegram: @MyUzCity_bot',
-      g_t: 'Open MyUzCity', g_s: 'Works in the browser on any phone. Add it to your home screen and it opens from an icon.', g_bot: 'Telegram bot', g_qr: 'Point your phone camera',
+      g_t: 'Open MyUzCity', g_s: 'Works in the browser on any phone. Add it to your home screen and it opens from an icon.', g_bot: 'Telegram bot', g_qr: 'Point your phone camera', g_inst: 'Install on your phone', g_inst_s: 'Install', g_ios: 'Safari → Share → Add to Home Screen', g_and: 'Chrome → menu ⋮ → Install app', g_scan: 'Scan the QR with your phone camera to install',
       f_priv: 'Privacy policy', f_app: 'App', f_src: 'Data: OpenStreetMap, Open-Meteo, Central Bank of Uzbekistan, Uzbekistan Airports, Uzbek news outlets.',
       title: 'MyUzCity · Your whole city in one app',
     },
@@ -160,6 +160,7 @@
     $$('.open-app').forEach(a => { a.href = APP + '?lang=' + L; });
     $$('[data-open]').forEach(a => { a.href = appLink(a.dataset.open, a.dataset.p); });
     $$('[data-priv]').forEach(a => { a.href = '/privacy.html?lang=' + L; });
+    $$('.install-app').forEach(a => { a.href = APP + '?lang=' + L; });
     renderTicker(); renderMoments(); renderTabs(curTab); renderSug(); renderLayers(); paintWidgets();
     const f = $('#appFrame'); if (f && f.dataset.ready) try { f.contentWindow.postMessage({ mz: 'lang', l: L }, '*'); } catch (e) {}
   }
@@ -370,6 +371,16 @@
     btn.disabled = true; m.className = 'form-msg'; m.textContent = '';
     fetch(`${API}/api/feedback`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) }).then(r => r.json()).then(j => { if (!j.ok) throw 0; m.className = 'form-msg ok'; m.textContent = t('pf_ok'); e.target.reset(); })
       .catch(() => { m.className = 'form-msg err'; m.textContent = t('pf_err'); }).finally(() => { btn.disabled = false; });
+  });
+
+  // ---------------- install on a phone ----------------
+  // On a phone the app itself shows the install steps (Add to Home Screen). On a computer we point to the QR code.
+  const PHONE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  document.addEventListener('click', e => {
+    const a = e.target.closest('.install-app'); if (!a || PHONE) return;
+    e.preventDefault(); const box = $('#qrBox'); box.scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' });
+    box.classList.remove('pulse'); void box.offsetWidth; box.classList.add('pulse');
+    const p = box.querySelector('p'); p.textContent = t('g_scan'); setTimeout(() => { p.textContent = t('g_qr'); }, 6000);
   });
 
   // ---------------- QR to the app ----------------

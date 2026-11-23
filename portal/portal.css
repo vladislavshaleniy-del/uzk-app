@@ -367,3 +367,16 @@ html, body { overflow-x: clip; }
 .mo-track { margin-right: min(-28px, calc((var(--max) - 100vw) / 2 - 28px)); padding-right: max(28px, calc((100vw - var(--max)) / 2 + 28px)); }
 .mo { transition: transform .5s var(--ease), box-shadow .5s var(--ease), border-color .5s var(--ease); }
 .mo:hover { transform: translateY(-6px); border-color: rgba(242, 180, 90, .35); box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .7), 0 0 0 1px rgba(242, 180, 90, .12); }
+/* install on a phone */
+.nav-inst { display: none; }
+.btn svg { width: 20px; height: 20px; }
+.how { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 22px; font-size: 14px; color: var(--mut); }
+.how div { display: flex; flex-direction: column; } .how b { color: var(--tx); font-size: 13px; letter-spacing: .04em; }
+.get-r.pulse .qr { animation: qrp 1.2s var(--ease) 2; }
+@keyframes qrp { 50% { box-shadow: 0 0 0 10px rgba(242, 180, 90, .35), 0 0 60px rgba(242, 180, 90, .5); transform: scale(1.04); } }
+.get-r p { max-width: 220px; margin: 0 auto; }
+@media (max-width: 960px) {
+  .nav .nav-inst { display: inline-flex; gap: 6px; height: 38px; padding: 0 14px; font-size: 13.5px; }
+  .nav .nav-inst svg { width: 18px; height: 18px; }
+}
+@media (max-width: 380px) { .nav .nav-inst span { display: none; } .nav .nav-inst { padding: 0 10px; } }
