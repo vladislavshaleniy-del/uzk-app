@@ -339,7 +339,7 @@ function runAction(a) {
     case 'tglogin': tgLogin(); break;
     case 'logout': sheet(t('logout_q'), '', [[t('logout'), () => { try { localStorage.removeItem('uzk-auth'); localStorage.removeItem('uzk-user'); localStorage.removeItem('uzk-session'); } catch (e) {} history.replaceState({ id: 'h:welcome', depth: 0 }, '', location.pathname); render('h:welcome'); }], [t('cancel'), null]]); break;
     case 'toast': { const [k, m] = arg.split(':'); toast(t(k, { m })); break; }
-    case 'call': sheet(t('call_q', { n: arg }), t('call_demo'), [[t('call'), () => toast(t('calling', { n: arg }))], [t('cancel'), null]]); break;
+    case 'call': sheet(t('call_q', { n: arg }), '', [[t('call'), () => { location.href = 'tel:' + arg; }], [t('cancel'), null]]); break;
     case 'cancelappt': sheet(t('cancel_q'), '', [[t('confirm'), () => toast(t('cancelled'))], [t('cancel'), null]]); break;
     case 'amt': { window.__payAmt = { key: currentP, v: +arg.split(':').pop() }; render(current, currentP); break; }
     case 'method': window.__payMethod = arg; render(current, currentP); break;
@@ -582,21 +582,24 @@ const AI_GO = {
   pay_util: ['h:pay?util', 'Коммунальные платежи', "Kommunal to'lovlar", 'Utility payments', '水电燃气缴费'],
   transit: ['h:pay?transit', 'Пополнить транспортную карту', "Transport kartasini to'ldirish", 'Top up transit card', '交通卡充值'],
   fines: ['1:2649', 'Штрафы', 'Jarimalar', 'Fines', '罚款'], parking: ['1:4858', 'Парковка', 'Avtoturargoh', 'Parking', '停车'],
-  ev: ['1:2468', 'Зарядка электромобилей', 'Elektromobil quvvatlash', 'EV charging', '电动车充电'],
+  ev: ['h:poi?ev', 'Зарядка электромобилей', 'Elektromobil quvvatlash', 'EV charging', '电动车充电'],
   doctor: ['h:doctor', 'Запись к врачу', 'Shifokor qabuli', 'Book a doctor', '预约医生'], health: ['1:5032', 'Здоровье', "Sog'liq", 'Health', '医疗健康'],
   docs: ['1:19', 'Мои документы', 'Mening hujjatlarim', 'My documents', '我的证件'], queue: ['h:queue', 'Электронная очередь', 'Elektron navbat', 'E-queue', '电子排队'],
-  gov: ['1:2573', 'Госуслуги', 'Davlat xizmatlari', 'Public services', '政务服务'], appeal: ['1:4597', 'Обращение к хокиму', 'Hokimga murojaat', 'Appeal to the Hokim', '向市长反映'],
-  sos: ['1:4475', 'Тревожная кнопка', 'Xavf tugmasi', 'Panic button', '紧急按钮'], polls: ['1:4702', 'Опросы', "So'rovnomalar", 'Polls', '投票'],
+  gov: ['1:2573', 'Госуслуги', 'Davlat xizmatlari', 'Public services', '政务服务'], appeal: ['h:reports?appeal', 'Обращение к хокиму', 'Hokimga murojaat', 'Appeal to the Hokim', '向市长反映'],
+  sos: ['1:4475', 'Тревожная кнопка', 'Xavf tugmasi', 'Panic button', '紧急按钮'], polls: ['h:polls?city', 'Опросы', "So'rovnomalar", 'Polls', '投票'],
   mahalla: ['1:996', 'Цифровая махалля', 'Raqamli mahalla', 'Digital Mahalla', '数字社区'], family: ['1:3042', 'Семья и образование', "Oila va ta'lim", 'Family and education', '家庭与教育'],
   tickets: ['h:tickets', 'Билеты', 'Chiptalar', 'Tickets', '车票'], cafes: ['h:cafes', 'Кафе и рестораны', 'Kafe va restoranlar', 'Cafes and restaurants', '餐厅'],
-  sights: ['1:3249', 'Достопримечательности', 'Diqqatga sazovor joylar', 'Sights', '名胜古迹'], tourist: ['1:3757', 'Туристическая карта', 'Turistik karta', 'Tourist card', '旅游卡'],
+  sights: ['h:poi?sight', 'Достопримечательности', 'Diqqatga sazovor joylar', 'Sights', '名胜古迹'], tourist: ['1:3757', 'Туристическая карта', 'Turistik karta', 'Tourist card', '旅游卡'],
   fairs: ['1:5424', 'Ярмарки и события', 'Yarmarka va tadbirlar', 'Fairs and events', '展会与活动'], realty: ['1:235', 'Недвижимость', "Ko'chmas mulk", 'Real estate', '房产'],
   ipo: ['1:332', 'Покупка акций IPO', 'IPO aksiyalari', 'Buy IPO shares', '购买 IPO 股票'], business: ['1:523', 'Для бизнеса', 'Biznes uchun', 'For business', '企业服务'],
   volunteer: ['1:4356', 'Волонтёрство', 'Volontyorlik', 'Volunteering', '志愿服务'], cashback: ['1:448', 'Национальный кешбэк', 'Milliy keshbek', 'National cashback', '国家返现'],
-  roads: ['1:3863', 'Дороги и ремонт', "Yo'llar va ta'mirlash", 'Roads and repairs', '道路与维修'], clean: ['1:4063', 'Чистый город', 'Toza shahar', 'Clean city', '清洁城市'],
+  roads: ['h:reports?road', 'Дороги и ремонт', "Yo'llar va ta'mirlash", 'Roads and repairs', '道路与维修'], clean: ['1:4063', 'Чистый город', 'Toza shahar', 'Clean city', '清洁城市'],
   mosques: ['1:3529', 'Карта мечетей', 'Masjidlar xaritasi', 'Mosque map', '清真寺地图'], marketplace: ['1:5149', 'Маркетплейс', 'Marketpleys', 'Marketplace', '商城'],
   home: ['1:5285', 'Электронный дом', 'Elektron uy', 'E-home', '智慧家庭'],
   med: ['h:poi?med', 'Аптеки и клиники рядом', 'Yaqin dorixona va klinikalar', 'Pharmacies & clinics nearby', '附近药店和诊所'], parking_map: ['h:poi?parking', 'Карта парковок', 'Avtoturargohlar xaritasi', 'Parking map', '停车地图'],
+  qr: ['h:qr', 'Сканер QR', 'QR skaner', 'QR scanner', '二维码扫描'], ev_map: ['h:poi?ev', 'Электрозарядки на карте', 'Elektr zaryadlash xaritada', 'EV chargers map', '充电桩地图'], speedcams: ['h:poi?speedcam', 'Камеры скорости', 'Tezlik kameralari', 'Speed cameras', '测速摄像头'],
+  schools: ['h:poi?edu', 'Школы и детсады', "Maktab va bog'chalar", 'Schools & kindergartens', '学校和幼儿园'], govcenters: ['h:poi?gov:cgu', 'Центры госуслуг', 'Davlat xizmatlari markazlari', 'Public service centres', '政务中心'], sights_map: ['h:poi?sight', 'Достопримечательности на карте', 'Diqqatga sazovor joylar xaritada', 'Sights map', '景点地图'],
+  reports: ['h:reports', 'Сообщить о проблеме', 'Muammo haqida xabar', 'Report a problem', '报告问题'], polls_live: ['h:polls?city', 'Опросы', "So'rovnomalar", 'Polls', '投票'],
   transport: ['h:transport', 'Транспорт', 'Transport', 'Transport', '交通'], trains: ['h:trains', 'Поезда и вокзалы', 'Poyezdlar va vokzallar', 'Trains & stations', '火车与车站'], flights: ['h:flights', 'Табло аэропортов', 'Aeroportlar tablosi', 'Airport boards', '机场航班'],
   metro: ['h:transit?metro', 'Схема метро', 'Metro sxemasi', 'Metro map', '地铁线路图'], bus: ['h:transit?bus', 'Автобусы и остановки', 'Avtobuslar va bekatlar', 'Buses & stops', '公交与车站'],
   newbuild: ['h:poi?build', 'Новостройки на карте', 'Yangi uylar xaritada', 'New buildings map', '新楼盘地图'],
@@ -936,6 +939,12 @@ function drawHomeNews(inner) {
   });
 }
 function afterRender(id, layers) {
+  if (id === '1:19') return drawDocs(layers, 880);
+  if (id === '1:4475') return drawSos(layers, 1016);
+  if (id === '1:2649') return drawFines(layers, 976);
+  if (id === '1:3042') return drawFamily(layers, 1680);
+  if (id === '1:2573') return drawGov(layers, 650);
+  if (id === '1:5285') return drawUtil(layers, 790);
   if (id === '1:1332') return drawProfile(layers);
   if (id === '1:4858') return drawParking(layers);
   if (id === '1:3529') return drawMosques(layers);
@@ -944,12 +953,14 @@ function afterRender(id, layers) {
   if (id === '1:2379') return drawTransit(layers);
   if (id === '1:140') return drawInvest(layers);
   if (id !== '1:1909') return;
+  drawWeather(layers);
   const inner = layers['s:1:1910']; if (!inner) return;
   const draw = () => { if (current === '1:1909' && document.body.contains(inner)) drawHomeNews(inner); };
   if (NEWS) draw();
   loadNews().then(draw);
 }
-HS.news = () => {
+HS.news = (arg) => {
+  if (arg === 'afisha' || arg === 'news' || arg === 'all') { window.__newsF = arg; currentP = null; }
   const cn = cityNews(); const f = window.__newsF || 'all';
   let list = cn ? cn.items : [];
   if (f === 'afisha') list = list.filter(n => n.k !== 'news'); else if (f === 'news') list = list.filter(n => n.k === 'news');
@@ -1510,7 +1521,7 @@ function prayStrip(ci, cls = '') {
 function poExtra(k, ci) {
   if (k === 'parking') return `<button class="po-x pk" data-act="pkpay"><span class="po-xi"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></span><span class="po-xt"><b>${esc(t('pk_pay'))}</b><i>${esc(t('pk_pay_s'))}</i></span>${IC.chev}</button>`;
   if (k === 'mosque') return `<div class="po-x mq">${prayStrip(ci)}</div>`;
-  if (k === 'build') return '';
+  if (k !== 'med') return '';
   return `<div class="po-x md"><a href="tel:103" class="md-sos"><b>103</b><span>${esc(t('md_103'))}</span></a><a href="tel:112" class="md-sos"><b>112</b><span>${esc(t('md_112'))}</span></a></div>`;
 }
 const PO_MAP_TOP = 236;
@@ -1522,8 +1533,8 @@ HS.poi = (arg) => {
   const ci = poCity(k), list = PO_DATA[k][ci];
   const counts = {}; if (list) for (const c of K.cats) counts[c] = list.filter(p => K.has(p, c)).length;
   const chips = ['all', ...K.cats].filter(c => !list || c === 'all' || counts[c]).map(c => {
-    const lab = c === 'all' ? t('cat_all') : t((k === 'parking' ? 'pkc_' : k === 'mosque' ? 'mqc_' : k === 'build' ? 'bdc_' : c === 'open' ? 'cat_' : 'mdc_') + c);
-    const col = k === 'med' && PO_COL[c] ? PO_COL[c] : k === 'parking' ? { paid: '#1D4ED8', free: '#15803D', m: '#7C3AED', u: '#7C3AED' }[c] : k === 'mosque' && c === 'hist' ? '#B45309' : k === 'build' ? { c: '#D97706', r: '#2563EB', o: '#7C3AED' }[c] || '' : '';
+    const lab = c === 'all' ? t('cat_all') : t((typeof P2_PREFIX !== 'undefined' && P2_PREFIX[k] ? P2_PREFIX[k] : k === 'parking' ? 'pkc_' : k === 'mosque' ? 'mqc_' : k === 'build' ? 'bdc_' : c === 'open' ? 'cat_' : 'mdc_') + c);
+    const col = typeof P2_CHIPCOL !== 'undefined' && P2_CHIPCOL[k] ? P2_CHIPCOL[k][c] || '' : k === 'med' && PO_COL[c] ? PO_COL[c] : k === 'parking' ? { paid: '#1D4ED8', free: '#15803D', m: '#7C3AED', u: '#7C3AED' }[c] : k === 'mosque' && c === 'hist' ? '#B45309' : k === 'build' ? { c: '#D97706', r: '#2563EB', o: '#7C3AED' }[c] || '' : '';
     return `<button class="h-chip ${s.cat === c ? 'on' : ''}" data-act="pocat:${k}:${c}">${col ? `<span class="cf-dot" style="background:${col}"></span>` : ''}${esc(lab)}${list ? ` <i>${c === 'all' ? list.length : counts[c]}</i>` : ''}</button>`;
   }).join('');
   return `<div class="h-hdr"><button class="h-back" data-act="back">${IC.back}</button><div class="h-title">${esc(t(K.title))}</div><button class="cf-city" data-act="pocity:${k}">${esc(cityName(ci))}<svg viewBox="0 0 20 20" width="16" height="16">${CHEV_DOWN}</svg></button></div>
@@ -1601,7 +1612,7 @@ function poOpen(k, id) {
   const photo = p.im || (p.wc ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(p.wc.replace(/^File:/, ''))}?width=900` : '');
   const row = (a, v) => `<div class="cf-row"><span>${esc(a)}</span><div>${v}</div></div>`;
   const tel = p.ph ? p.ph.replace(/[^\d+]/g, '') : '';
-  const tags = k === 'build' ? [t('bdk_' + p.s), p.k === 'o' ? t('bdk_o') : '', p.lv ? t('bd_lv_n', { n: p.lv }) : ''] : k === 'parking' ? [t('pkk_' + p.k), p.f === 1 ? t('pk_paid') : p.f === 0 ? t('pk_free') : '', p.cu ? t('pk_cust') : ''] : k === 'mosque' ? [t('mq_kind'), p.hi ? t('mq_hist') : ''] : [t('mdk_' + p.a), p.em ? t('md_em') : '', poH24(p) ? t('mdc_h24') : ''];
+  const tags = typeof P2_PREFIX !== 'undefined' && P2_PREFIX[k] ? [K.sub(p).split(' · ')[0], p.f === 0 && k === 'ev' ? t('evc_free') : ''] : k === 'build' ? [t('bdk_' + p.s), p.k === 'o' ? t('bdk_o') : '', p.lv ? t('bd_lv_n', { n: p.lv }) : ''] : k === 'parking' ? [t('pkk_' + p.k), p.f === 1 ? t('pk_paid') : p.f === 0 ? t('pk_free') : '', p.cu ? t('pk_cust') : ''] : k === 'mosque' ? [t('mq_kind'), p.hi ? t('mq_hist') : ''] : [t('mdk_' + p.a), p.em ? t('md_em') : '', poH24(p) ? t('mdc_h24') : ''];
   const wp = p.wp ? p.wp.match(/^([a-z-]+):(.+)$/) : null;
   bsheet(`<div class="cf-photo${photo ? '' : ' po-ph'}" style="${photo ? `background-image:url('${esc(photo)}')` : `background:linear-gradient(135deg,${col},${col}c4)`}">${photo ? '' : `<span class="cf-ph-ic">${poIc(K.ic(p), 46)}</span>`}</div>
     <div class="cf-name">${esc(K.name(p))}</div>${p.n2 ? `<div class="cf-n2">${esc(p.n2)}</div>` : ''}
@@ -1612,6 +1623,12 @@ function poOpen(k, id) {
       ${row(t('caf_addr'), esc(p.ad ? p.ad + ', ' + city : city))}
       ${k === 'parking' && p.c ? row(t('pk_cap'), esc(String(p.c)) + (p.ds ? ` · ${esc(t('pk_dis'))}` : '')) : ''}
       ${k === 'parking' && p.op ? row(t('pk_op'), esc(p.op)) : ''}
+      ${k === 'ev' && p.so ? row(t('ev_so'), esc(p.so.replace(/_/g, ' ').replace(/,/g, ', '))) : ''}
+      ${k === 'ev' && p.kw ? row(t('ev_kw'), esc(p.kw)) : ''}
+      ${k === 'ev' && p.c ? row(t('ev_cap'), esc(String(p.c))) : ''}
+      ${(k === 'ev' || k === 'edu') && p.op ? row(t('pk_op'), esc(p.op)) : ''}
+      ${k === 'speedcam' && p.ms ? row(t('sc_ms'), esc(p.ms + ' км/ч')) : ''}
+      ${k === 'sight' ? '<div id="sgW"></div>' : ''}
       ${k === 'build' && p.dv ? row(t('bd_dv'), esc(p.dv)) : ''}
       ${k === 'build' && p.lv ? row(t('bd_lv'), esc(String(p.lv))) : ''}
       ${k === 'build' && p.sd ? row(t('bd_sd'), esc(p.sd)) : ''}
@@ -1620,7 +1637,7 @@ function poOpen(k, id) {
       ${p.h ? row(t('caf_hours'), ohPretty(esc(p.h))) : ''}
       ${p.ph ? row(t('caf_phone'), `<a href="tel:${esc(tel)}">${esc(p.ph)}</a>`) : ''}
       ${p.w ? row(t('caf_site'), `<a href="${esc(/^https?:/.test(p.w) ? p.w : 'https://' + p.w)}" target="_blank" rel="noopener">${esc(p.w.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a>`) : ''}
-      ${wp ? row('Wikipedia', `<a href="https://${esc(wp[1])}.wikipedia.org/wiki/${esc(encodeURIComponent(wp[2]))}" target="_blank" rel="noopener">${esc(t('mq_wiki'))}</a>`) : ''}
+      ${wp && k !== 'sight' ? row('Wikipedia', `<a href="https://${esc(wp[1])}.wikipedia.org/wiki/${esc(encodeURIComponent(wp[2]))}" target="_blank" rel="noopener">${esc(t('mq_wiki'))}</a>`) : ''}
     </div>
     ${tel ? `<a class="h-btn h-ghostd cf-callbtn" href="tel:${esc(tel)}">${esc(t('caf_call'))}</a>` : ''}
     ${k === 'parking' ? `<button class="h-btn h-ghostd cf-rtbtn" data-act="pkpay">${esc(t('pk_pay'))}</button>` : ''}
@@ -1628,8 +1645,15 @@ function poOpen(k, id) {
     <button class="h-btn h-primary cf-rtbtn" data-act="poroute:${k}:${p.id}">${esc(t(k === 'parking' ? 'route' : 'rt_t'))}</button>
     <div class="cf-sec">${esc(t('caf_route'))}</div><div class="cf-sub">${esc(t('caf_route_s'))}</div>
     <div class="cf-routes">${navLinks(p, null, 'car').map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>
-    ${k === 'build' || k === 'mosque' ? `<a class="cf-ya" href="https://yandex.uz/maps/?text=${esc(encodeURIComponent(K.name(p) + ' ' + CITIES[poCity(k)][0]))}&ll=${p.lo},${p.la}&z=16" target="_blank" rel="noopener">${esc(t('caf_photos'))} ›</a>` : ''}
+    ${k === 'sight' ? `<button class="h-btn h-ghostd cf-rtbtn" data-act="sgai:${p.id}">✨ ${esc(t('sg_ai'))}</button>` : ''}
+    ${k === 'build' || k === 'mosque' || k === 'sight' || k === 'gov' ? `<a class="cf-ya" href="https://yandex.uz/maps/?text=${esc(encodeURIComponent(K.name(p) + ' ' + CITIES[poCity(k)][0]))}&ll=${p.lo},${p.la}&z=16" target="_blank" rel="noopener">${esc(t('caf_photos'))} ›</a>` : ''}
     <div class="h-muted small cam-note">${esc(t(k === 'build' ? 'bd_note' : 'po_src'))}</div>`, 'bs-caf');
+  if (k === 'sight' && p.wp) sgWiki(p).then(w => {
+    const box = document.getElementById('sgW'); if (!w || !box) return;
+    if (w.extract) box.innerHTML = `<div class="cf-row"><span>Wikipedia</span><div>${esc(w.extract.slice(0, 600))}${w.extract.length > 600 ? '…' : ''}<br><a href="${esc((w.content_urls && w.content_urls.mobile && w.content_urls.mobile.page) || '#')}" target="_blank" rel="noopener">${esc(t('sg_wiki'))} ›</a></div></div>`;
+    const ph = document.querySelector('.bs-caf .cf-photo.po-ph'); const img = w.originalimage || w.thumbnail;
+    if (ph && img && img.source) { ph.classList.remove('po-ph'); ph.style.background = ''; ph.style.backgroundImage = `url('${img.source.replace(/'/g, '')}')`; ph.innerHTML = ''; }
+  });
 }
 async function poRoute(k, id) {
   const p = poFind(k, id); if (!p) return; const K = PO_K[k];
@@ -2251,3 +2275,499 @@ Object.assign(XACT, {
   fltaxi: code => flTaxi(code),
 });
 AI_HIDE.add('h:trains'); AI_HIDE.add('h:flights');
+
+// ======================= Weather, air quality, exchange rates (home header) =======================
+const WX_I = {
+  ru: { wx_t: 'Погода', wx_feels: 'Ощущается как {t}', wx_hum: 'Влажность', wx_wind: 'Ветер', wx_ms: 'м/с', wx_hours: 'По часам', wx_days: 'На неделю', wx_rain: 'Осадки', wx_air: 'Качество воздуха', wx_src: 'Данные Open-Meteo', wx_now: 'Сейчас', wx_today: 'Сегодня',
+    aq_0: 'Хорошее', aq_1: 'Умеренное', aq_2: 'Вредно для чувствительных', aq_3: 'Вредно', aq_4: 'Очень вредно', aq_5: 'Опасно',
+    aqa_0: 'Можно гулять и проветривать.', aqa_1: 'Чувствительным людям лучше сократить долгие прогулки.', aqa_2: 'Детям, пожилым и астматикам — меньше быть на улице; проветривайте реже.', aqa_3: 'Наденьте маску FFP2 на улице, закройте окна, включите очиститель воздуха.', aqa_4: 'Оставайтесь дома, если можно. На улице — маска FFP2.', aqa_5: 'Опасный уровень: не выходите без необходимости.',
+    fx_t: 'Курсы валют ЦБ', fx_date: 'Официальный курс на {d}', fx_conv: 'Конвертер', fx_sum: 'сум', fx_src: 'Центральный банк Республики Узбекистан' },
+  uz: { wx_t: 'Ob-havo', wx_feels: '{t} kabi seziladi', wx_hum: 'Namlik', wx_wind: 'Shamol', wx_ms: 'm/s', wx_hours: "Soatbay", wx_days: 'Hafta', wx_rain: 'Yog‘ingarchilik', wx_air: 'Havo sifati', wx_src: "Open-Meteo ma'lumotlari", wx_now: 'Hozir', wx_today: 'Bugun',
+    aq_0: 'Yaxshi', aq_1: "O'rtacha", aq_2: 'Sezgirlar uchun zararli', aq_3: 'Zararli', aq_4: 'Juda zararli', aq_5: 'Xavfli',
+    aqa_0: 'Sayr qilish va xonani shamollatish mumkin.', aqa_1: "Sezgir odamlar uzoq sayrlarni qisqartirgani ma'qul.", aqa_2: "Bolalar, keksalar va astmatiklar ko'chada kamroq bo'lsin.", aqa_3: "Ko'chada FFP2 niqob taqing, derazalarni yoping.", aqa_4: 'Iloji bo‘lsa uyda qoling. Ko‘chada — FFP2 niqob.', aqa_5: 'Xavfli daraja: zarurat bo‘lmasa chiqmang.',
+    fx_t: 'MB valyuta kurslari', fx_date: '{d} holatiga rasmiy kurs', fx_conv: 'Konvertor', fx_sum: "so'm", fx_src: "O'zbekiston Respublikasi Markaziy banki" },
+  en: { wx_t: 'Weather', wx_feels: 'Feels like {t}', wx_hum: 'Humidity', wx_wind: 'Wind', wx_ms: 'm/s', wx_hours: 'Hourly', wx_days: 'This week', wx_rain: 'Rain', wx_air: 'Air quality', wx_src: 'Data: Open-Meteo', wx_now: 'Now', wx_today: 'Today',
+    aq_0: 'Good', aq_1: 'Moderate', aq_2: 'Unhealthy for sensitive groups', aq_3: 'Unhealthy', aq_4: 'Very unhealthy', aq_5: 'Hazardous',
+    aqa_0: 'Fine for walks and airing the room.', aqa_1: 'Sensitive people should limit long walks.', aqa_2: 'Children, elderly and asthmatics should stay outside less.', aqa_3: 'Wear an FFP2 mask outside, keep windows closed, use an air purifier.', aqa_4: 'Stay home if you can; FFP2 mask outside.', aqa_5: 'Hazardous: avoid going out.',
+    fx_t: 'Central Bank rates', fx_date: 'Official rate for {d}', fx_conv: 'Converter', fx_sum: 'sum', fx_src: 'Central Bank of the Republic of Uzbekistan' },
+  zh: { wx_t: '天气', wx_feels: '体感 {t}', wx_hum: '湿度', wx_wind: '风速', wx_ms: '米/秒', wx_hours: '逐小时', wx_days: '本周', wx_rain: '降水', wx_air: '空气质量', wx_src: '数据：Open-Meteo', wx_now: '现在', wx_today: '今天',
+    aq_0: '良好', aq_1: '中等', aq_2: '对敏感人群不健康', aq_3: '不健康', aq_4: '非常不健康', aq_5: '危险',
+    aqa_0: '适合散步和开窗通风。', aqa_1: '敏感人群应减少长时间户外活动。', aqa_2: '儿童、老人和哮喘患者应减少外出。', aqa_3: '外出佩戴 FFP2 口罩，关闭门窗。', aqa_4: '尽量待在室内，外出戴 FFP2 口罩。', aqa_5: '危险：非必要不外出。',
+    fx_t: '央行汇率', fx_date: '{d} 官方汇率', fx_conv: '换算', fx_sum: '苏姆', fx_src: '乌兹别克斯坦共和国中央银行' },
+};
+for (const l in WX_I) Object.assign(I[l], WX_I[l]);
+const WX = {}; const WX_P = {};
+function wxIcon(code, night) {
+  if (code === 0) return night ? '🌙' : '☀️'; if (code <= 2) return night ? '🌙' : '🌤️'; if (code === 3) return '☁️'; if (code === 45 || code === 48) return '🌫️';
+  if (code >= 51 && code <= 57) return '🌦️'; if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return '🌧️'; if ((code >= 71 && code <= 77) || code === 85 || code === 86) return '🌨️'; if (code >= 95) return '⛈️'; return '🌤️';
+}
+const AQ_COL = ['#22C55E', '#EAB308', '#F97316', '#EF4444', '#A855F7', '#7F1D1D'];
+const aqLvl = v => v == null ? -1 : v <= 50 ? 0 : v <= 100 ? 1 : v <= 150 ? 2 : v <= 200 ? 3 : v <= 300 ? 4 : 5;
+function wxLoad(ci = cityIdx()) {
+  if (WX[ci] && Date.now() - WX[ci].at < 15 * 60e3) return Promise.resolve(WX[ci]);
+  if (WX_P[ci]) return WX_P[ci];
+  const c = CITIES[ci], q = `latitude=${c[5]}&longitude=${c[6]}&timezone=Asia%2FTashkent`;
+  return (WX_P[ci] = Promise.all([
+    fetch(`https://api.open-meteo.com/v1/forecast?${q}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=7&wind_speed_unit=ms`).then(r => r.json()),
+    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${q}&current=us_aqi,pm2_5,pm10&hourly=us_aqi&forecast_days=2`).then(r => r.json()).catch(() => null),
+  ]).then(([w, a]) => { WX_P[ci] = null; return (WX[ci] = { at: Date.now(), w, a }); }).catch(e => { WX_P[ci] = null; throw e; }));
+}
+let FX = null, FX_P = null;
+function fxLoad() { if (FX) return Promise.resolve(FX); return FX_P || (FX_P = fetch(DATA_BASE + 'data/rates.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => (FX = j)).catch(() => null)); }
+const fmtRate = v => v.toLocaleString('ru-RU', { maximumFractionDigits: v < 100 ? 2 : 0 }).replace(/ /g, ' ');
+function drawWeather(layers) {
+  const h = layers['f:1:1994']; if (!h) return;
+  h.querySelectorAll('.wx-pill').forEach(e => e.remove());
+  const mk = (x, w, cls) => { const d = document.createElement('div'); d.className = 'wx-pill ' + cls; d.style.left = P(x); d.style.top = P(52); d.style.width = P(w); d.style.height = P(36); d.style.borderRadius = P(18); h.appendChild(d); return d; };
+  const wxp = mk(24, 102, 'wx-w'), aqp = mk(132, 92, 'wx-a'), fxp = mk(230, 112, 'wx-f');
+  const z = html => `<div style="zoom:${U}">${html}</div>`;
+  const ci = cityIdx();
+  const paint = () => {
+    const W = WX[ci];
+    if (W && W.w && W.w.current) { const c = W.w.current; wxp.innerHTML = z(`<span class="wx-ic">${wxIcon(c.weather_code, !c.is_day)}</span><b>${c.temperature_2m > 0 ? '+' : ''}${Math.round(c.temperature_2m)}°C</b>`); }
+    else wxp.innerHTML = z(`<span class="wx-ic">🌤️</span><b>${esc(liveText('temp'))}</b>`);
+    const aq = W && W.a && W.a.current ? Math.round(W.a.current.us_aqi) : null, lv = aqLvl(aq);
+    if (lv >= 0) aqp.innerHTML = z(`<span class="wx-dot" style="background:${AQ_COL[lv]}"></span><b>AQI ${aq}</b>`); else aqp.style.display = 'none';
+    if (FX && FX.list) { const u = FX.list.find(x => x.c === 'USD'); if (u) fxp.innerHTML = z(`<b>$ ${fmtRate(u.r)}</b><i class="${u.d >= 0 ? 'up' : 'dn'}">${u.d >= 0 ? '▲' : '▼'}</i>`); } else fxp.style.display = 'none';
+  };
+  paint();
+  wxLoad(ci).then(() => { if (document.body.contains(wxp)) { aqp.style.display = ''; paint(); } }).catch(() => {});
+  fxLoad().then(() => { if (document.body.contains(fxp)) { fxp.style.display = ''; paint(); } });
+  [wxp, aqp].forEach(e => e.addEventListener('click', ev => { ev.preventDefault(); ev.stopPropagation(); wxSheet(); }));
+  fxp.addEventListener('click', ev => { ev.preventDefault(); ev.stopPropagation(); fxSheet(); });
+}
+function wxSheet() {
+  const ci = cityIdx();
+  const draw = () => {
+    const W = WX[ci]; if (!W || !W.w || !W.w.current) return bsheet(`<div class="cf-empty">${esc(t('po_load'))}</div>`, 'bs-caf bs-wx');
+    const c = W.w.current, hr = W.w.hourly, dy = W.w.daily;
+    const nowI = Math.max(0, hr.time.findIndex(x => x >= String(c.time || hr.time[0]).slice(0, 13)));
+    const hours = hr.time.slice(nowI, nowI + 24).map((tm, i) => `<div><i>${i ? tm.slice(11, 16) : esc(t('wx_now'))}</i><span>${wxIcon(hr.weather_code[nowI + i], !hr.is_day[nowI + i])}</span><b>${Math.round(hr.temperature_2m[nowI + i])}°</b>${hr.precipitation_probability[nowI + i] >= 30 ? `<em>${hr.precipitation_probability[nowI + i]}%</em>` : ''}</div>`).join('');
+    const wd = t('wd').split('|');
+    const days = dy.time.map((d, i) => `<div class="wx-day"><b>${i ? esc(wd[new Date(d + 'T12:00:00').getDay()]) : esc(t('wx_today'))}</b><span>${wxIcon(dy.weather_code[i])}</span><i>${dy.precipitation_probability_max[i] >= 30 ? '💧' + dy.precipitation_probability_max[i] + '%' : ''}</i><em>${Math.round(dy.temperature_2m_min[i])}°</em><strong>${Math.round(dy.temperature_2m_max[i])}°</strong></div>`).join('');
+    const a = W.a && W.a.current, aq = a ? Math.round(a.us_aqi) : null, lv = aqLvl(aq);
+    bsheet(`<div class="wx-top"><span>${wxIcon(c.weather_code, !c.is_day)}</span><div><b>${c.temperature_2m > 0 ? '+' : ''}${Math.round(c.temperature_2m)}°</b><i>${esc(cityName(ci))} · ${esc(t('wx_feels', { t: Math.round(c.apparent_temperature) + '°' }))}</i><i>${esc(t('wx_hum'))} ${c.relative_humidity_2m}% · ${esc(t('wx_wind'))} ${Math.round(c.wind_speed_10m)} ${esc(t('wx_ms'))}</i></div></div>
+      ${lv >= 0 ? `<div class="wx-aq" style="border-color:${AQ_COL[lv]}55;background:${AQ_COL[lv]}12"><div class="wx-aqh"><span style="background:${AQ_COL[lv]}">${aq}</span><div><b>${esc(t('wx_air'))}: ${esc(t('aq_' + lv))}</b><i>PM2.5 ${Math.round(a.pm2_5)} · PM10 ${Math.round(a.pm10)} мкг/м³</i></div></div><p>${esc(t('aqa_' + lv))}</p></div>` : ''}
+      <div class="cf-sec">${esc(t('wx_hours'))}</div><div class="wx-hours hs">${hours}</div>
+      <div class="cf-sec">${esc(t('wx_days'))}</div><div class="h-card wx-days">${days}</div>
+      <div class="h-muted small cam-note">${esc(t('wx_src'))}</div>`, 'bs-caf bs-wx');
+  };
+  if (WX[ci]) draw(); else { bsheet(`<div class="tg-wait"><span class="h-spin"></span>${esc(t('po_load'))}</div>`, 'bs-caf'); wxLoad(ci).then(draw).catch(() => { bsheetClose(); toast(t('po_err')); }); }
+}
+function fxSheet() {
+  fxLoad().then(F => {
+    if (!F) return toast(t('po_err'));
+    const cur = F.list.filter(x => ['USD', 'EUR', 'RUB', 'KZT', 'CNY', 'GBP', 'TRY', 'AED', 'KRW'].includes(x.c));
+    const nm = x => x[LANG === 'uz' ? 'uz' : LANG === 'en' || LANG === 'zh' ? 'en' : 'ru'];
+    bsheet(`<div class="tr-hero"><span style="background:#15803D;color:#fff;font-weight:800;font-size:22px">$</span><div><b>${esc(t('fx_t'))}</b><i>${esc(t('fx_date', { d: F.date }))}</i></div></div>
+      <div class="h-card fx-list">${cur.map(x => `<div class="fx-row"><b>${esc(x.c)}</b><i>${esc(x.n > 1 ? x.n + ' ' : '')}${esc(nm(x))}</i><span>${fmtRate(x.r)}</span><em class="${x.d >= 0 ? 'up' : 'dn'}">${x.d >= 0 ? '+' : ''}${fmtRate(x.d)}</em></div>`).join('')}</div>
+      <div class="cf-sec">${esc(t('fx_conv'))}</div>
+      <div class="fx-conv"><input id="fxA" inputmode="decimal" value="100"><select id="fxC">${cur.map(x => `<option value="${x.c}">${x.c}</option>`).join('')}</select></div>
+      <div class="fx-out" id="fxO"></div>
+      <div class="h-muted small cam-note">${esc(t('fx_src'))}</div>`, 'bs-caf');
+    const A = document.getElementById('fxA'), C = document.getElementById('fxC'), O = document.getElementById('fxO');
+    const upd = () => { const x = cur.find(y => y.c === C.value); const v = parseFloat(A.value.replace(',', '.').replace(/\s/g, '')) || 0; O.textContent = `= ${fmtRate(Math.round(v * x.r / x.n))} ${t('fx_sum')}`; };
+    A.addEventListener('input', upd); C.addEventListener('change', upd); upd();
+  });
+}
+
+// ======================= QR scanner (camera) =======================
+const QR_I = {
+  ru: { qr_t: 'Сканер QR', qr_hint: 'Наведите камеру на QR-код', qr_gal: 'Из галереи', qr_noc: 'Нет доступа к камере. Разрешите камеру в настройках браузера или выберите фото из галереи.', qr_none: 'QR-код на фото не найден', qr_link: 'Ссылка', qr_pay: 'Оплата', qr_open: 'Открыть', qr_copy: 'Скопировать', qr_copied: 'Скопировано', qr_again: 'Сканировать ещё', qr_text: 'Текст', qr_wifi: 'Wi-Fi', qr_net: 'Сеть', qr_pass: 'Пароль', qr_call: 'Позвонить', qr_safe: 'Открывайте ссылки только из надёжных источников.' },
+  uz: { qr_t: 'QR skaner', qr_hint: 'Kamerani QR-kodga qarating', qr_gal: 'Galereyadan', qr_noc: "Kameraga ruxsat yo'q. Brauzer sozlamalarida kamerani yoqing yoki galereyadan rasm tanlang.", qr_none: 'Rasmda QR-kod topilmadi', qr_link: 'Havola', qr_pay: "To'lov", qr_open: 'Ochish', qr_copy: 'Nusxalash', qr_copied: 'Nusxalandi', qr_again: 'Yana skanerlash', qr_text: 'Matn', qr_wifi: 'Wi-Fi', qr_net: 'Tarmoq', qr_pass: 'Parol', qr_call: "Qo'ng'iroq", qr_safe: 'Havolalarni faqat ishonchli manbalardan oching.' },
+  en: { qr_t: 'QR scanner', qr_hint: 'Point the camera at a QR code', qr_gal: 'From gallery', qr_noc: 'No camera access. Allow the camera in browser settings or pick a photo from the gallery.', qr_none: 'No QR code found in the photo', qr_link: 'Link', qr_pay: 'Payment', qr_open: 'Open', qr_copy: 'Copy', qr_copied: 'Copied', qr_again: 'Scan again', qr_text: 'Text', qr_wifi: 'Wi-Fi', qr_net: 'Network', qr_pass: 'Password', qr_call: 'Call', qr_safe: 'Open links only from sources you trust.' },
+  zh: { qr_t: '二维码扫描', qr_hint: '将摄像头对准二维码', qr_gal: '从相册选择', qr_noc: '无法使用摄像头。请在浏览器设置中允许摄像头，或从相册选择照片。', qr_none: '照片中未找到二维码', qr_link: '链接', qr_pay: '支付', qr_open: '打开', qr_copy: '复制', qr_copied: '已复制', qr_again: '再次扫描', qr_text: '文本', qr_wifi: 'Wi-Fi', qr_net: '网络', qr_pass: '密码', qr_call: '拨打', qr_safe: '只打开可信来源的链接。' },
+};
+for (const l in QR_I) Object.assign(I[l], QR_I[l]);
+let QR_STREAM = null, QR_LOOP = 0, QR_DET = null;
+function qrLib() { if (window.jsQR) return Promise.resolve(); if (!window.__qrP) window.__qrP = new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'vendor/jsqr/jsQR.min.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); return window.__qrP; }
+function qrStop() { cancelAnimationFrame(QR_LOOP); if (QR_STREAM) { QR_STREAM.getTracks().forEach(t => t.stop()); QR_STREAM = null; } }
+HS.qr = () => `<div class="h-hdr"><button class="h-back" data-act="back">${IC.back}</button><div class="h-title">${esc(t('qr_t'))}</div></div>
+  <div class="qr-cam"><video id="qrV" playsinline muted autoplay></video><div class="qr-frame"><i></i><i></i><i></i><i></i></div><div class="qr-hint" id="qrH">${esc(t('qr_hint'))}</div></div>
+  <div class="qr-bar"><label class="h-btn h-ghostd qr-gal">${esc(t('qr_gal'))}<input type="file" accept="image/*" id="qrF" hidden></label></div>`;
+HS.qr.mount = el => {
+  qrStop();
+  const v = el.querySelector('#qrV'), hint = el.querySelector('#qrH'), cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+  if ('BarcodeDetector' in window) { try { QR_DET = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { QR_DET = null; } }
+  if (!QR_DET) qrLib().catch(() => {});
+  const decode = async src => {
+    const w = src.videoWidth || src.naturalWidth || src.width, h = src.videoHeight || src.naturalHeight || src.height; if (!w || !h) return null;
+    if (QR_DET) { try { const r = await QR_DET.detect(src); if (r && r[0]) return r[0].rawValue; } catch (e) {} }
+    if (!window.jsQR) return null;
+    const k = Math.min(1, 640 / Math.max(w, h)); cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+    cx.drawImage(src, 0, 0, cv.width, cv.height);
+    const d = cx.getImageData(0, 0, cv.width, cv.height); const r = window.jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
+    return r ? r.data : null;
+  };
+  let last = 0, busy = false;
+  const tick = async ts => {
+    if (!document.body.contains(v)) return qrStop();
+    QR_LOOP = requestAnimationFrame(tick);
+    if (busy || ts - last < 180 || v.readyState < 2) return; last = ts; busy = true;
+    const val = await decode(v); busy = false;
+    if (val) { qrStop(); if (navigator.vibrate) navigator.vibrate(60); qrResult(val); }
+  };
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false }).then(s => {
+      if (!document.body.contains(v)) { s.getTracks().forEach(t => t.stop()); return; }
+      QR_STREAM = s; v.srcObject = s; v.play().catch(() => {}); QR_LOOP = requestAnimationFrame(tick);
+    }).catch(() => { hint.textContent = t('qr_noc'); hint.classList.add('err'); });
+  } else { hint.textContent = t('qr_noc'); hint.classList.add('err'); }
+  el.querySelector('#qrF').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const img = new Image(); img.onload = async () => { await qrLib().catch(() => {}); const val = await decode(img); URL.revokeObjectURL(img.src); if (val) { qrStop(); qrResult(val); } else toast(t('qr_none')); };
+    img.src = URL.createObjectURL(f);
+  });
+};
+function qrResult(val) {
+  const s = String(val).trim(); let body = '';
+  const copyBtn = txt => `<button class="h-btn h-ghostd" data-qrcopy="${esc(txt)}">${esc(t('qr_copy'))}</button>`;
+  if (/^https?:\/\//i.test(s)) {
+    let host = ''; try { host = new URL(s).hostname.replace(/^www\./, ''); } catch (e) {}
+    const pay = /(^|\.)(payme\.uz|click\.uz|uzum\.uz|paynet\.uz|apelsin\.uz|paylov\.uz|my\.click\.uz|checkout\.paycom\.uz)$/.test(host) || /soliq\.uz$/.test(host);
+    body = `<div class="tr-hero"><span style="background:${pay ? '#15803D' : '#2563EB'};color:#fff;font-size:24px">${pay ? '₊' : '🔗'}</span><div><b>${esc(pay ? t('qr_pay') : t('qr_link'))}</b><i>${esc(host)}</i></div></div>
+      <div class="qr-val">${esc(s)}</div><a class="h-btn h-primary cf-callbtn" href="${esc(s)}" target="_blank" rel="noopener noreferrer">${esc(t('qr_open'))}</a>${copyBtn(s)}<div class="h-muted small cam-note">${esc(t('qr_safe'))}</div>`;
+  } else if (/^WIFI:/i.test(s)) {
+    const g = k => (s.match(new RegExp('[:;]' + k + ':((?:\\\\.|[^;])*)', 'i')) || [])[1] || '';
+    const ssid = g('S').replace(/\\(.)/g, '$1'), pass = g('P').replace(/\\(.)/g, '$1');
+    body = `<div class="tr-hero"><span style="background:#0891B2;color:#fff;font-size:22px">📶</span><div><b>${esc(t('qr_wifi'))}</b><i>${esc(ssid)}</i></div></div>
+      <div class="h-card cf-info"><div class="cf-row"><span>${esc(t('qr_net'))}</span><div>${esc(ssid)}</div></div>${pass ? `<div class="cf-row"><span>${esc(t('qr_pass'))}</span><div>${esc(pass)}</div></div>` : ''}</div>${pass ? copyBtn(pass) : ''}`;
+  } else if (/^tel:/i.test(s)) {
+    body = `<div class="tr-hero"><span style="background:#15803D;color:#fff;font-size:22px">📞</span><div><b>${esc(s.slice(4))}</b></div></div><a class="h-btn h-primary cf-callbtn" href="${esc(s)}">${esc(t('qr_call'))}</a>`;
+  } else {
+    body = `<div class="tr-hero"><span style="background:#6B7280;color:#fff;font-size:22px">≡</span><div><b>${esc(t('qr_text'))}</b></div></div><div class="qr-val">${esc(s)}</div>${copyBtn(s)}`;
+  }
+  const w = bsheet(body + `<button class="h-btn h-ghostd qr-again" data-act="qragain">${esc(t('qr_again'))}</button>`, 'bs-caf');
+  w.addEventListener('click', e => { const b = e.target.closest('[data-qrcopy]'); if (!b) return; e.preventDefault(); e.stopPropagation(); const txt = b.dataset.qrcopy; (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast(t('qr_copied'))).catch(() => {}); });
+}
+Object.assign(XACT, { qragain: () => { bsheetClose(true); if (current === 'h:qr') render('h:qr'); else go('h:qr'); } });
+AI_HIDE.add('h:qr');
+
+// ======================= More city maps: EV chargers, speed cameras, schools, public offices, sights =======================
+const P2_I = {
+  ru: { ev_t: 'Электрозарядки', po_q_ev: 'Название или оператор', evc_fast: 'Быстрые (CCS/CHAdeMO)', evc_type2: 'Type 2', evc_gbt: 'GB/T', evc_free: 'Бесплатные', ev_kind: 'Зарядная станция', ev_so: 'Разъёмы', ev_kw: 'Мощность', ev_cap: 'Мест',
+    sc_t: 'Камеры скорости', po_q_speedcam: 'Улица', sc_kind: 'Камера контроля скорости', sc_ms: 'Ограничение', scc_60: 'до 60 км/ч', scc_80: '70–80 км/ч', scc_100: '90+ км/ч',
+    ed_t: 'Школы и детсады', po_q_edu: 'Название или номер школы', edc_school: 'Школы', edc_kindergarten: 'Детсады', edc_college: 'Колледжи', edc_university: 'Вузы', edc_pr: 'Частные', edk_school: 'Школа', edk_kindergarten: 'Детский сад', edk_college: 'Колледж', edk_university: 'Университет', ed_pr: 'Частное',
+    gv_t: 'Госучреждения', po_q_gov: 'Центр госуслуг, хокимият…', gvc_cgu: 'Центры госуслуг', gvc_hokim: 'Хокимияты', gvc_pq: 'Народные приёмные', gvc_gov: 'Другие', gvk_cgu: 'Центр госуслуг', gvk_hokim: 'Хокимият', gvk_pq: 'Народная приёмная', gvk_gov: 'Госучреждение',
+    sg_t: 'Достопримечательности', po_q_sight: 'Название места', sgc_hist: 'История', sgc_museum: 'Музеи', sgc_view: 'Виды', sgc_park: 'Парки и зоо', sgc_attr: 'Интересное', sgc_art: 'Искусство', sgk_hist: 'Памятник истории', sgk_museum: 'Музей', sgk_view: 'Смотровая площадка', sgk_park: 'Парк', sgk_attr: 'Достопримечательность', sgk_art: 'Арт-объект', sg_free: 'Вход свободный', sg_paid: 'Вход платный', sg_wiki: 'Читать в Википедии', sg_ai: 'Рассказать подробнее (ИИ)' },
+  uz: { ev_t: 'Elektr zaryadlash', po_q_ev: 'Nomi yoki operator', evc_fast: 'Tezkor (CCS/CHAdeMO)', evc_type2: 'Type 2', evc_gbt: 'GB/T', evc_free: 'Bepul', ev_kind: 'Zaryadlash stansiyasi', ev_so: 'Ulagichlar', ev_kw: 'Quvvat', ev_cap: 'Joylar',
+    sc_t: 'Tezlik kameralari', po_q_speedcam: "Ko'cha", sc_kind: 'Tezlikni nazorat qilish kamerasi', sc_ms: 'Cheklov', scc_60: '60 km/s gacha', scc_80: '70–80 km/s', scc_100: '90+ km/s',
+    ed_t: "Maktab va bog'chalar", po_q_edu: 'Nomi yoki maktab raqami', edc_school: 'Maktablar', edc_kindergarten: "Bog'chalar", edc_college: 'Kollejlar', edc_university: 'OTMlar', edc_pr: 'Xususiy', edk_school: 'Maktab', edk_kindergarten: "Bolalar bog'chasi", edk_college: 'Kollej', edk_university: 'Universitet', ed_pr: 'Xususiy',
+    gv_t: 'Davlat idoralari', po_q_gov: 'Davlat xizmatlari markazi, hokimiyat…', gvc_cgu: 'Davlat xizmatlari markazlari', gvc_hokim: 'Hokimiyatlar', gvc_pq: 'Xalq qabulxonalari', gvc_gov: 'Boshqalar', gvk_cgu: 'Davlat xizmatlari markazi', gvk_hokim: 'Hokimiyat', gvk_pq: 'Xalq qabulxonasi', gvk_gov: 'Davlat idorasi',
+    sg_t: 'Diqqatga sazovor joylar', po_q_sight: 'Joy nomi', sgc_hist: 'Tarix', sgc_museum: 'Muzeylar', sgc_view: "Manzaralar", sgc_park: "Park va hayvonot bog'i", sgc_attr: 'Qiziqarli', sgc_art: "San'at", sgk_hist: 'Tarixiy yodgorlik', sgk_museum: 'Muzey', sgk_view: 'Kuzatuv maydoni', sgk_park: 'Park', sgk_attr: 'Diqqatga sazovor joy', sgk_art: "San'at obyekti", sg_free: 'Kirish bepul', sg_paid: 'Kirish pullik', sg_wiki: "Vikipediyada o'qish", sg_ai: "Batafsil aytib ber (AI)" },
+  en: { ev_t: 'EV charging', po_q_ev: 'Name or operator', evc_fast: 'Fast (CCS/CHAdeMO)', evc_type2: 'Type 2', evc_gbt: 'GB/T', evc_free: 'Free', ev_kind: 'Charging station', ev_so: 'Connectors', ev_kw: 'Power', ev_cap: 'Spaces',
+    sc_t: 'Speed cameras', po_q_speedcam: 'Street', sc_kind: 'Speed camera', sc_ms: 'Limit', scc_60: 'up to 60 km/h', scc_80: '70–80 km/h', scc_100: '90+ km/h',
+    ed_t: 'Schools & kindergartens', po_q_edu: 'Name or school number', edc_school: 'Schools', edc_kindergarten: 'Kindergartens', edc_college: 'Colleges', edc_university: 'Universities', edc_pr: 'Private', edk_school: 'School', edk_kindergarten: 'Kindergarten', edk_college: 'College', edk_university: 'University', ed_pr: 'Private',
+    gv_t: 'Public offices', po_q_gov: 'Public service centre, hokimiyat…', gvc_cgu: 'Public service centres', gvc_hokim: 'Hokimiyats', gvc_pq: "People's reception offices", gvc_gov: 'Other', gvk_cgu: 'Public service centre', gvk_hokim: 'Hokimiyat', gvk_pq: "People's reception", gvk_gov: 'Public office',
+    sg_t: 'Sights', po_q_sight: 'Place name', sgc_hist: 'History', sgc_museum: 'Museums', sgc_view: 'Viewpoints', sgc_park: 'Parks & zoo', sgc_attr: 'Attractions', sgc_art: 'Art', sgk_hist: 'Historic monument', sgk_museum: 'Museum', sgk_view: 'Viewpoint', sgk_park: 'Park', sgk_attr: 'Attraction', sgk_art: 'Artwork', sg_free: 'Free entry', sg_paid: 'Paid entry', sg_wiki: 'Read on Wikipedia', sg_ai: 'Tell me more (AI)' },
+};
+P2_I.zh = P2_I.en;
+for (const l in P2_I) Object.assign(I[l], P2_I[l]);
+Object.assign(PO_SVG, {
+  ev: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  speedcam: '<path d="M3 8h12v8H3zM15 10l6-3v10l-6-3"/><circle cx="9" cy="12" r="2"/>',
+  school: '<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>', kindergarten: '<circle cx="12" cy="6" r="3"/><path d="M12 9v7M8 21l4-5 4 5M7 12h10"/>', college: '<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>', university: '<path d="M3 21h18M4 10h16M12 3 3 8h18zM6 10v8M10 10v8M14 10v8M18 10v8"/>',
+  gov: '<path d="M3 21h18M4 10h16M12 3 3 8h18zM6 10v8M10 10v8M14 10v8M18 10v8"/>',
+  sight: '<path d="M12 2l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 16.8 5.8 20.3l1.6-6.8L2.2 8.9l6.9-.6z"/>',
+});
+PO_DATA.ev = {}; PO_DATA.speedcam = {}; PO_DATA.edu = {}; PO_DATA.gov = {}; PO_DATA.sight = {};
+const ED_COL = { school: '#2563EB', kindergarten: '#EC4899', college: '#0891B2', university: '#7C3AED' };
+const GV_COL = { cgu: '#15803D', hokim: '#1D4ED8', pq: '#B45309', gov: '#64748B' };
+const SG_COL = { hist: '#B45309', museum: '#7C3AED', view: '#0891B2', park: '#16A34A', attr: '#DB2777', art: '#EA580C' };
+const msOf = p => p.ms || 0;
+Object.assign(PO_K, {
+  ev: { title: 'ev_t', cats: ['fast', 'type2', 'gbt', 'free'], extraH: 0, foot: false,
+    has: (p, c) => c === 'free' ? p.f === 0 : c === 'fast' ? /combo|ccs|chademo/i.test(p.so || '') : c === 'type2' ? /type2(?!_combo)/i.test(p.so || '') : /gb_?t/i.test(p.so || ''),
+    col: p => /combo|ccs|chademo/i.test(p.so || '') ? '#7C3AED' : '#0EA5E9', ic: () => 'ev', name: p => p.n || p.op || t('ev_kind'),
+    sub: p => [p.op && p.n ? p.op : '', (p.so || '').replace(/_/g, ' ').replace(/,/g, ', '), p.kw ? p.kw : ''].filter(Boolean).join(' · ') || t('ev_kind') },
+  speedcam: { title: 'sc_t', cats: ['60', '80', '100'], extraH: 0, foot: false,
+    has: (p, c) => c === '60' ? msOf(p) && msOf(p) <= 60 : c === '80' ? msOf(p) > 60 && msOf(p) <= 80 : msOf(p) > 80,
+    col: p => !msOf(p) ? '#DC2626' : msOf(p) <= 60 ? '#DC2626' : msOf(p) <= 80 ? '#EA580C' : '#CA8A04', ic: () => 'speedcam', name: p => p.n || (msOf(p) ? `${t('sc_kind')} · ${msOf(p)} км/ч` : t('sc_kind')), sub: p => [msOf(p) ? `${t('sc_ms')}: ${msOf(p)} км/ч` : '', p.ad || ''].filter(Boolean).join(' · ') || t('sc_kind') },
+  edu: { title: 'ed_t', cats: ['school', 'kindergarten', 'college', 'university', 'pr'], extraH: 0, foot: true,
+    has: (p, c) => c === 'pr' ? p.pr : p.a === c, col: p => ED_COL[p.a] || '#2563EB', ic: p => p.a, name: p => p.n, sub: p => [t('edk_' + p.a), p.pr ? t('ed_pr') : ''].filter(Boolean).join(' · ') },
+  gov: { title: 'gv_t', cats: ['cgu', 'hokim', 'pq', 'gov'], extraH: 0, foot: true,
+    has: (p, c) => p.a === c, col: p => GV_COL[p.a] || '#64748B', ic: () => 'gov', name: p => p.n, sub: p => t('gvk_' + p.a) },
+  sight: { title: 'sg_t', cats: ['hist', 'museum', 'park', 'view', 'attr', 'art'], extraH: 0, foot: true,
+    has: (p, c) => p.a === c, col: p => SG_COL[p.a] || '#DB2777', ic: () => 'sight', name: p => p.n, sub: p => [t('sgk_' + p.a), p.f === 0 ? t('sg_free') : ''].filter(Boolean).join(' · ') },
+});
+// chip labels for the new kinds
+const P2_PREFIX = { ev: 'evc_', speedcam: 'scc_', edu: 'edc_', gov: 'gvc_', sight: 'sgc_' };
+const P2_CHIPCOL = { ev: { fast: '#7C3AED', type2: '#0EA5E9', gbt: '#0EA5E9', free: '#16A34A' }, speedcam: { 60: '#DC2626', 80: '#EA580C', 100: '#CA8A04' }, edu: ED_COL, gov: GV_COL, sight: SG_COL };
+// Wikipedia summary for sights (photo + short description)
+function sgWiki(p) {
+  if (!p.wp) return Promise.resolve(null);
+  const m = p.wp.match(/^([a-z-]+):(.+)$/); if (!m) return Promise.resolve(null);
+  return fetch(`https://${m[1]}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(m[2].replace(/ /g, '_'))}`).then(r => r.ok ? r.json() : null).catch(() => null);
+}
+
+// ======================= Community: polls, problem reports, document reminders, panic button =======================
+const CM_I = {
+  ru: { need_login: 'Нужно войти', need_login_s: 'Чтобы голосовать, отправлять сообщения и получать напоминания, войдите через Telegram — это займёт минуту.',
+    pl_t: 'Опросы', pl_t_m: 'Опросы махалли', pl_votes: 'Голосов: {n}', pl_left: 'осталось {n} дн.', pl_closed: 'Опрос завершён', pl_yours: 'Ваш голос', pl_change: 'Голос можно изменить', pl_thx: 'Голос учтён', pl_src: 'Один голос на одного жителя (вход через Telegram)',
+    rp_t: 'Проблемы в городе', rp_t_road: 'Дороги и ремонт', rp_t_clean: 'Чистый город', rp_t_appeal: 'Обращения жителей', rp_add: 'Сообщить о проблеме', rp_none: 'Пока нет сообщений — будьте первым', rp_kind: 'Что случилось?', rp_text: 'Опишите проблему', rp_text_ph: 'Например: глубокая яма у остановки, опасно для машин', rp_photo: 'Добавить фото', rp_photo2: 'Заменить фото', rp_where: 'Место', rp_here: 'Моё местоположение', rp_pick: 'Нажмите на карту, чтобы указать место', rp_send: 'Отправить', rp_ok: 'Сообщение №{n} отправлено', rp_up: 'У меня тоже', rp_upped: 'Вы поддержали', rp_ups: 'Поддержали: {n}', rp_err: 'Не удалось отправить', rp_need: 'Добавьте описание или фото',
+    rk_road: 'Яма / дорога', rk_light: 'Не горит свет', rk_clean: 'Мусор / свалка', rk_water: 'Вода / канализация', rk_park: 'Парк / двор', rk_transport: 'Транспорт / остановка', rk_other: 'Другое',
+    rs_new: 'Новое', rs_work: 'В работе', rs_done: 'Решено', rp_src: 'Сообщения жителей видны всем. Не публикуйте лица и номера машин крупным планом.',
+    dc_t: 'Сроки документов', dc_s: 'Бот в Telegram напомнит за 30, 7 и 1 день до окончания', dc_add: 'Добавить документ', dc_kind: 'Документ', dc_title: 'Подпись (необязательно)', dc_date: 'Действует до', dc_save: 'Сохранить', dc_none: 'Добавьте паспорт, права, страховку — напомним заранее', dc_left: 'осталось {n} дн.', dc_exp: 'просрочен', dc_today: 'истекает сегодня',
+    dk_passport: 'Паспорт', dk_idcard: 'ID-карта', dk_intl: 'Загранпаспорт', dk_license: 'Водительские права', dk_inspection: 'Техосмотр', dk_insurance: 'Страховка ОСАГО', dk_tinting: 'Разрешение на тонировку', dk_gas: 'Газовый баллон', dk_poa: 'Доверенность', dk_other: 'Другое',
+    sos_t: 'SOS близким', sos_s: 'Отправит вашу геолокацию всем близким в Telegram', sos_btn: 'Отправить SOS', sos_q: 'Отправить тревогу близким?', sos_q_s: 'Они получат сообщение и вашу геолокацию в Telegram.', sos_ok: 'Тревога отправлена: {n}', sos_none: 'Сначала добавьте близких', sos_err: 'Не удалось отправить — позвоните 112',
+    tc_t: 'Мои близкие', tc_add: 'Добавить близкого', tc_add_s: 'Отправьте ссылку близкому человеку — он откроет бота и станет вашим доверенным контактом', tc_share: 'Отправить ссылку', tc_copy: 'Скопировать ссылку', tc_none: 'Пока никого нет', tc_rm: 'Удалить', call_go: 'Позвонить' },
+  uz: { need_login: 'Kirish kerak', need_login_s: "Ovoz berish, xabar yuborish va eslatmalar olish uchun Telegram orqali kiring — bir daqiqa vaqt oladi.",
+    pl_t: "So'rovnomalar", pl_t_m: "Mahalla so'rovnomalari", pl_votes: '{n} ovoz', pl_left: '{n} kun qoldi', pl_closed: "So'rovnoma yakunlandi", pl_yours: 'Sizning ovozingiz', pl_change: "Ovozni o'zgartirish mumkin", pl_thx: 'Ovoz qabul qilindi', pl_src: 'Har bir aholiga bitta ovoz (Telegram orqali kirish)',
+    rp_t: 'Shahardagi muammolar', rp_t_road: "Yo'llar va ta'mirlash", rp_t_clean: 'Toza shahar', rp_t_appeal: 'Aholi murojaatlari', rp_add: 'Muammo haqida xabar berish', rp_none: "Hozircha xabarlar yo'q — birinchi bo'ling", rp_kind: 'Nima bo‘ldi?', rp_text: 'Muammoni yozing', rp_text_ph: "Masalan: bekat yonida chuqur o'ra", rp_photo: "Rasm qo'shish", rp_photo2: 'Rasmni almashtirish', rp_where: 'Joy', rp_here: 'Mening joylashuvim', rp_pick: "Joyni ko'rsatish uchun xaritani bosing", rp_send: 'Yuborish', rp_ok: '№{n} xabar yuborildi', rp_up: 'Menda ham', rp_upped: "Qo'llab-quvvatladingiz", rp_ups: "Qo'llab-quvvatladi: {n}", rp_err: "Yuborib bo'lmadi", rp_need: "Tavsif yoki rasm qo'shing",
+    rk_road: "O'ra / yo'l", rk_light: 'Chiroq yonmayapti', rk_clean: 'Axlat', rk_water: 'Suv / kanalizatsiya', rk_park: 'Park / hovli', rk_transport: 'Transport / bekat', rk_other: 'Boshqa',
+    rs_new: 'Yangi', rs_work: 'Ishda', rs_done: 'Hal qilindi', rp_src: "Aholi xabarlari hammaga ko'rinadi. Yuzlar va avtomobil raqamlarini yaqindan joylamang.",
+    dc_t: 'Hujjatlar muddati', dc_s: 'Telegram bot muddat tugashidan 30, 7 va 1 kun oldin eslatadi', dc_add: "Hujjat qo'shish", dc_kind: 'Hujjat', dc_title: 'Izoh (ixtiyoriy)', dc_date: 'Amal qiladi', dc_save: 'Saqlash', dc_none: "Pasport, guvohnoma, sug'urtani qo'shing — oldindan eslatamiz", dc_left: '{n} kun qoldi', dc_exp: "muddati o'tgan", dc_today: 'bugun tugaydi',
+    dk_passport: 'Pasport', dk_idcard: 'ID-karta', dk_intl: 'Xorijiy pasport', dk_license: 'Haydovchilik guvohnomasi', dk_inspection: "Texnik ko'rik", dk_insurance: "OSAGO sug'urtasi", dk_tinting: 'Tonirovka ruxsatnomasi', dk_gas: 'Gaz ballon', dk_poa: 'Ishonchnoma', dk_other: 'Boshqa',
+    sos_t: 'Yaqinlarga SOS', sos_s: 'Joylashuvingizni Telegramda barcha yaqinlaringizga yuboradi', sos_btn: 'SOS yuborish', sos_q: 'Yaqinlarga signal yuborilsinmi?', sos_q_s: 'Ular Telegramda xabar va joylashuvingizni oladi.', sos_ok: 'Signal yuborildi: {n}', sos_none: "Avval yaqinlaringizni qo'shing", sos_err: "Yuborib bo'lmadi — 112 ga qo'ng'iroq qiling",
+    tc_t: 'Yaqinlarim', tc_add: "Yaqin odam qo'shish", tc_add_s: "Havolani yaqin odamga yuboring — u botni ochib, ishonchli kontaktingiz bo'ladi", tc_share: 'Havolani yuborish', tc_copy: 'Havolani nusxalash', tc_none: "Hozircha hech kim yo'q", tc_rm: "O'chirish", call_go: "Qo'ng'iroq qilish" },
+  en: { need_login: 'Sign in required', need_login_s: 'Sign in with Telegram to vote, send reports and get reminders — it takes a minute.',
+    pl_t: 'Polls', pl_t_m: 'Mahalla polls', pl_votes: '{n} votes', pl_left: '{n} days left', pl_closed: 'Poll closed', pl_yours: 'Your vote', pl_change: 'You can change your vote', pl_thx: 'Vote counted', pl_src: 'One vote per resident (sign in with Telegram)',
+    rp_t: 'City problems', rp_t_road: 'Roads and repairs', rp_t_clean: 'Clean city', rp_t_appeal: 'Residents’ reports', rp_add: 'Report a problem', rp_none: 'No reports yet — be the first', rp_kind: 'What happened?', rp_text: 'Describe the problem', rp_text_ph: 'E.g. a deep pothole near the bus stop', rp_photo: 'Add a photo', rp_photo2: 'Replace photo', rp_where: 'Place', rp_here: 'My location', rp_pick: 'Tap the map to set the place', rp_send: 'Send', rp_ok: 'Report #{n} sent', rp_up: 'Me too', rp_upped: 'You supported it', rp_ups: 'Supported: {n}', rp_err: 'Could not send', rp_need: 'Add a description or a photo',
+    rk_road: 'Pothole / road', rk_light: 'Street light out', rk_clean: 'Garbage / dump', rk_water: 'Water / sewage', rk_park: 'Park / yard', rk_transport: 'Transport / stop', rk_other: 'Other',
+    rs_new: 'New', rs_work: 'In progress', rs_done: 'Solved', rp_src: 'Residents’ reports are public. Avoid close-ups of faces and licence plates.',
+    dc_t: 'Document expiry', dc_s: 'The Telegram bot reminds you 30, 7 and 1 day before', dc_add: 'Add a document', dc_kind: 'Document', dc_title: 'Note (optional)', dc_date: 'Valid until', dc_save: 'Save', dc_none: 'Add your passport, licence, insurance — we will remind you in time', dc_left: '{n} days left', dc_exp: 'expired', dc_today: 'expires today',
+    dk_passport: 'Passport', dk_idcard: 'ID card', dk_intl: 'International passport', dk_license: 'Driving licence', dk_inspection: 'Vehicle inspection', dk_insurance: 'OSAGO insurance', dk_tinting: 'Tinting permit', dk_gas: 'Gas cylinder', dk_poa: 'Power of attorney', dk_other: 'Other',
+    sos_t: 'SOS to family', sos_s: 'Sends your location to all your trusted contacts in Telegram', sos_btn: 'Send SOS', sos_q: 'Send an alert to your contacts?', sos_q_s: 'They will get a message and your location in Telegram.', sos_ok: 'Alert sent: {n}', sos_none: 'Add trusted contacts first', sos_err: 'Could not send — call 112',
+    tc_t: 'My trusted contacts', tc_add: 'Add a contact', tc_add_s: 'Send the link to a relative — they open the bot and become your trusted contact', tc_share: 'Send the link', tc_copy: 'Copy link', tc_none: 'Nobody yet', tc_rm: 'Remove', call_go: 'Call' },
+};
+I.zh && Object.assign(CM_I, { zh: CM_I.en });
+for (const l in CM_I) Object.assign(I[l], Object.assign({}, CM_I.en, CM_I[l]));
+const API = AI_OWN.replace(/\/api\/assistant$/, '');
+function authTok() { try { return localStorage.getItem('uzk-session'); } catch (e) { return null; } }
+function api(path, body) {
+  const h = { 'content-type': 'application/json' }; const tk = authTok(); if (tk) h.authorization = 'Bearer ' + tk;
+  return fetch(API + path, body ? { method: 'POST', headers: h, body: JSON.stringify(body) } : { headers: h, cache: 'no-store' }).then(async r => { const j = await r.json().catch(() => ({})); if (r.status === 401) { try { localStorage.removeItem('uzk-session'); localStorage.removeItem('uzk-user'); } catch (e) {} } j._status = r.status; return j; });
+}
+function needLogin() {
+  if (authUser() && authTok()) return false;
+  bsheet(`<div class="tr-hero"><span style="background:#229ED9">${TG_SVG.replace(/22/g, '28')}</span><div><b>${esc(t('need_login'))}</b><i>@MyUzCity_bot</i></div></div><p class="tp-p">${esc(t('need_login_s'))}</p><button class="h-btn h-tgbtn" data-act="tglogin">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`, 'bs-caf');
+  return true;
+}
+const SHEET_ACT = {};
+
+// ---- polls
+let PL = {};
+HS.polls = (scope) => {
+  const sc = scope === 'mahalla' ? 'mahalla' : 'city'; window.__plScope = sc;
+  return `${hdr(t(sc === 'mahalla' ? 'pl_t_m' : 'pl_t'))}<div class="h-body pl-body" id="plList"><div class="cf-empty">${esc(t('po_load'))}</div></div>`;
+};
+HS.polls.mount = () => { const sc = window.__plScope; if (PL[sc]) plRender(); api('/api/polls?scope=' + sc).then(j => { if (j.ok) { PL[sc] = j.polls; plRender(); } else if (!PL[sc]) { const l = document.getElementById('plList'); if (l) l.innerHTML = `<div class="cf-empty">${esc(t('po_err'))}</div>`; } }); };
+function plRender() {
+  const l = document.getElementById('plList'); if (!l) return; const list = PL[window.__plScope] || [];
+  const now = Date.now() / 1000;
+  l.innerHTML = list.map(p => {
+    const closed = p.ends && p.ends < now, max = Math.max(1, p.total);
+    return `<div class="pl-card"><b class="pl-q">${esc(p.q)}</b><div class="pl-meta">👥 ${esc(t('pl_votes', { n: p.total }))} · ${esc(closed ? t('pl_closed') : t('pl_left', { n: Math.max(1, Math.ceil((p.ends - now) / 86400)) }))}</div>
+      ${p.options.map((o, i) => { const pc = Math.round(p.counts[i] * 100 / max); return `<button class="pl-opt ${p.mine === i ? 'on' : ''}" data-act="plvote:${p.id}:${i}" ${closed ? 'disabled' : ''}><span class="pl-bar" style="width:${p.mine != null || closed ? pc : 0}%"></span><span class="pl-tx">${p.mine === i ? '✓ ' : ''}${esc(o)}</span>${p.mine != null || closed ? `<b>${pc}%</b>` : ''}</button>`; }).join('')}
+      ${p.mine != null ? `<div class="pl-note">${esc(t('pl_change'))}</div>` : ''}</div>`;
+  }).join('') + `<div class="h-muted small cam-note">${esc(t('pl_src'))}</div>`;
+}
+SHEET_ACT.plvote = a => { if (needLogin()) return; const [id, opt] = a.split(':').map(Number); api('/api/polls', { id, opt }).then(j => { if (j.ok) { PL[window.__plScope] = j.polls; plRender(); toast(t('pl_thx')); } else toast(t('po_err')); }); };
+
+// ---- problem reports
+const RP_KINDS = ['road', 'light', 'clean', 'water', 'park', 'transport', 'other'];
+const RP_COL = { new: '#DC2626', work: '#D97706', done: '#16A34A' };
+const RP_IC = { road: '🕳️', light: '💡', clean: '🗑️', water: '💧', park: '🌳', transport: '🚌', other: '📌' };
+const rps = () => (window.__rps = window.__rps || { kind: 'all', list: null, form: null });
+HS.reports = (k) => {
+  const s = rps(); s.view = k || 'all';
+  const title = k === 'road' ? 'rp_t_road' : k === 'clean' ? 'rp_t_clean' : k === 'appeal' ? 'rp_t_appeal' : 'rp_t';
+  return `${hdr(t(title))}<div class="cf-mapph" style="height:${Math.min(300, Math.max(210, Math.round(VH * .34)))}px"></div>
+    <div class="h-body cf-body" id="rpList"><div class="cf-empty">${esc(t('po_load'))}</div></div>
+    <button class="cf-aibtn rp-add" data-act="rpnew">＋ <span>${esc(t('rp_add'))}</span></button>`;
+};
+let RP_MAP = null, RP_LAY = null;
+HS.reports.mount = el => {
+  const mw = mapAt(el, el.querySelector('.cf-mapph'));
+  mw.addEventListener('click', e => { const b = e.target.closest('[data-cf]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.cf === 'me') geo().then(l => { caf().loc = l; if (RP_MAP) RP_MAP.flyTo(l, 15); }).catch(() => toast(t('caf_geo_err'))); });
+  leafletReady().then(() => {
+    if (!document.body.contains(mw)) return;
+    const c = CITIES[cityIdx()];
+    RP_MAP = tiles(L.map(mw.querySelector('#cfMap'), { zoomControl: false, preferCanvas: true }).setView(caf().loc || [c[5], c[6]], caf().loc ? 14 : 12));
+    RP_LAY = L.layerGroup().addTo(RP_MAP);
+    rpLoad();
+  });
+};
+function rpKinds() { const v = rps().view; return v === 'road' ? ['road', 'light', 'transport'] : v === 'clean' ? ['clean', 'park', 'water'] : RP_KINDS; }
+function rpLoad() { api('/api/reports').then(j => { if (j.ok) { rps().list = j.list; rpRender(); } else { const l = document.getElementById('rpList'); if (l) l.innerHTML = `<div class="cf-empty">${esc(t('po_err'))}</div>`; } }); }
+function rpRender() {
+  const l = document.getElementById('rpList'); if (!l) return; const ks = rpKinds();
+  const list = (rps().list || []).filter(r => ks.includes(r.kind));
+  l.innerHTML = (list.length ? list.map(r => `<button class="cf-item" data-act="rpopen:${r.id}"><span class="cf-ic" style="background:${RP_COL[r.status] || '#6B7280'}1f;font-size:20px">${RP_IC[r.kind] || '📌'}</span><span class="cf-it"><b>${esc(t('rk_' + r.kind))}</b><i>${esc(r.text || '')}</i><i>${esc(fmtDate(new Date(r.created * 1000).toISOString(), false))} · ${esc(t('rp_ups', { n: r.ups }))}</i></span><span class="rp-st" style="color:${RP_COL[r.status]};background:${RP_COL[r.status]}14">${esc(t('rs_' + r.status))}</span></button>`).join('') : `<div class="cf-empty">${esc(t('rp_none'))}</div>`) + `<div class="h-muted small cam-note">${esc(t('rp_src'))}</div>`;
+  if (RP_LAY) { RP_LAY.clearLayers(); list.forEach(r => { const m = L.circleMarker([r.la, r.lo], { radius: 8, color: '#fff', weight: 2, fillColor: RP_COL[r.status] || '#6B7280', fillOpacity: 1 }); m.on('click', () => rpOpen(r.id)); m.addTo(RP_LAY); }); }
+}
+function rpOpen(id) {
+  const r = (rps().list || []).find(x => x.id === id); if (!r) return;
+  if (RP_MAP) RP_MAP.panTo([r.la, r.lo]);
+  bsheet(`${r.ph ? `<div class="cf-photo" style="background-image:url('${API}/api/reports/photo?id=${r.id}')"></div>` : ''}
+    <div class="cf-name">${RP_IC[r.kind] || ''} ${esc(t('rk_' + r.kind))}</div>
+    <div class="cf-tags"><span style="background:${RP_COL[r.status]}1a;color:${RP_COL[r.status]}">${esc(t('rs_' + r.status))}</span><span>№${r.id}</span><span>${esc(fmtDate(new Date(r.created * 1000).toISOString()))}</span></div>
+    ${r.text ? `<p class="tp-p">${esc(r.text)}</p>` : ''}
+    <button class="h-btn ${r.up ? 'h-ghostd' : 'h-primary'}" data-act="rpup:${r.id}" ${r.up || r.own ? 'disabled' : ''}>👍 ${esc(r.up ? t('rp_upped') : t('rp_up'))} · ${r.ups}</button>
+    <div class="cf-routes" style="margin-top:12px">${navLinks({ la: r.la, lo: r.lo }, null, 'foot').map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>`, 'bs-caf');
+}
+SHEET_ACT.rpopen = id => rpOpen(+id);
+SHEET_ACT.rpup = id => { if (needLogin()) return; api('/api/reports', { action: 'up', id: +id }).then(j => { if (j.ok) { const r = rps().list.find(x => x.id === +id); if (r) { r.up = true; r.ups++; } bsheetClose(true); rpRender(); toast(t('rp_upped')); } }); };
+SHEET_ACT.rpnew = () => {
+  if (needLogin()) return;
+  const s = rps(); const ks = rpKinds();
+  s.form = { kind: ks[0], text: '', photo: null, loc: caf().loc || null };
+  const draw = () => {
+    const f = s.form;
+    const w = bsheet(`<div class="cf-sec" style="margin-top:4px">${esc(t('rp_kind'))}</div><div class="rp-kinds">${ks.map(k => `<button class="h-chip ${f.kind === k ? 'on' : ''}" data-rk="${k}">${RP_IC[k]} ${esc(t('rk_' + k))}</button>`).join('')}</div>
+      <div class="cf-sec">${esc(t('rp_text'))}</div><textarea id="rpT" rows="3" class="rp-ta" placeholder="${esc(t('rp_text_ph'))}">${esc(f.text)}</textarea>
+      <label class="h-btn h-ghostd rp-ph">${f.photo ? `<img src="${f.photo}" alt="">` : ''}📷 ${esc(t(f.photo ? 'rp_photo2' : 'rp_photo'))}<input type="file" accept="image/*" capture="environment" id="rpF" hidden></label>
+      <div class="cf-sec">${esc(t('rp_where'))}</div><div class="rp-where">${f.loc ? `📍 ${f.loc[0].toFixed(5)}, ${f.loc[1].toFixed(5)}` : `<i>${esc(t('rp_pick'))}</i>`}</div>
+      <button class="h-btn h-ghostd" data-rk="geo">📍 ${esc(t('rp_here'))}</button>
+      <button class="h-btn h-primary" id="rpSend" style="margin-top:14px">${esc(t('rp_send'))}</button>`, 'bs-caf bs-rp');
+    w.querySelector('#rpT').addEventListener('input', e => { f.text = e.target.value; });
+    w.addEventListener('click', e => { const b = e.target.closest('[data-rk]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.rk === 'geo') geo().then(l => { f.loc = l; draw(); }).catch(() => toast(t('caf_geo_err'))); else { f.kind = b.dataset.rk; draw(); } });
+    w.querySelector('#rpF').addEventListener('change', e => { const file = e.target.files && e.target.files[0]; if (!file) return; const img = new Image(); img.onload = () => { const k = Math.min(1, 1000 / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); f.photo = c.toDataURL('image/jpeg', .72); URL.revokeObjectURL(img.src); draw(); }; img.src = URL.createObjectURL(file); });
+    w.querySelector('#rpSend').addEventListener('click', e => {
+      e.preventDefault(); if (!f.text.trim() && !f.photo) return toast(t('rp_need'));
+      const go2 = loc => { e.target.disabled = true; api('/api/reports', { kind: f.kind, text: f.text, la: loc[0], lo: loc[1], photo: f.photo, city: cityIdx() }).then(j => { if (j.ok) { bsheetClose(true); toast(t('rp_ok', { n: j.id })); rpLoad(); } else { e.target.disabled = false; toast(t('rp_err')); } }); };
+      if (f.loc) go2(f.loc); else geo().then(l => { f.loc = l; go2(l); }).catch(() => toast(t('rp_pick')));
+    });
+  };
+  draw();
+  if (RP_MAP && !RP_MAP.__pick) { RP_MAP.__pick = 1; RP_MAP.on('click', ev => { const f = rps().form; if (!f || !document.querySelector('.bs-rp')) return; f.loc = [ev.latlng.lat, ev.latlng.lng]; const el = document.querySelector('.bs-rp .rp-where'); if (el) el.textContent = `📍 ${f.loc[0].toFixed(5)}, ${f.loc[1].toFixed(5)}`; }); }
+};
+
+// ---- document reminders (block on «Мои документы»)
+const DC_KINDS = ['passport', 'idcard', 'intl', 'license', 'inspection', 'insurance', 'tinting', 'gas', 'poa', 'other'];
+let DC = null;
+function dcLeft(d) { const nz = new Date(Date.now() + 5 * 3600e3); nz.setUTCHours(0, 0, 0, 0); return Math.round((Date.parse(d + 'T00:00:00Z') - nz.getTime()) / 864e5); }
+function drawDocs(layers, y) {
+  const r = layers.r; if (!r) return;
+  const w = hoverlay(r, 24, y, 382, 0, `<div class="hv-h">${esc(t('dc_t'))}<button data-dc="add">＋ ${esc(t('dc_add'))}</button></div><div class="hv-card dc-card" id="dcBox"><div class="hv-sk"></div></div><div class="dc-sub">🔔 ${esc(t('dc_s'))}</div>`);
+  w.addEventListener('click', e => { const b = e.target.closest('[data-dc]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.dc === 'add') dcForm(); else if (b.dataset.dc === 'login') tgLogin(); else { const [k, ...tt] = b.dataset.dc.split('|'); dcForm(k, tt.join('|')); } });
+  const box = w.querySelector('#dcBox');
+  const paint = () => {
+    if (!authUser()) { box.innerHTML = `<p class="dc-empty">${esc(t('need_login_s'))}</p><button class="h-btn h-tgbtn" data-dc="login">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`; return; }
+    if (!DC || !DC.length) { box.innerHTML = `<p class="dc-empty">${esc(t('dc_none'))}</p>`; return; }
+    box.innerHTML = DC.map(d => { const n = dcLeft(d.expires); const col = n < 0 ? '#DC2626' : n <= 30 ? '#D97706' : '#15803D'; return `<button class="hv-mq" data-dc="${esc(d.kind + '|' + d.title)}"><span class="hv-dot" style="background:${col}"></span><span><b>${esc(t('dk_' + d.kind))}${d.title ? ' · ' + esc(d.title) : ''}</b><i>${esc(d.expires.split('-').reverse().join('.'))} · <em style="color:${col};font-style:normal">${esc(n < 0 ? t('dc_exp') : n === 0 ? t('dc_today') : t('dc_left', { n }))}</em></i></span>${IC.chev}</button>`; }).join('');
+  };
+  paint();
+  if (authUser()) api('/api/docs').then(j => { if (j.ok) { DC = j.list; if (document.body.contains(box)) paint(); } });
+}
+function dcForm(kind, title) {
+  if (needLogin()) return;
+  const cur = DC && kind ? DC.find(d => d.kind === kind && d.title === (title || '')) : null;
+  const w = bsheet(`<div class="cf-sec" style="margin-top:4px">${esc(t('dc_kind'))}</div><select id="dcK" class="dc-in">${DC_KINDS.map(k => `<option value="${k}" ${(cur ? cur.kind : 'passport') === k ? 'selected' : ''}>${esc(t('dk_' + k))}</option>`).join('')}</select>
+    <div class="cf-sec">${esc(t('dc_title'))}</div><input id="dcT" class="dc-in" maxlength="60" value="${esc(cur ? cur.title : '')}">
+    <div class="cf-sec">${esc(t('dc_date'))}</div><input id="dcD" class="dc-in" type="date" value="${esc(cur ? cur.expires : '')}">
+    <button class="h-btn h-primary" id="dcS" style="margin-top:16px">${esc(t('dc_save'))}</button>${cur ? `<button class="h-btn h-ghostd" id="dcR" style="margin-top:10px">${esc(t('tc_rm'))}</button>` : ''}`, 'bs-caf');
+  const done = () => { bsheetClose(true); api('/api/docs').then(j => { if (j.ok) DC = j.list; render(current, currentP); }); };
+  w.querySelector('#dcS').addEventListener('click', e => { e.preventDefault(); const d = w.querySelector('#dcD').value; if (!d) return w.querySelector('#dcD').focus(); const body = { kind: w.querySelector('#dcK').value, title: w.querySelector('#dcT').value.trim(), expires: d }; const old = cur && (cur.kind !== body.kind || cur.title !== body.title) ? api('/api/docs', { action: 'remove', kind: cur.kind, title: cur.title }) : Promise.resolve(); old.then(() => api('/api/docs', body)).then(j => j.ok ? done() : toast(t('po_err'))); });
+  const rm = w.querySelector('#dcR'); if (rm) rm.addEventListener('click', e => { e.preventDefault(); api('/api/docs', { action: 'remove', kind: cur.kind, title: cur.title }).then(done); });
+}
+
+// ---- panic button: real calls + SOS with location to trusted contacts
+let TC = null;
+function drawSos(layers, y) {
+  const r = layers.r; if (!r) return;
+  const w = hoverlay(r, 24, y, 382, 0, `<button class="sos-big" data-sos="go"><b>🚨 ${esc(t('sos_btn'))}</b><i>${esc(t('sos_s'))}</i></button>
+    <div class="hv-h" style="margin-top:22px">${esc(t('tc_t'))}<button data-sos="add">＋ ${esc(t('tc_add'))}</button></div><div class="hv-card" id="tcBox"><div class="hv-sk"></div></div>`);
+  w.addEventListener('click', e => { const b = e.target.closest('[data-sos]'); if (!b) return; e.preventDefault(); e.stopPropagation(); const a = b.dataset.sos; if (a === 'go') sosGo(); else if (a === 'add') tcInvite(); else if (a === 'login') tgLogin(); else if (a.startsWith('rm:')) api('/api/trust', { action: 'remove', tg_id: +a.slice(3) }).then(() => { TC = null; render(current, currentP); }); });
+  const box = w.querySelector('#tcBox');
+  const paint = () => {
+    if (!authUser()) { box.innerHTML = `<p class="dc-empty">${esc(t('need_login_s'))}</p><button class="h-btn h-tgbtn" data-sos="login">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`; return; }
+    box.innerHTML = TC && TC.length ? TC.map(c => `<div class="hv-mq"><span class="hv-dot" style="background:#229ED9"></span><span><b>${esc(c.name)}</b><i>Telegram</i></span><button class="tc-rm" data-sos="rm:${c.tg_id}">${esc(t('tc_rm'))}</button></div>`).join('') : `<p class="dc-empty">${esc(t('tc_none'))}. ${esc(t('tc_add_s'))}</p>`;
+  };
+  paint();
+  if (authUser()) api('/api/trust').then(j => { if (j.ok) { TC = j.list; if (document.body.contains(box)) paint(); } });
+}
+function tcInvite() {
+  if (needLogin()) return;
+  api('/api/trust', { action: 'invite' }).then(j => {
+    if (!j.ok) return toast(t('po_err'));
+    const txt = `${userFirst() || 'Я'} добавляет вас в близкие в приложении MyUzCity: если нажмёт тревожную кнопку, вы сразу получите сообщение и геолокацию. Откройте ссылку: ${j.link}`;
+    bsheet(`<div class="tr-hero"><span style="background:#229ED9">${TG_SVG.replace(/22/g, '28')}</span><div><b>${esc(t('tc_add'))}</b><i>@MyUzCity_bot</i></div></div><p class="tp-p">${esc(t('tc_add_s'))}</p>
+      <a class="h-btn h-tgbtn cf-callbtn" href="https://t.me/share/url?url=${encodeURIComponent(j.link)}&text=${encodeURIComponent(txt.replace(': ' + j.link, ''))}" target="_blank" rel="noopener">${TG_SVG}<span>${esc(t('tc_share'))}</span></a>
+      <button class="h-btn h-ghostd" id="tcC" style="margin-top:10px">${esc(t('tc_copy'))}</button>`, 'bs-caf');
+    document.getElementById('tcC').addEventListener('click', e => { e.preventDefault(); (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast(t('qr_copied'))).catch(() => {}); });
+  });
+}
+function sosGo() {
+  if (needLogin()) return;
+  sheet(t('sos_q'), t('sos_q_s'), [[t('sos_btn'), () => {
+    const send = (la, lo, acc) => api('/api/sos', { la, lo, acc }).then(j => { if (j.ok && j.sent) toast(t('sos_ok', { n: j.sent })); else if (j.ok) { toast(t('sos_none')); tcInvite(); } else toast(t('sos_err')); });
+    if (!navigator.geolocation) return toast(t('caf_geo_err'));
+    navigator.geolocation.getCurrentPosition(p => send(p.coords.latitude, p.coords.longitude, p.coords.accuracy), () => { const l = caf().loc; if (l) send(l[0], l[1]); else toast(t('caf_geo_err')); }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 });
+  }], [t('cancel'), null]]);
+}
+Object.assign(XACT, SHEET_ACT);
+AI_HIDE.add('h:reports');
+
+// ======================= Live blocks on designed screens: fines, family, public services, utilities =======================
+const BK_I = {
+  ru: { fn_t: 'Штрафы — официально', fn_road24: 'Проверить и оплатить штрафы — Road24', fn_road24_s: 'Официальное приложение проверки штрафов ГУБДД, по госномеру и техпаспорту', fn_points: 'Штрафные баллы — my.gov.uz', fn_appeal: 'Обжаловать штраф — my.gov.uz', fn_cams: 'Камеры скорости на карте',
+    ed_near: 'Школы и детсады рядом', gv_near: 'Центры госуслуг рядом', gv_cat: 'Популярные услуги', gv_all: 'Все услуги на my.gov.uz', gv_res: 'Резидентское разрешение на парковку', gv_pts: 'Штрафные баллы водителя', gv_app: 'Обжалование штрафа за нарушение ПДД', gv_call: 'Колл-центр my.gov.uz — 1242 (круглосуточно)',
+    ut_t: 'Калькулятор коммуналки', ut_el: 'Электроэнергия, кВт·ч за месяц', ut_stove: 'Дом с электроплитами', ut_gas: 'Газ (по счётчику), м³ за месяц', ut_heat: 'Отопительный сезон', ut_sum: 'Итого к оплате ≈', ut_el_s: 'Свет', ut_gas_s: 'Газ', ut_note: 'Тарифы для населения с 1 июня 2026 (ПКМ №243). Считаем по ступеням: каждая часть потребления — по своей цене. Точная сумма — в квитанции.', tk_t: 'Купить билеты на iTicket.uz' },
+  uz: { fn_t: 'Jarimalar — rasmiy', fn_road24: 'Jarimalarni tekshirish va to‘lash — Road24', fn_road24_s: "YHXB jarimalarini davlat raqami va texpasport bo'yicha tekshirish ilovasi", fn_points: 'Jarima ballari — my.gov.uz', fn_appeal: 'Jarimani shikoyat qilish — my.gov.uz', fn_cams: 'Tezlik kameralari xaritada',
+    ed_near: "Yaqin maktab va bog'chalar", gv_near: 'Yaqin davlat xizmatlari markazlari', gv_cat: 'Ommabop xizmatlar', gv_all: "my.gov.uz dagi barcha xizmatlar", gv_res: 'Avtoturargoh uchun rezident ruxsatnomasi', gv_pts: 'Haydovchining jarima ballari', gv_app: "YHQ buzilishi uchun jarimani shikoyat qilish", gv_call: 'my.gov.uz call-markazi — 1242 (kecha-kunduz)',
+    ut_t: 'Kommunal kalkulyator', ut_el: 'Elektr energiyasi, oyiga kVt·soat', ut_stove: 'Elektr plitali uy', ut_gas: "Gaz (hisoblagich bo'yicha), oyiga m³", ut_heat: 'Isitish mavsumi', ut_sum: "Jami to'lov ≈", ut_el_s: 'Elektr', ut_gas_s: 'Gaz', ut_note: "Aholi uchun tariflar 2026-yil 1-iyundan (VMQ №243). Bosqichma-bosqich hisoblaymiz. Aniq summa — kvitansiyada.", tk_t: 'iTicket.uz da chipta sotib olish' },
+  en: { fn_t: 'Fines — official', fn_road24: 'Check and pay fines — Road24', fn_road24_s: 'Official traffic police fines app, by plate and registration', fn_points: 'Penalty points — my.gov.uz', fn_appeal: 'Appeal a fine — my.gov.uz', fn_cams: 'Speed cameras on the map',
+    ed_near: 'Schools & kindergartens nearby', gv_near: 'Public service centres nearby', gv_cat: 'Popular services', gv_all: 'All services on my.gov.uz', gv_res: 'Resident parking permit', gv_pts: 'Driver penalty points', gv_app: 'Appeal a traffic fine', gv_call: 'my.gov.uz call centre — 1242 (24/7)',
+    ut_t: 'Utility bill calculator', ut_el: 'Electricity, kWh per month', ut_stove: 'Building with electric stoves', ut_gas: 'Gas (metered), m³ per month', ut_heat: 'Heating season', ut_sum: 'Total ≈', ut_el_s: 'Electricity', ut_gas_s: 'Gas', ut_note: 'Household tariffs from 1 June 2026 (Resolution No. 243). Calculated by blocks: each part of consumption at its own price. The exact amount is on your bill.', tk_t: 'Buy tickets on iTicket.uz' },
+};
+BK_I.zh = BK_I.en;
+for (const l in BK_I) Object.assign(I[l], BK_I[l]);
+const lk = (href, title, sub, ic, col) => `<a class="bk-link" href="${esc(href)}" target="_blank" rel="noopener"><span class="hv-ic" style="background:${col}">${ic}</span><span><b>${esc(title)}</b>${sub ? `<i>${esc(sub)}</i>` : ''}</span>${IC.chev}</a>`;
+const GLYPH = s => `<span style="font-size:20px;line-height:1">${s}</span>`;
+const MYGOV = LANG => `https://oldmy.gov.uz/${LANG === 'uz' ? 'uz' : LANG === 'en' ? 'en' : 'ru'}`;
+function drawFines(layers, y) {
+  const r = layers.r; if (!r) return;
+  hoverlay(r, 24, y, 382, 0, `<div class="hv-h">${esc(t('fn_t'))}</div><div class="hv-card bk-card">
+    ${lk('https://road24.uz', t('fn_road24'), t('fn_road24_s'), GLYPH('🚓'), '#1D4ED8')}
+    ${lk(MYGOV(LANG) + '/service/1238', t('fn_points'), '', GLYPH('📋'), '#0F766E')}
+    ${lk(MYGOV(LANG) + '/service/1054', t('fn_appeal'), '', GLYPH('⚖️'), '#B45309')}</div>
+    <div class="hv-h" style="margin-top:20px">${esc(t('fn_cams'))}</div>`);
+  miniMap(r, [24, y + 300, 382, 220], 'speedcam', () => go('h:poi', 'speedcam'));
+}
+function drawFamily(layers, y) {
+  const r = layers.r; if (!r) return;
+  const c4 = ['school', 'kindergarten', 'college', 'university'];
+  const w = hoverlay(r, 24, y, 382, 222, `<div class="hv-h">${esc(t('ed_near'))}</div>
+    <div class="hv-grid">${c4.map(c => `<button data-ed="${c}"><span class="hv-ic" style="background:${ED_COL[c]}">${poIc(c, 22)}</span><b>${esc(t('edc_' + c))}</b><i data-edn="${c}">${esc(t('po_load'))}</i></button>`).join('')}</div>`);
+  w.addEventListener('click', e => { const b = e.target.closest('[data-ed]'); if (!b) return; e.preventDefault(); e.stopPropagation(); go('h:poi', 'edu:' + b.dataset.ed); });
+  poIndex().then(() => poLoad('edu', poCity('edu'))).then(list => { for (const c of c4) { const e = w.querySelector(`[data-edn="${c}"]`); const n = list.filter(p => p.a === c).length; if (e) e.textContent = n ? t('md_n', { n }) : '—'; } }).catch(() => {});
+}
+function drawGov(layers, y) {
+  const r = layers.r; if (!r) return;
+  hoverlay(r, 0, y - 20, 430, 320, '').style.background = '#fff'; // hides the tab bar baked into the screen picture
+  hoverlay(r, 24, y, 382, 28, `<div class="hv-h" style="margin:0">${esc(t('gv_near'))}</div>`);
+  miniMap(r, [24, y + 40, 382, 210], 'gov', () => go('h:poi', 'gov:cgu'));
+  hoverlay(r, 24, y + 270, 382, 0, `<div class="hv-h">${esc(t('gv_cat'))}</div><div class="hv-card bk-card">
+    ${lk(MYGOV(LANG) + '/service/1286', t('gv_res'), '', GLYPH('🅿️'), '#1D4ED8')}
+    ${lk(MYGOV(LANG) + '/service/1238', t('gv_pts'), '', GLYPH('📋'), '#0F766E')}
+    ${lk(MYGOV(LANG) + '/service/1054', t('gv_app'), '', GLYPH('⚖️'), '#B45309')}
+    ${lk('https://my.gov.uz', t('gv_all'), t('gv_call'), GLYPH('🏛️'), '#143C20')}</div>`);
+}
+// household tariffs from 1 June 2026, by blocks (each part of the monthly volume at its own price)
+const UT_EL = { stove: [[200, 325], [500, 450], [1000, 550], [5000, 800], [10000, 950], [Infinity, 1100]], other: [[200, 650], [500, 900], [1000, 1100], [5000, 1600], [10000, 1900], [Infinity, 2200]] };
+const UT_GAS = { heat: [[500, 1100], [2500, 2000], [5000, 2300], [10000, 2700], [Infinity, 3300]], other: [[100, 1100], [2500, 2000], [5000, 2300], [10000, 2700], [Infinity, 3300]] };
+function blocks(v, tiers) { let sum = 0, prev = 0; for (const [lim, price] of tiers) { if (v <= prev) break; const part = Math.min(v, lim) - prev; sum += part * price; prev = lim; } return sum; }
+function drawUtil(layers, y) {
+  const r = layers.r; if (!r) return;
+  const mo = new Date(Date.now() + 5 * 3600e3).getUTCMonth(); const heat = mo >= 10 || mo <= 2;
+  const w = hoverlay(r, 24, y, 382, 0, `<div class="hv-h">${esc(t('ut_t'))}</div><div class="hv-card ut-card">
+    <label>${esc(t('ut_el'))}<input id="utE" inputmode="numeric" value="250"></label>
+    <label class="ut-chk"><input type="checkbox" id="utS"> ${esc(t('ut_stove'))}</label>
+    <label>${esc(t('ut_gas'))}<input id="utG" inputmode="numeric" value="${heat ? 300 : 60}"></label>
+    <label class="ut-chk"><input type="checkbox" id="utH" ${heat ? 'checked' : ''}> ${esc(t('ut_heat'))}</label>
+    <div class="ut-res" id="utR"></div><p class="ut-note">${esc(t('ut_note'))}</p></div>`);
+  const $ = id => w.querySelector('#' + id);
+  const upd = () => {
+    const e = Math.max(0, parseFloat($('utE').value) || 0), g = Math.max(0, parseFloat($('utG').value) || 0);
+    const se = Math.round(blocks(e, UT_EL[$('utS').checked ? 'stove' : 'other'])), sg = Math.round(blocks(g, UT_GAS[$('utH').checked ? 'heat' : 'other']));
+    $('utR').innerHTML = `<div><span>${esc(t('ut_el_s'))}</span><b>${fmtSum(se)} ${esc(t('rt_sum'))}</b></div><div><span>${esc(t('ut_gas_s'))}</span><b>${fmtSum(sg)} ${esc(t('rt_sum'))}</b></div><div class="tot"><span>${esc(t('ut_sum'))}</span><b>${fmtSum(se + sg)} ${esc(t('rt_sum'))}</b></div>`;
+  };
+  ['utE', 'utG', 'utS', 'utH'].forEach(id => $(id).addEventListener('input', upd)); ['utS', 'utH'].forEach(id => $(id).addEventListener('change', upd));
+  w.addEventListener('click', e => e.stopPropagation()); upd();
+}
+Object.assign(XACT, {
+  sgai: id => { const p = poFind('sight', id); if (!p) return; bsheetClose(true); aiOpen(); setTimeout(() => aiAsk(`Расскажи о достопримечательности «${p.n}» (${CITIES[poCity('sight')][0]}): история, что посмотреть, советы посетителю.`), 350); },
+  fines: () => bsheet(`<div class="tr-hero"><span style="background:#1D4ED8;color:#fff;font-size:24px">🚓</span><div><b>${esc(t('fn_t'))}</b></div></div><div class="h-card bk-card">${lk('https://road24.uz', t('fn_road24'), t('fn_road24_s'), GLYPH('🚓'), '#1D4ED8')}${lk(MYGOV(LANG) + '/service/1238', t('fn_points'), '', GLYPH('📋'), '#0F766E')}${lk(MYGOV(LANG) + '/service/1054', t('fn_appeal'), '', GLYPH('⚖️'), '#B45309')}</div>`, 'bs-caf'),
+  tickets: () => { window.open('https://iticket.uz', '_blank', 'noopener'); },
+});

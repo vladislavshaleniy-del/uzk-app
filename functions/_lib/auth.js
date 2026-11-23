@@ -30,6 +30,14 @@ export async function ensureDb(env) {
     env.DB.prepare('CREATE TABLE IF NOT EXISTS logins (nonce TEXT PRIMARY KEY, chat_id INTEGER, user_id INTEGER, status TEXT, created INTEGER)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS codes (code TEXT PRIMARY KEY, user_id INTEGER, nonce TEXT, created INTEGER)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS fails (ip TEXT, ts INTEGER)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS invites (code TEXT PRIMARY KEY, owner INTEGER, created INTEGER)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS trusted (owner INTEGER, tg_id INTEGER, name TEXT, created INTEGER, PRIMARY KEY (owner, tg_id))'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS sos_log (owner INTEGER, ts INTEGER)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS polls (id INTEGER PRIMARY KEY AUTOINCREMENT, scope TEXT, city INTEGER, q TEXT, options TEXT, created INTEGER, ends INTEGER, author INTEGER)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS votes (poll_id INTEGER, user_id INTEGER, opt INTEGER, ts INTEGER, PRIMARY KEY (poll_id, user_id))'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, kind TEXT, text TEXT, la REAL, lo REAL, city INTEGER, photo BLOB, status TEXT, ups INTEGER DEFAULT 0, created INTEGER)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS report_ups (report_id INTEGER, user_id INTEGER, PRIMARY KEY (report_id, user_id))'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS docs (user_id INTEGER, kind TEXT, title TEXT, expires TEXT, notified INTEGER DEFAULT 0, PRIMARY KEY (user_id, kind, title))'),
   ]);
 }
 export const publicUser = u => u && ({ id: u.id, phone: u.phone, first_name: u.first_name || '', last_name: u.last_name || '', username: u.username || '', name: u.name || '', city: u.city, lang: u.lang || '', created: u.created });
@@ -45,3 +53,15 @@ export async function newCode(env, uid, nonce) {
   }
   throw new Error('code');
 }
+// signed-in user for this request (or null)
+export async function sessionUser(env, request) {
+  const s = await readSession(env, request); if (!s) return null;
+  await ensureDb(env);
+  return env.DB.prepare('SELECT * FROM users WHERE id = ?1').bind(s.u).first();
+}
+export async function tgSend(env, method, body) {
+  const r = await fetch(`https://api.telegram.org/bot${env.TG_BOT_TOKEN}/${method}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  return r.json().catch(() => ({}));
+}
+export const fmtPhone = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 12 && d.startsWith('998') ? `+998 ${d.slice(3, 5)} ${d.slice(5, 8)} ${d.slice(8, 10)} ${d.slice(10)}` : (d ? '+' + d : ''); };
+export const displayName = u => (u.name || [u.first_name, u.last_name].filter(Boolean).join(' ') || fmtPhone(u.phone)).slice(0, 80);

@@ -2,7 +2,7 @@
 // the bot replies with a 6-digit code that is entered in the app (POST /api/auth/code).
 // Registered users get a fresh code on /start without sharing the number again.
 // GET /api/tg?setup=1 registers this URL as the bot's webhook (the token stays on the server).
-import { json, CORS, ensureDb, hookSecret, ready, BOT, newCode } from '../_lib/auth.js';
+import { json, CORS, ensureDb, hookSecret, ready, BOT, newCode, displayName } from '../_lib/auth.js';
 
 const TXT = {
   ru: { hi: 'Здравствуйте! Это вход в приложение MyUzCity.\n\nНажмите кнопку «📱 Поделиться номером» внизу — подтвердим номер и пришлём код для входа.', btn: '📱 Поделиться номером',
@@ -62,6 +62,18 @@ export async function onRequestPost({ request, env }) {
       ON CONFLICT(tg_id) DO UPDATE SET phone = excluded.phone, first_name = excluded.first_name, last_name = excluded.last_name, username = excluded.username, last_login = excluded.last_login RETURNING id`)
       .bind(m.from.id, phone, m.from.first_name || '', m.from.last_name || '', m.from.username || '', (m.from.language_code || '').slice(0, 2), now).first();
     await giveCode(row.id, phone, true);
+    return new Response('ok');
+  }
+  const trust = (m.text || '').match(/^\/start\s+trust_([A-Za-z0-9_-]{8,40})/);
+  if (trust) {
+    const inv = await env.DB.prepare('SELECT * FROM invites WHERE code = ?1 AND created > ?2').bind(trust[1], now - 7 * 86400).first();
+    const owner = inv && await env.DB.prepare('SELECT * FROM users WHERE id = ?1').bind(inv.owner).first();
+    if (!owner) { await tg(env, 'sendMessage', { chat_id: chat, text: 'Ссылка устарела — попросите отправить новую.' }); return new Response('ok'); }
+    if (owner.tg_id === m.from.id) { await tg(env, 'sendMessage', { chat_id: chat, text: 'Эту ссылку нужно отправить близкому человеку, а не открывать самому 🙂' }); return new Response('ok'); }
+    const nm = [m.from.first_name, m.from.last_name].filter(Boolean).join(' ') || (m.from.username ? '@' + m.from.username : 'Контакт');
+    await env.DB.prepare('INSERT INTO trusted (owner, tg_id, name, created) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(owner, tg_id) DO UPDATE SET name = excluded.name').bind(owner.id, m.from.id, nm, now).run();
+    await tg(env, 'sendMessage', { chat_id: chat, text: `✅ Вы — доверенный контакт: ${displayName(owner)}.\n\nЕсли он(а) нажмёт тревожную кнопку в MyUzCity, этот бот сразу пришлёт вам сообщение и геолокацию. Не блокируйте бота.` });
+    if (owner.tg_id) await tg(env, 'sendMessage', { chat_id: owner.tg_id, text: `👥 ${nm} теперь ваш доверенный контакт для тревожной кнопки.` });
     return new Response('ok');
   }
   const start = (m.text || '').match(/^\/start(?:\s+login_([A-Za-z0-9_-]{24,48}))?/);

@@ -1,8 +1,9 @@
 // Refreshes the app's live data (run by .github/workflows/update-data.yml).
+//   data/rates.json         — Central Bank exchange rates (every run)
 //   data/news.json          — city news + Tashkent afisha from public RSS feeds (every run)
 //   data/places/<city>.json — cafes & restaurants from OpenStreetMap (weekly, or FORCE_PLACES=1)
 //   data/transit/0.json — Tashkent metro lines/stations and bus, trolleybus, minibus stops with routes (weekly)
-//   data/poi/<kind>/<city>.json — parking, mosques, medicine (hospitals, clinics, pharmacies), new buildings from OpenStreetMap (weekly)
+//   data/poi/<kind>/<city>.json — parking, mosques, medicine, new buildings, EV chargers, speed cameras, schools, public offices, sights (OpenStreetMap, weekly)
 // City list, names and coordinates come from CITIES in flows.js (index = city id in the app).
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 
@@ -215,6 +216,66 @@ const POI = {
       return p;
     },
   },
+  ev: {
+    r: [16000, 10000],
+    q: b => `nw["amenity"="charging_station"](${b});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p) return null;
+      const so = Object.keys(t).filter(k => /^socket:[a-z0-9_]+$/.test(k) && t[k] !== 'no').map(k => k.slice(7) + (/^\d+$/.test(t[k]) ? '×' + t[k] : ''));
+      if (so.length) p.so = so.slice(0, 6).join(',');
+      const c = parseInt(t.capacity, 10); if (c > 0 && c < 500) p.c = c;
+      if (t.operator || t.brand || t.network) p.op = t.operator || t.brand || t.network;
+      if (yes(t.fee)) p.f = 1; else if (t.fee === 'no') p.f = 0;
+      const kw = t['socket:type2_combo:output'] || t['socket:chademo:output'] || t['charging_station:output'] || t.output; if (kw) p.kw = String(kw).slice(0, 20);
+      return p;
+    },
+  },
+  speedcam: {
+    r: [16000, 10000],
+    q: b => `node["highway"="speed_camera"](${b});node["enforcement"="maxspeed"](${b});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p) return null;
+      const ms = parseInt(t.maxspeed, 10); if (ms > 0 && ms < 200) p.ms = ms;
+      if (t.direction) p.dir = String(t.direction).slice(0, 10);
+      return p;
+    },
+  },
+  edu: {
+    r: [14000, 8000],
+    q: b => `nw["amenity"="school"](${b});nw["amenity"="kindergarten"](${b});nw["amenity"="university"](${b});nw["amenity"="college"](${b});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p || !p.n) return null;
+      p.a = t.amenity;
+      if (t['isced:level']) p.lv = String(t['isced:level']).slice(0, 10);
+      if (t.operator) p.op = t.operator;
+      if (t['operator:type'] === 'private' || t.fee === 'yes') p.pr = 1;
+      return p;
+    },
+  },
+  gov: {
+    r: [14000, 8000],
+    q: b => `nw["office"="government"](${b});nw["amenity"="townhall"](${b});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p || !p.n) return null;
+      const nm = [t.name, t['name:ru'], t['name:uz']].join(' ');
+      p.a = /davlat xizmat|государственных услуг|госуслуг|ЦГУ|DXM|давлат хизмат/i.test(nm) ? 'cgu' : /hokim|хоким/i.test(nm) ? 'hokim' : /xalq qabul|народн.{0,4}при[её]мн|народная/i.test(nm) ? 'pq' : 'gov';
+      return p;
+    },
+  },
+  sight: {
+    r: [16000, 9000],
+    q: b => `nwr["tourism"~"^(attraction|museum|gallery|viewpoint|theme_park|zoo|artwork)$"]["name"](${b});nwr["historic"~"^(monument|memorial|castle|archaeological_site|building|mausoleum|fort|city_gate|ruins)$"]["name"](${b});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p || !p.n) return null;
+      p.a = t.tourism === 'museum' || t.tourism === 'gallery' ? 'museum' : t.tourism === 'viewpoint' ? 'view' : t.tourism === 'theme_park' || t.tourism === 'zoo' ? 'park' : t.historic ? 'hist' : t.tourism === 'artwork' ? 'art' : 'attr';
+      if (t.tourism === 'artwork' && !t.wikipedia && !t.wikidata) return null;
+      if (t.wikipedia) p.wp = t.wikipedia; if (t.wikidata) p.wd = t.wikidata;
+      if (t.image && /^https:\/\/upload\.wikimedia\.org\//.test(t.image)) p.im = t.image;
+      else if (t.wikimedia_commons && /^File:/.test(t.wikimedia_commons)) p.wc = t.wikimedia_commons;
+      if (t.fee === 'no') p.f = 0; else if (yes(t.fee)) p.f = 1;
+      return p;
+    },
+  },
   build: {
     r: [14000, 7000],
     // equality filters only (regex on names is too slow for the public servers); names are checked below
@@ -382,7 +443,19 @@ async function cityData() {
   writeFileSync(pmark, JSON.stringify(index)); writeFileSync(qmark, JSON.stringify(qindex));
 }
 
+// official exchange rates of the Central Bank of Uzbekistan
+async function rates() {
+  try {
+    const j = JSON.parse(await get('https://cbu.uz/ru/arkhiv-kursov-valyut/json/'));
+    const want = ['USD', 'EUR', 'RUB', 'KZT', 'CNY', 'GBP', 'TRY', 'KRW', 'AED', 'JPY', 'CHF', 'KGS', 'TJS'];
+    const list = j.filter(x => want.includes(x.Ccy)).map(x => ({ c: x.Ccy, r: +x.Rate, d: +x.Diff, n: +x.Nominal || 1, ru: x.CcyNm_RU, uz: x.CcyNm_UZ, en: x.CcyNm_EN, date: x.Date }))
+      .sort((a, b) => want.indexOf(a.c) - want.indexOf(b.c));
+    if (list.length) { writeFileSync(ROOT + 'data/rates.json', JSON.stringify({ at: new Date().toISOString(), date: list[0].date, list })); console.log('rates: ' + list.length); }
+  } catch (e) { console.log('rates failed: ' + e.message); }
+}
+
 await news();
+await rates();
 await uzTransport();
 await transit();
 await cityData();

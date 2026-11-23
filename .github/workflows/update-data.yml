@@ -16,6 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      - name: Document reminders (Telegram), daytime only
+        continue-on-error: true
+        run: |
+          H=$(TZ=Asia/Tashkent date +%H)
+          if [ "$H" -ge 9 ] && [ "$H" -le 21 ]; then curl -s --max-time 60 https://myuzcity.pages.dev/api/cron || true; fi
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
