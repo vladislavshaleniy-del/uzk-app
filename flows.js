@@ -615,7 +615,7 @@ function aiFmt(s) {
   s = String(s).replace(/\s*\[\[\s*place\s*:\s*([nwr]\d+)\s*\]\]/gi, (m, id) => { if (!pl.includes(id)) pl.push(id); return ''; })
     .replace(/\s*\[\[\s*cafes\s*:\s*([^\]]{1,80})\]\]/gi, (m, q) => { cq.push(q.trim()); return ''; });
   const pq = []; s = String(s).replace(/\s*\[\[\s*poi\s*:\s*(parking|mosque|med)\s*:\s*([nwr]\d+)\s*\]\]/gi, (m, k, id) => { if (!pq.some(x => x[1] === id)) pq.push([k, id]); return ''; });
-  const go = []; s = String(s).replace(/\s*\[\[\s*(?:go\s*:\s*)?([a-z_]+)\s*\]\]/gi, (m, k) => { if (AI_GO[k] && !go.includes(k)) go.push(k); return ''; }).trim();
+  const go = []; s = String(s).replace(/\s*\[\[\s*(?:go\s*:\s*)?([a-z_]+)\s*\]\]/gi, (m, k) => { if (AI_GO[k] && !go.includes(k)) go.push(k); return ''; }).replace(/\s*\[\[[^\]]*\]\]/g, '').trim();
   const plist = CAF_DATA[cityIdx()] || CAF_DATA[0] || [];
   const extra = pl.map(id => { const p = plist.find(x => x.id === id); return `<button class="ai-place" data-place="${id}"><b>${esc(p ? p.n : t('caf_t'))}</b><i>${esc(p ? [cafKind(p), cafCuis(p)].filter(Boolean).join(' · ') : '')}</i><span>${esc(t('ai_open'))} ›</span></button>`; }).join('')
     + pq.slice(0, 4).map(([k, id]) => { const p = (PO_DATA[k][cityIdx()] || PO_DATA[k][0] || []).find(x => x.id === id); return `<button class="ai-place" data-poi="${k}:${id}"><b>${esc(p ? PO_K[k].name(p) : t(PO_K[k].title))}</b><i>${esc(p ? [PO_K[k].sub(p), p.ad].filter(Boolean).join(' · ') : '')}</i><span>${esc(t('ai_open'))} ›</span></button>`; }).join('')
