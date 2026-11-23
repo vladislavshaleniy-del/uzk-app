@@ -1,0 +1,26 @@
+name: Fetch portal art
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pictures uploaded to the art hand-off
+        run: |
+          mkdir -p portal/art
+          for n in transport health edu gov mahalla faith market business city leisure assistant; do
+            curl -sf --max-time 60 -o "portal/art/$n.webp" "https://myuzcity.pages.dev/api/art?n=$n" || rm -f "portal/art/$n.webp"
+          done
+          ls -la portal/art
+      - name: Commit
+        run: |
+          git config user.name "uzk-data-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add portal/art
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "portal: artwork"
+          git pull --rebase origin main
+          git push origin HEAD:main
