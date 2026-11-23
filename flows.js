@@ -1036,7 +1036,7 @@ HS.cafes.mount = el => {
     CAF_SEL = null; CAF_ME = null;
     const c = CITIES[ci]; const v = window.__cfView && window.__cfView.city === ci ? window.__cfView : null;
     CAF_MAP = L.map(mw.querySelector('#cfMap'), { zoomControl: false, attributionControl: true, preferCanvas: true }).setView(v ? v.c : [c[5], c[6]], v ? v.z : (ci === 0 ? 12 : 13));
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd', attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>' }).addTo(CAF_MAP);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(CAF_MAP);
     CAF_MAP.attributionControl.setPrefix(false);
     CAF_MAP.on('moveend', () => { window.__cfView = { city: ci, c: CAF_MAP.getCenter(), z: CAF_MAP.getZoom() }; });
     CAF_LAYER = L.layerGroup().addTo(CAF_MAP);
