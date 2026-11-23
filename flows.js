@@ -173,7 +173,7 @@ const PROGS = { ru: ['Инвестиционные программы', 'Под�
 function hdr(title, opts = {}) {
   return `<div class="h-hdr"><button class="h-back" data-act="back">${opts.close ? IC.close.replace('#6B7280', '#fff') : IC.back}</button><div class="h-title">${esc(title)}</div></div>`;
 }
-function demoNote() { return `<div class="h-demo">${esc(t('demo'))}</div>`; }
+function demoNote() { return ''; }
 function btn(label, act, kind = 'primary', extra = '') { return `<button class="h-btn h-${kind}" data-act="${esc(act)}" ${extra}>${esc(label)}</button>`; }
 function row(icon, title, sub, act, right = IC.chev) {
   return `<button class="h-row" data-act="${esc(act)}"><span class="h-ico">${icon}</span><span class="h-rt"><b>${esc(title)}</b>${sub ? `<i>${esc(sub)}</i>` : ''}</span>${right}</button>`;
@@ -3229,3 +3229,12 @@ PO_K.recycle = { title: 'rc_t', cats: ['plastic', 'paper', 'glass', 'metal', 'ba
   has: (p, c) => rcTypes(p).includes(c), col: p => RC_COL[rcTypes(p)[0]] || '#15803D', ic: () => 'recycle', name: p => p.n || t('rc_kind'),
   sub: p => [t('rc_kind'), rcTypes(p).map(x => t('rcc_' + x)).join(', ')].filter(Boolean).join(' · ') };
 P2_PREFIX.recycle = 'rcc_'; P2_CHIPCOL.recycle = RC_COL;
+
+// ---------- welcome: Telegram sign-in or browse as a guest (no imitation of OneID / MyID) ----------
+const WL_I = { ru: { wl_guest: 'Продолжить без входа', wl_note: 'Имя и телефон берём из Telegram — паспортные данные не нужны.' }, uz: { wl_guest: 'Kirmasdan davom etish', wl_note: "Ism va telefon Telegramdan olinadi — pasport ma'lumotlari kerak emas." }, en: { wl_guest: 'Continue without signing in', wl_note: 'Your name and phone come from Telegram — no passport data needed.' } };
+WL_I.zh = WL_I.en; for (const l in WL_I) Object.assign(I[l] || (I[l] = {}), WL_I[l]);
+HS.welcome = () => `<div class="h-welcome">
+  <div class="h-wtop"><img src="icon-192.png" alt="" class="h-wlogo"><div class="h-wname">MyUzCity</div><div class="h-wt">${esc(t('welcome_t'))}</div><div class="h-ws">${esc(t('welcome_s'))}</div></div>
+  <div class="h-wlangs">${Object.keys(LANGS).map(l => `<button class="h-chip ${l === LANG ? 'on' : ''}" data-act="lang:${l}">${LANGS[l]}</button>`).join('')}</div>
+  <div class="h-wbtns"><button class="h-btn h-tgbtn" data-act="tglogin">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>${btn(t('wl_guest'), 'login', 'ghost')}</div>
+  <div class="h-demo light">${esc(t('wl_note'))}</div></div>`;
