@@ -1741,7 +1741,7 @@ const TR_TC = { b: '#2563EB', t: '#0891B2', m: '#D97706', tr: '#DC2626' };
 const TR_TN = { b: 'tr_b', t: 'tr_tb', m: 'tr_mb', tr: 'tr_tr' };
 const TR_MCOL = ['#DA291C', '#0057B8', '#009A44', '#F2A900', '#7C3AED'];
 let TR_DATA = null, TR_P = null;
-function trLoad() { if (TR_DATA) return Promise.resolve(TR_DATA); return TR_P || (TR_P = fetch('data/transit/0.json', { cache: 'no-cache' }).then(r => r.json()).then(j => { j.metro.lines.forEach((l, i) => { if (!/^#?[0-9a-f]{3,6}$/i.test(l.c || '')) l.c = TR_MCOL[i % TR_MCOL.length]; else if (l.c[0] !== '#') l.c = '#' + l.c; }); return (TR_DATA = j); }).catch(e => { TR_P = null; throw e; })); }
+function trLoad() { if (TR_DATA) return Promise.resolve(TR_DATA); return TR_P || (TR_P = fetch('data/transit/0.json', { cache: 'no-cache' }).then(r => r.json()).then(j => { j.metro.lines.forEach((l, i) => { const nc = { red: '#DA291C', blue: '#0057B8', green: '#009A44', yellow: '#F2A900', purple: '#7C3AED', orange: '#EA580C' }[String(l.c).toLowerCase()]; if (nc) l.c = nc; else if (!/^#?[0-9a-f]{3,6}$/i.test(l.c || '')) l.c = TR_MCOL[i % TR_MCOL.length]; else if (l.c[0] !== '#') l.c = '#' + l.c; l.n = String(l.n).split(':')[0].replace(/\s*линия\s.*$/i, ' линия').replace(/\s*-\s*/g, ' — ').trim(); }); return (TR_DATA = j); }).catch(e => { TR_P = null; throw e; })); }
 const tr = () => (window.__tr = window.__tr || { tab: 'metro', q: '', route: null, more: 0, big: false });
 const TR_IC = {
   metro: '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18 8 6l4 8 4-8 4 12"/></svg>',
@@ -1749,7 +1749,7 @@ const TR_IC = {
 };
 const trIc = (k, s) => TR_IC[k].replace(/\{s\}/g, s);
 function trLineOf(ref) { return TR_DATA ? TR_DATA.metro.lines.find(l => l.r === ref) : null; }
-function trShort(l) { return (l.n.replace(/^[^:]*:\s*/, '').replace(/\s*(линия|line|liniyasi|chizig['ʻ’`]?i)\s*/gi, ' ').trim()) || l.r; }
+function trShort(l) { return l.n.replace(/\s*линия$/i, '').trim() || l.r; }
 function trBadge(ref) { const l = trLineOf(ref); return `<span class="tr-lb" style="background:${l ? l.c : '#6B7280'}">${esc(l ? trShort(l) : ref)}</span>`; }
 function trRb(key) { const R = TR_DATA && TR_DATA.bus.routes[key]; const ty = R ? R.t : key.replace(/\d.*/, '') || 'b'; return `<span class="tr-rb" style="background:${TR_TC[ty] || '#2563EB'}">${esc(R ? R.r : key.replace(/^\D+/, ''))}</span>`; }
 function trFilter() {

@@ -97,6 +97,9 @@ async function news() {
 // ---------------------------------------------------------------- places (OpenStreetMap)
 const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
 // bounding box "s,w,n,e" around a point (bbox queries are much lighter for Overpass than around:)
+// the same area as 4 smaller boxes — big cities are fetched piece by piece so the public servers don't time out
+const bb4 = (r, la, lo) => { const dl = r / 111320, dn = r / (111320 * Math.cos(la * Math.PI / 180)); const f = v => v.toFixed(4);
+  return [[la - dl, lo - dn, la, lo], [la - dl, lo, la, lo + dn], [la, lo - dn, la + dl, lo], [la, lo, la + dl, lo + dn]].map(b => b.map(f).join(',')); };
 const bb = (r, la, lo) => { const dl = r / 111320, dn = r / (111320 * Math.cos(la * Math.PI / 180)); return [la - dl, lo - dn, la + dl, lo + dn].map(v => v.toFixed(4)).join(','); };
 const has = (s, re) => re.test(s || '');
 function cats(t) {
@@ -141,7 +144,7 @@ function place(e, ci) {
 }
 async function overpass(q) {
   for (const base of OVERPASS) {
-    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 150e3);
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 120e3);
     try {
       const r = await fetch(base, { method: 'POST', signal: ctl.signal, headers: { 'user-agent': 'MyUzCity-data/1.0 (+https://github.com/vladislavshaleniy-del/uzk-app)', accept: '*/*', 'content-type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q) });
       if (r.ok) return await r.json();
@@ -169,7 +172,7 @@ function base(e) {
 const POI = {
   parking: {
     r: [12000, 6000],
-    q: (r, la, lo) => `nw["amenity"="parking"]["access"!~"^(private|no|permit|employees)$"](${bb(r, la, lo)});`,
+    q: b => `nw["amenity"="parking"]["access"!~"^(private|no|permit|employees)$"](${b});`,
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       const k = { 'multi-storey': 'm', underground: 'u', rooftop: 'm', street_side: 's', lane: 's', on_street: 's' }[t.parking] || 'g';
@@ -186,7 +189,7 @@ const POI = {
   },
   mosque: {
     r: [16000, 8000],
-    q: (r, la, lo) => `nwr["amenity"="place_of_worship"]["religion"="muslim"](${bb(r, la, lo)});`,
+    q: b => `nwr["amenity"="place_of_worship"]["religion"="muslim"](${b});`,
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       if (t.historic || t.heritage || t['heritage:operator'] || t.wikipedia || t.wikidata && t.tourism) p.hi = 1;
@@ -199,7 +202,7 @@ const POI = {
   },
   med: {
     r: [16000, 8000],
-    q: (r, la, lo) => `nwr["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"](${bb(r, la, lo)});nwr["healthcare"~"^(laboratory|centre|blood_donation|rehabilitation)$"](${bb(r, la, lo)});`,
+    q: b => `nw["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"](${b});nw["healthcare"~"^(laboratory|centre|blood_donation|rehabilitation)$"](${b});`,
     map(e) {
       const t = e.tags || {}; const p = base(e); if (!p) return null;
       const hc = t.healthcare || '';
@@ -228,7 +231,8 @@ const mdist = (a, b) => { const dy = (a[0] - b[0]) * 111320, dx = (a[1] - b[1]) 
 async function transit() {
   const dir = ROOT + 'data/transit/'; mkdirSync(dir, { recursive: true });
   const f = dir + '0.json';
-  if (!process.env.FORCE_PLACES && existsSync(f) && Date.now() - Date.parse(JSON.parse(readFileSync(f, 'utf8')).at || 0) < 6 * 864e5) return;
+  const prev = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null;
+  if (!process.env.FORCE_PLACES && prev && prev.bus.stops.length && Date.now() - Date.parse(prev.at || 0) < 6 * 864e5) return;
   const [, , , , , lat, lon] = CITIES[0];
   const out = { at: new Date().toISOString(), metro: { lines: [], st: [] }, bus: { routes: {}, stops: [] } };
   try {
@@ -252,9 +256,13 @@ async function transit() {
   } catch (e) { console.log('metro failed: ' + e.message); }
   await new Promise(r => setTimeout(r, 1500));
   try {
-    const j = await overpass(`[out:json][timeout:180];relation["type"="route"]["route"~"^(bus|trolleybus|minibus|share_taxi|tram)$"](${bb(18000, lat, lon)})->.r;.r out body;node(r.r);out body;`);
-    const nodes = new Map(j.elements.filter(e => e.type === 'node').map(e => [e.id, e]));
-    const rels = j.elements.filter(e => e.type === 'relation');
+    const nodes = new Map(), relm = new Map();
+    for (const box of bb4(18000, lat, lon)) {
+      const j = await overpass(`[out:json][timeout:90];(node["highway"="bus_stop"](${box});node["public_transport"~"^(platform|stop_position)$"](${box}););out body;rel(bn)["type"="route"]["route"~"^(bus|trolleybus|minibus|share_taxi|tram)$"];out body;`);
+      for (const e of j.elements) { if (e.type === 'node') nodes.set(e.id, e); else if (e.type === 'relation') relm.set(e.id, e); }
+      await new Promise(r => setTimeout(r, 1500));
+    }
+    const rels = [...relm.values()];
     const stops = []; const stopOf = new Map();
     const getStop = (n) => {
       if (stopOf.has(n.id)) return stopOf.get(n.id);
@@ -278,6 +286,8 @@ async function transit() {
     out.bus.stops = stops.map(s => ({ n: s.n, la: s.la, lo: s.lo, r: s.r.sort((a, b) => parseInt(a.replace(/\D+/g, '')) - parseInt(b.replace(/\D+/g, '')) || a.localeCompare(b)) }));
     console.log(`bus: ${Object.keys(out.bus.routes).length} routes, ${out.bus.stops.length} stops`);
   } catch (e) { console.log('bus failed: ' + e.message); }
+  if (prev && !out.metro.lines.length) out.metro = prev.metro;
+  if (prev && !out.bus.stops.length) { out.bus = prev.bus; out.at = prev.at; }
   if (out.metro.lines.length || out.bus.stops.length) writeFileSync(f, JSON.stringify(out));
 }
 
@@ -317,9 +327,13 @@ async function cityData() {
         console.log(`places ${CITIES[i][0]}: ${list.length}`);
       } else {
         const P = POI[kind], r = P.r[i === 0 ? 0 : 1];
-        const j = await overpass(`[out:json][timeout:120];(${P.q(r, lat, lon)});out center tags;`);
+        const els = new Map();
+        for (const box of (i === 0 ? bb4(r, lat, lon) : [bb(r, lat, lon)])) {
+          const j = await overpass(`[out:json][timeout:90];(${P.q(box)});out center tags;`);
+          for (const e of j.elements) els.set(e.type + e.id, e);
+        }
         const seen = new Set();
-        const list = j.elements.map(e => P.map(e)).filter(Boolean).filter(p => { const k = (p.n || '').toLowerCase() + Math.round(p.la * 3000) + Math.round(p.lo * 3000); return !seen.has(k) && seen.add(k); });
+        const list = [...els.values()].map(e => P.map(e)).filter(Boolean).filter(p => { const k = (p.n || '').toLowerCase() + Math.round(p.la * 3000) + Math.round(p.lo * 3000); return !seen.has(k) && seen.add(k); });
         if (list.length) { writeFileSync(qdir + kind + '/' + i + '.json', JSON.stringify(list)); qindex.n[kind][i] = list.length; }
         qindex.at[kind][i] = new Date().toISOString();
         writeFileSync(qmark, JSON.stringify(qindex));
