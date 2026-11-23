@@ -15,7 +15,7 @@
   // ---------------- texts ----------------
   const T = {
     ru: {
-      n_feat: 'Возможности', n_map: 'Город на карте', n_ai: 'ИИ-помощник', n_part: 'Партнёрам', cta_open: 'Открыть приложение',
+      n_feat: 'Сервисы', n_map: 'Город на карте', n_ai: 'ИИ-ассистент', n_biz: 'Бизнесу', n_part: 'Партнёрам', cta_open: 'Открыть приложение',
       h_eyebrow: 'Умный город для Узбекистана', h_t: 'Весь город в одном приложении', h_s: 'Транспорт, медицина, госуслуги, махалля и ИИ-помощник. Бесплатно, на трёх языках.', h_how: 'Как это работает',
       st1_t: 'Метро, автобусы, поезда и самолёты', st1_s: 'Станции и маршруты рядом с вами, расписание поездов и живое табло аэропортов Узбекистана.', f_metro: 'станций метро', f_bus: 'маршрутов автобусов', f_air: 'аэропортов на табло',
       st2_t: 'Аптеки и клиники, открытые сейчас', st2_s: 'Карта с часами работы, маршрут пешком или на такси и онлайн-запись к врачу через DMED.', f_med: 'аптек и клиник в Ташкенте', f_103: 'скорая в один тап',
@@ -46,7 +46,7 @@
       title: 'MyUzCity · Весь город в одном приложении',
     },
     uz: {
-      n_feat: 'Imkoniyatlar', n_map: 'Shahar xaritada', n_ai: 'AI-yordamchi', n_part: 'Hamkorlarga', cta_open: 'Ilovani ochish',
+      n_feat: 'Xizmatlar', n_map: 'Shahar xaritada', n_ai: 'AI-yordamchi', n_biz: 'Biznesga', n_part: 'Hamkorlarga', cta_open: 'Ilovani ochish',
       h_eyebrow: "O'zbekiston uchun aqlli shahar", h_t: 'Butun shahar bitta ilovada', h_s: "Transport, tibbiyot, davlat xizmatlari, mahalla va AI-yordamchi. Bepul, uch tilda.", h_how: 'Qanday ishlaydi',
       st1_t: 'Metro, avtobus, poyezd va samolyot', st1_s: "Yaqin bekat va yo'nalishlar, poyezdlar jadvali va O'zbekiston aeroportlarining jonli tablosi.", f_metro: 'metro bekati', f_bus: "avtobus yo'nalishi", f_air: 'aeroport tablosi',
       st2_t: 'Hozir ochiq dorixona va klinikalar', st2_s: "Ish vaqti ko'rsatilgan xarita, piyoda yoki taksida yo'l va DMED orqali shifokorga onlayn yozilish.", f_med: 'Toshkentdagi dorixona va klinika', f_103: 'tez yordam bir bosishda',
@@ -77,7 +77,7 @@
       title: 'MyUzCity · Butun shahar bitta ilovada',
     },
     en: {
-      n_feat: 'Features', n_map: 'City map', n_ai: 'AI assistant', n_part: 'Partners', cta_open: 'Open the app',
+      n_feat: 'Services', n_map: 'City map', n_ai: 'AI assistant', n_biz: 'Business', n_part: 'Partners', cta_open: 'Open the app',
       h_eyebrow: 'A smart city for Uzbekistan', h_t: 'Your whole city in one app', h_s: 'Transport, healthcare, public services, mahalla and an AI assistant. Free, in three languages.', h_how: 'See how it works',
       st1_t: 'Metro, buses, trains and flights', st1_s: 'Stops and routes near you, train timetables and live departure boards of Uzbekistan’s airports.', f_metro: 'metro stations', f_bus: 'bus routes', f_air: 'airport boards',
       st2_t: 'Pharmacies and clinics open now', st2_s: 'A map with opening hours, walking or taxi routes and online doctor booking via DMED.', f_med: 'pharmacies and clinics in Tashkent', f_103: 'ambulance in one tap',
@@ -109,14 +109,14 @@
     },
   };
   const MOMENTS = [
-    { ic: 'house-line', a: '#1A5530', b: '#0B2413', go: '1:996', t: { ru: 'Переезжаю в новый район', uz: 'Yangi mahallaga ko‘chyapman', en: 'Moving to a new area' }, li: { ru: ['Поликлиники и аптеки рядом', 'Школы и детские сады', 'Махалля, соседи и чат'], uz: ['Yaqin poliklinika va dorixonalar', "Maktab va bog'chalar", "Mahalla, qo'shnilar va chat"], en: ['Clinics and pharmacies nearby', 'Schools and kindergartens', 'Mahalla, neighbours and chat'] } },
-    { ic: 'graduation-cap', a: '#3B4A16', b: '#0B2413', go: '1:3042', t: { ru: 'Ребёнок идёт в школу или сад', uz: "Farzand maktab yoki bog'chaga", en: 'A child starts school' }, li: { ru: ['Электронный дневник eMaktab', 'Очередь в детский сад', 'Школы и детсады на карте'], uz: ['eMaktab elektron kundaligi', "Bog'chaga navbat", "Maktab va bog'chalar xaritada"], en: ['eMaktab e-diary', 'Kindergarten queue', 'Schools on the map'] } },
-    { ic: 'car', a: '#14424A', b: '#0B2413', go: '1:4858', t: { ru: 'Купил машину', uz: 'Mashina oldim', en: 'I bought a car' }, li: { ru: ['Мои автомобили в профиле', 'Штрафы через Road24', 'Парковки, зарядки и камеры'], uz: ['Profilda mashinalarim', 'Road24 orqali jarimalar', 'Parkovka, zaryadlash va kameralar'], en: ['My cars in the profile', 'Fines via Road24', 'Parking, chargers and cameras'] } },
-    { ic: 'heartbeat', a: '#4A1F1F', b: '#0B2413', go: '1:5032', t: { ru: 'Заболел', uz: 'Kasal bo‘lib qoldim', en: 'I feel unwell' }, li: { ru: ['Аптеки, открытые сейчас', 'Запись к врачу через DMED', 'Скорая 103 в один тап'], uz: ['Hozir ochiq dorixonalar', 'DMED orqali shifokorga yozilish', 'Tez yordam 103 bir bosishda'], en: ['Pharmacies open now', 'Book a doctor via DMED', 'Ambulance 103 in one tap'] } },
-    { ic: 'airplane-tilt', a: '#1A3A5A', b: '#0B2413', go: 'h:transport', t: { ru: 'Еду в другой город', uz: 'Boshqa shaharga boryapman', en: 'Travelling to another city' }, li: { ru: ['Поезда Afrosiyob и Sharq', 'Табло 11 аэропортов', 'Билеты на поезд, самолёт и автобус'], uz: ['Afrosiyob va Sharq poyezdlari', '11 aeroport tablosi', 'Poyezd, samolyot va avtobus chiptalari'], en: ['Afrosiyob and Sharq trains', 'Boards of 11 airports', 'Train, flight and bus tickets'] } },
-    { ic: 'megaphone', a: '#4A3A12', b: '#0B2413', go: 'h:reports', p: 'road', t: { ru: 'Хочу улучшить свой двор', uz: 'Hovlimni yaxshilamoqchiman', en: 'I want a better neighbourhood' }, li: { ru: ['Сообщить о проблеме с фото', 'Опросы города и махалли', 'Обращение к хокиму'], uz: ['Suratli muammo xabari', "Shahar va mahalla so'rovnomalari", 'Hokimga murojaat'], en: ['Report a problem with a photo', 'City and mahalla polls', 'Appeal to the hokim'] } },
-    { ic: 'moon-stars', a: '#143A33', b: '#0B2413', go: '1:3529', t: { ru: 'Время намаза', uz: 'Namoz vaqti', en: 'Prayer time' }, li: { ru: ['Точное время для вашего города', 'Мечети рядом на карте', 'Маршрут до мечети'], uz: ['Shahringiz uchun aniq vaqt', 'Yaqin masjidlar xaritada', "Masjidgacha yo'l"], en: ['Exact times for your city', 'Mosques nearby', 'Route to the mosque'] } },
-    { ic: 'fork-knife', a: '#4A2A14', b: '#0B2413', go: 'h:cafes', t: { ru: 'Свободный вечер', uz: "Bo'sh oqshom", en: 'A free evening' }, li: { ru: ['Кафе и рестораны с ИИ-гидом', 'Афиша событий', 'Достопримечательности'], uz: ['AI-gid bilan kafe va restoranlar', 'Tadbirlar afishasi', 'Diqqatga sazovor joylar'], en: ['Cafes with an AI guide', 'Events', 'Sights'] } },
+    { ic: 'house-line', a: '#1A5530', b: '#0B2413', go: '1:996', sv: 'map', t: { ru: 'Переезжаю в новый район', uz: 'Yangi mahallaga ko‘chyapman', en: 'Moving to a new area' }, li: { ru: ['Поликлиники и аптеки рядом', 'Школы и детские сады', 'Махалля, соседи и чат'], uz: ['Yaqin poliklinika va dorixonalar', "Maktab va bog'chalar", "Mahalla, qo'shnilar va chat"], en: ['Clinics and pharmacies nearby', 'Schools and kindergartens', 'Mahalla, neighbours and chat'] } },
+    { ic: 'graduation-cap', a: '#3B4A16', b: '#0B2413', go: '1:3042', sv: 'edu', t: { ru: 'Ребёнок идёт в школу или сад', uz: "Farzand maktab yoki bog'chaga", en: 'A child starts school' }, li: { ru: ['Электронный дневник eMaktab', 'Очередь в детский сад', 'Школы и детсады на карте'], uz: ['eMaktab elektron kundaligi', "Bog'chaga navbat", "Maktab va bog'chalar xaritada"], en: ['eMaktab e-diary', 'Kindergarten queue', 'Schools on the map'] } },
+    { ic: 'car', a: '#14424A', b: '#0B2413', go: '1:4858', sv: 'transport', t: { ru: 'Купил машину', uz: 'Mashina oldim', en: 'I bought a car' }, li: { ru: ['Мои автомобили в профиле', 'Штрафы через Road24', 'Парковки, зарядки и камеры'], uz: ['Profilda mashinalarim', 'Road24 orqali jarimalar', 'Parkovka, zaryadlash va kameralar'], en: ['My cars in the profile', 'Fines via Road24', 'Parking, chargers and cameras'] } },
+    { ic: 'heartbeat', a: '#4A1F1F', b: '#0B2413', go: '1:5032', sv: 'health', t: { ru: 'Заболел', uz: 'Kasal bo‘lib qoldim', en: 'I feel unwell' }, li: { ru: ['Аптеки, открытые сейчас', 'Запись к врачу через DMED', 'Скорая 103 в один тап'], uz: ['Hozir ochiq dorixonalar', 'DMED orqali shifokorga yozilish', 'Tez yordam 103 bir bosishda'], en: ['Pharmacies open now', 'Book a doctor via DMED', 'Ambulance 103 in one tap'] } },
+    { ic: 'airplane-tilt', a: '#1A3A5A', b: '#0B2413', go: 'h:transport', sv: 'transport', t: { ru: 'Еду в другой город', uz: 'Boshqa shaharga boryapman', en: 'Travelling to another city' }, li: { ru: ['Поезда Afrosiyob и Sharq', 'Табло 11 аэропортов', 'Билеты на поезд, самолёт и автобус'], uz: ['Afrosiyob va Sharq poyezdlari', '11 aeroport tablosi', 'Poyezd, samolyot va avtobus chiptalari'], en: ['Afrosiyob and Sharq trains', 'Boards of 11 airports', 'Train, flight and bus tickets'] } },
+    { ic: 'megaphone', a: '#4A3A12', b: '#0B2413', go: 'h:reports', p: 'road', sv: 'mahalla', t: { ru: 'Хочу улучшить свой двор', uz: 'Hovlimni yaxshilamoqchiman', en: 'I want a better neighbourhood' }, li: { ru: ['Сообщить о проблеме с фото', 'Опросы города и махалли', 'Обращение к хокиму'], uz: ['Suratli muammo xabari', "Shahar va mahalla so'rovnomalari", 'Hokimga murojaat'], en: ['Report a problem with a photo', 'City and mahalla polls', 'Appeal to the hokim'] } },
+    { ic: 'moon-stars', a: '#143A33', b: '#0B2413', go: '1:3529', sv: 'faith', t: { ru: 'Время намаза', uz: 'Namoz vaqti', en: 'Prayer time' }, li: { ru: ['Точное время для вашего города', 'Мечети рядом на карте', 'Маршрут до мечети'], uz: ['Shahringiz uchun aniq vaqt', 'Yaqin masjidlar xaritada', "Masjidgacha yo'l"], en: ['Exact times for your city', 'Mosques nearby', 'Route to the mosque'] } },
+    { ic: 'fork-knife', a: '#4A2A14', b: '#0B2413', go: 'h:cafes', sv: 'leisure', t: { ru: 'Свободный вечер', uz: "Bo'sh oqshom", en: 'A free evening' }, li: { ru: ['Кафе и рестораны с ИИ-гидом', 'Афиша событий', 'Достопримечательности'], uz: ['AI-gid bilan kafe va restoranlar', 'Tadbirlar afishasi', 'Diqqatga sazovor joylar'], en: ['Cafes with an AI guide', 'Events', 'Sights'] } },
   ];
   const TABS = {
     gov: [['map-pin', { ru: 'Обращения жителей на карте', uz: 'Aholi murojaatlari xaritada', en: 'Residents’ reports on a map' }, { ru: 'Фото, точное место и поддержка соседей. Статус «в работе» или «решено» в один тап, житель сразу получает уведомление.', uz: "Surat, aniq joy va qo'shnilar qo'llovi. «Ishda» yoki «hal qilindi» holati bir bosishda, aholi darhol xabar oladi.", en: 'Photo, exact place and neighbours’ support. Mark “in progress” or “solved” in one tap, the resident is notified at once.' }],
@@ -161,7 +161,8 @@
     $$('[data-open]').forEach(a => { a.href = appLink(a.dataset.open, a.dataset.p); });
     $$('[data-priv]').forEach(a => { a.href = '/privacy.html?lang=' + L; });
     $$('.install-app').forEach(a => { a.href = APP + '?lang=' + L; });
-    renderTicker(); renderMoments(); renderTabs(curTab); renderSug(); renderLayers(); paintWidgets();
+    renderTicker(); renderMoments(); renderTabs(curTab); renderSug(); paintWidgets();
+    document.dispatchEvent(new CustomEvent('mz:lang', { detail: L }));
     const f = $('#appFrame'); if (f && f.dataset.ready) try { f.contentWindow.postMessage({ mz: 'lang', l: L }, '*'); } catch (e) {}
   }
   const appLink = (id, p) => `${APP}?open=${encodeURIComponent(id)}${p ? '&p=' + encodeURIComponent(p) : ''}&lang=${L}`;
@@ -202,6 +203,7 @@
     let raf = 0; const wrap = $('#phoneWrap');
     wrap.addEventListener('pointermove', e => { if (!story.classList.contains('at-hero') || phone.classList.contains('live')) return; const r = wrap.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { phone.style.setProperty('--ry', (x * 14 - 4) + 'deg'); phone.style.setProperty('--rx', (-y * 10 + 2) + 'deg'); }); });
     wrap.addEventListener('pointerleave', () => { phone.style.removeProperty('--ry'); phone.style.removeProperty('--rx'); });
+    wrap.addEventListener('pointermove', e => { const r = phone.getBoundingClientRect(); phone.style.setProperty('--gx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%'); });
   }
 
   // ---------------- data ----------------
@@ -259,7 +261,7 @@
     $$('[data-count]').forEach(el => { const x = v[el.dataset.count]; const box = el.closest('.stat'); if (!x) { box.hidden = true; return; } box.hidden = false; el.dataset.to = x; co.observe(el); });
     const fixN = { metro: D.transit && D.transit.metro ? D.transit.metro.st.length : 0, bus: D.transit && D.transit.bus ? Object.keys(D.transit.bus.routes).length : 0, med: g('med') };
     $$('[data-n]').forEach(el => { const x = fixN[el.dataset.n]; if (x) el.textContent = fmt(x); });
-    renderLayers();
+    document.dispatchEvent(new CustomEvent('mz:data'));
   }
 
   $('.stat-grid') && $('.stat-grid').addEventListener('pointermove', e => { const st = e.target.closest('.stat'); if (!st) return; const r = st.getBoundingClientRect(); st.style.setProperty('--mx', (e.clientX - r.left) + 'px'); st.style.setProperty('--my', (e.clientY - r.top) + 'px'); });
@@ -267,7 +269,7 @@
   // ---------------- life moments ----------------
   function renderMoments() {
     const tr = $('#moTrack');
-    tr.innerHTML = MOMENTS.map(m => `<article class="mo" style="--a:${m.a};--b:${m.b}"><span class="ic">${ic(m.ic)}</span><h3>${esc(m.t[L] || m.t.ru)}</h3><ul>${(m.li[L] || m.li.ru).map(x => `<li>${ic('check-circle')}<span>${esc(x)}</span></li>`).join('')}</ul><a href="${esc(appLink(m.go, m.p))}">${esc(t('mo_go'))} ${ic('arrow-right')}</a></article>`).join('');
+    tr.innerHTML = MOMENTS.map(m => `<article class="mo" style="--a:${m.a};--b:${m.b}"><span class="ic">${ic(m.ic)}</span><h3>${esc(m.t[L] || m.t.ru)}</h3><ul>${(m.li[L] || m.li.ru).map(x => `<li>${ic('check-circle')}<span>${esc(x)}</span></li>`).join('')}</ul><a href="?s=${m.sv}" data-sv="${m.sv}">${esc(t('mo_go'))} ${ic('arrow-right')}</a></article>`).join('');
   }
   (function dragScroll() {
     const tr = $('#moTrack'); let x0 = 0, s0 = 0, down = false, moved = false;
@@ -276,40 +278,6 @@
     addEventListener('pointerup', () => { if (!down) return; down = false; tr.classList.remove('drag'); });
     tr.addEventListener('click', e => { if (moved) { e.preventDefault(); moved = false; } }, true);
   })();
-
-  // ---------------- map ----------------
-  const LAYERS = [['med', '#4ADE80', true], ['parking', '#60A5FA', false], ['mosque', '#2DD4BF', true], ['edu', '#A78BFA', false], ['gov', '#F2B45A', false], ['cafes', '#FB923C', false], ['speedcam', '#F87171', false], ['ev', '#FACC15', false]];
-  const on = new Set(LAYERS.filter(l => l[2]).map(l => l[0])); const MAPL = {}; let map = null;
-  function layerCount(k) { if (k === 'cafes') return D.places && D.places.cities ? D.places.cities['0'] || 0 : 0; const n = D.poi && D.poi.n && D.poi.n[k]; return (n && n['0']) || 0; }
-  function renderLayers() {
-    const box = $('#layers'); if (!box) return;
-    box.innerHTML = LAYERS.filter(([k]) => !D.poi || layerCount(k) > 0).map(([k, c]) => `<button style="--c:${c}" class="${on.has(k) ? 'on' : ''}" data-k="${k}"><i></i>${esc(t('L_' + k))}${D.poi ? ` <em>${fmt(layerCount(k))}</em>` : ''}</button>`).join('');
-  }
-  $('#layers').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b) return; const k = b.dataset.k; on.has(k) ? on.delete(k) : on.add(k); b.classList.toggle('on'); drawMap(); });
-  function leaflet() { return window.L ? Promise.resolve() : new Promise((ok, no) => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/vendor/leaflet/leaflet.css'; document.head.appendChild(l); const s = document.createElement('script'); s.src = '/vendor/leaflet/leaflet.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); }
-  new IntersectionObserver(([e], o) => { if (!e.isIntersecting) return; o.disconnect(); leaflet().then(initMap).catch(() => {}); }, { rootMargin: '400px' }).observe($('#cityMap'));
-  function initMap() {
-    map = window.L.map('cityMap', { zoomControl: false, scrollWheelZoom: false, preferCanvas: true, attributionControl: true }).setView(TAS, 12);
-    window.L.control.zoom({ position: 'topright' }).addTo(map);
-    window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map); map.attributionControl.setPrefix(false);
-    map.on('click', () => map.scrollWheelZoom.enable());
-    drawMap();
-  }
-  const cache = {};
-  function loadLayer(k) { if (cache[k]) return cache[k]; return (cache[k] = getJ(k === 'cafes' ? DATA + 'data/places/0.json' : `${DATA}data/poi/${k}/0.json`).then(l => l || [])); }
-  function drawMap() {
-    if (!map) return; const cv = window.L.canvas({ padding: .3 });
-    Promise.all(LAYERS.map(([k, c]) => on.has(k) ? loadLayer(k).then(list => [k, c, list]) : Promise.resolve([k, c, null]))).then(rows => {
-      let total = 0;
-      rows.forEach(([k, c, list]) => {
-        if (MAPL[k]) { map.removeLayer(MAPL[k]); delete MAPL[k]; }
-        if (!list) return; total += list.length;
-        const g = window.L.layerGroup(list.map(p => window.L.circleMarker([p.la, p.lo], { renderer: cv, radius: 3.6, color: c, weight: 1, opacity: .9, fillColor: c, fillOpacity: .75 }).bindPopup(esc(p.n || t('L_' + k)))));
-        g.addTo(map); MAPL[k] = g;
-      });
-      $('#mapCount').innerHTML = `<b>${fmt(total)}</b> ${esc(t('map_n'))}`;
-    });
-  }
 
   // ---------------- AI ----------------
   const msgs = [];
@@ -359,6 +327,7 @@
       const items = ((D.news.cities && D.news.cities['0']) || D.news.all || []).slice(0, 3);
       $('#wNw').innerHTML = `<h3>${ic('newspaper')}${esc(t('w_nw'))}</h3>${items.length ? '' : `<p class="sub">${esc(t('w_none'))}</p>`}<div class="nw">${items.map(x => `<a href="${esc(x.u)}" target="_blank" rel="noopener">${x.i ? `<img src="${esc(x.i)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '<img alt="">'}<div><b>${esc(x.t)}</b><span>${esc(x.s)} · ${esc(String(x.d).slice(0, 10).split('-').reverse().join('.'))}</span></div></a>`).join('')}</div><a class="lnk more" href="${esc(appLink('h:news', 'all'))}">${esc(t('w_more'))}</a>`;
     }
+    document.dispatchEvent(new CustomEvent('mz:data'));
   }
 
   // ---------------- partners ----------------
@@ -387,5 +356,7 @@
   function drawQR() { if (!window.qrcode) return setTimeout(drawQR, 200); const url = APP === '/' ? location.origin + '/' : APP; const q = window.qrcode(0, 'M'); q.addData(url); q.make(); $('#qr').innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const s = $('#qr svg'); if (s) { s.querySelectorAll('rect').forEach(r => { if (r.getAttribute('fill') === '#ffffff' || r.getAttribute('fill') === 'white') r.setAttribute('fill', 'transparent'); }); s.querySelectorAll('path').forEach(p => p.setAttribute('fill', '#0B2413')); } }
   drawQR();
 
+  window.MZ = { t, lang: () => L, $, $$, esc, ic, getJ, fmt, DATA, API, APP, appLink, D, prayTimes, hm, WMO, aqLvl, AQC, ask: q => { $('#aiIn').value = ''; ask(q); }, PHONE: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) };
   applyLang();
+  document.dispatchEvent(new CustomEvent('mz:ready'));
 })();

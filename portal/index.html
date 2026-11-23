@@ -12,17 +12,20 @@
 <link rel="icon" href="/icon-192.png">
 <link rel="preload" href="/portal/assets/fonts/unbounded-cyrillic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/portal/assets/fonts/manrope-cyrillic-500-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/portal/portal.css?v=1">
+<link rel="stylesheet" href="/portal/portal.css?v=2">
+<link rel="stylesheet" href="/portal/pages.css?v=1">
 </head>
 <body>
+<div class="pearl" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
 <header class="nav" id="nav">
   <a class="brand" href="#top" aria-label="MyUzCity"><img src="/icon-192.png" alt="" width="36" height="36"><span>MyUzCity</span></a>
   <nav class="links">
-    <a href="#story" data-i="n_feat">Возможности</a>
-    <a href="#map" data-i="n_map">Город на карте</a>
+    <a href="#services" data-i="n_feat">Сервисы</a>
+    <a href="?s=map" data-sv="map" data-i="n_map">Город на карте</a>
     <a href="#ai" data-i="n_ai">ИИ-помощник</a>
+    <a href="?s=business" data-sv="business" data-i="n_biz">Бизнесу</a>
     <a href="#partners" data-i="n_part">Партнёрам</a>
   </nav>
   <div class="nav-r">
@@ -50,44 +53,44 @@
       <h2 data-i="st1_t">Метро, автобусы, поезда и самолёты</h2>
       <p data-i="st1_s">Станции и маршруты рядом с вами, расписание поездов и живое табло аэропортов Узбекистана.</p>
       <ul class="facts"><li><b data-n="metro">49</b><span data-i="f_metro">станций метро</span></li><li><b data-n="bus">61</b><span data-i="f_bus">маршрут автобусов</span></li><li><b>11</b><span data-i="f_air">аэропортов на табло</span></li></ul>
-      <a class="go-app" data-open="h:transport" href="/" data-i="go_open">Открыть раздел</a>
+      <a class="go-app" data-sv="transport" href="?s=transport" data-i="go_open">Открыть раздел</a>
     </article>
     <article class="step" data-go="h:poi" data-p="med" style="--g:#22C55E">
       <span class="ic"><svg><use href="/portal/assets/icons.svg#i-first-aid-kit"/></svg></span>
       <h2 data-i="st2_t">Аптеки и клиники, открытые сейчас</h2>
       <p data-i="st2_s">Карта с часами работы, маршрут пешком или на такси и онлайн-запись к врачу через DMED.</p>
       <ul class="facts"><li><b data-n="med">1808</b><span data-i="f_med">аптек и клиник в Ташкенте</span></li><li><b>103</b><span data-i="f_103">скорая в один тап</span></li></ul>
-      <a class="go-app" data-open="h:poi" data-p="med" href="/" data-i="go_open">Открыть раздел</a>
+      <a class="go-app" data-sv="health" href="?s=health" data-i="go_open">Открыть раздел</a>
     </article>
     <article class="step" data-go="h:reports" data-p="road" style="--g:#F59E0B">
       <span class="ic"><svg><use href="/portal/assets/icons.svg#i-megaphone"/></svg></span>
       <h2 data-i="st3_t">Яма, мусор, не горит свет? Сообщите</h2>
       <p data-i="st3_s">Фото и точка на карте. Сообщение видят соседи и ответственные службы, статус приходит вам в Telegram.</p>
-      <a class="go-app" data-open="h:reports" data-p="road" href="/" data-i="go_open">Открыть раздел</a>
+      <a class="go-app" data-sv="mahalla" href="?s=mahalla" data-i="go_open">Открыть раздел</a>
     </article>
     <article class="step" data-go="1:996" style="--g:#14B8A6">
       <span class="ic"><svg><use href="/portal/assets/icons.svg#i-users-three"/></svg></span>
       <h2 data-i="st4_t">Махалля онлайн</h2>
       <p data-i="st4_s">Чат соседей, опросы махалли с честным подсчётом голосов и мечети рядом со временем намаза.</p>
-      <a class="go-app" data-open="1:996" href="/" data-i="go_open">Открыть раздел</a>
+      <a class="go-app" data-sv="mahalla" href="?s=mahalla" data-i="go_open">Открыть раздел</a>
     </article>
     <article class="step" data-go="1:4475" style="--g:#EF4444">
       <span class="ic red"><svg><use href="/portal/assets/icons.svg#i-siren"/></svg></span>
       <h2 data-i="st5_t">Тревожная кнопка</h2>
       <p data-i="st5_s">Одно нажатие, и близкие получают вашу геолокацию в Telegram. Плюс экстренные службы 101, 102, 103, 104.</p>
-      <a class="go-app" data-open="1:4475" href="/" data-i="go_open">Открыть раздел</a>
+      <a class="go-app" data-sv="safety" href="?s=safety" data-i="go_open">Открыть раздел</a>
     </article>
     <article class="step" data-go="1:19" style="--g:#A78BFA">
       <span class="ic"><svg><use href="/portal/assets/icons.svg#i-identification-card"/></svg></span>
       <h2 data-i="st6_t">Документы под контролем</h2>
       <p data-i="st6_s">Сроки паспорта, прав, страховки и техосмотра. Бот напомнит за 30, 7 и 1 день.</p>
-      <a class="go-app" data-open="1:19" href="/" data-i="go_open">Открыть раздел</a>
+      <a class="go-app" data-sv="gov" href="?s=gov" data-i="go_open">Открыть раздел</a>
     </article>
     <article class="step" data-go="1:5149" style="--g:#FB923C">
       <span class="ic"><svg><use href="/portal/assets/icons.svg#i-storefront"/></svg></span>
       <h2 data-i="st7_t">Маркетплейс соседей</h2>
       <p data-i="st7_s">Продайте ненужное или отдайте даром людям из вашего города. Связь через Telegram.</p>
-      <a class="go-app" data-open="1:5149" href="/" data-i="go_open">Открыть раздел</a>
+      <a class="go-app" data-sv="market" href="?s=market" data-i="go_open">Открыть раздел</a>
     </article>
   </div>
   <div class="story-r">
@@ -96,8 +99,11 @@
       <div class="chip c2" id="cAq" hidden></div>
       <div class="chip c3" id="cFx" hidden></div>
       <div class="chip c4" id="cPr" hidden></div>
+      <div class="ph-floor" aria-hidden="true"></div>
       <div class="phone" id="phone">
+        <i class="ph-side l" aria-hidden="true"><b></b><b></b><b></b></i><i class="ph-side r" aria-hidden="true"><b></b></i>
         <iframe id="appFrame" title="MyUzCity" loading="lazy"></iframe>
+        <i class="ph-glare" aria-hidden="true"></i>
         <button class="try" id="tryBtn"><svg><use href="/portal/assets/icons.svg#i-hand-tap"/></svg><span data-i="try">Нажмите, чтобы попробовать</span></button>
       </div>
     </div>
@@ -106,6 +112,10 @@
 
 <!-- ============ LIVE CITY NUMBERS ============ -->
 <div class="ticker" aria-hidden="true"><div class="tk-row" id="tk1"></div><div class="tk-row rev" id="tk2"></div></div>
+<section class="services" id="services">
+  <div class="sec-head reveal"><h2 id="svcT">Все сервисы города</h2><p id="svcS"></p></div>
+  <div class="svc-grid" id="svcGrid"></div>
+</section>
 <section class="stats" id="stats">
   <h2 class="reveal" data-i="stats_t">Ташкент в приложении уже сегодня</h2>
   <div class="stat-grid">
@@ -166,25 +176,22 @@
   </div>
 </section>
 
-<!-- ============ LIVE MAP ============ -->
+<!-- ============ CITY + SERVICES MAP ============ -->
 <section class="mapsec" id="map">
-  <div class="map-head reveal">
-    <h2 data-i="map_t">Город на карте</h2>
-    <p data-i="map_s">Включайте слои и смотрите, что рядом. Это живые данные из приложения.</p>
-    <div class="layers" id="layers"></div>
-  </div>
-  <div class="map" id="cityMap"><div class="map-count" id="mapCount"></div></div>
+  <div class="map-head reveal"><h2 id="hubT">Город и сервисы на карте</h2><p id="hubS"></p></div>
+  <div id="hubHome"></div>
 </section>
 
 <!-- ============ AI LIVE ============ -->
-<section class="ai" id="ai">
+<div id="aiHome"><section class="ai" id="ai">
+  <div class="agent reveal" id="agent"></div>
   <div class="ai-card reveal">
     <div class="ai-top"><span class="ic"><svg><use href="/portal/assets/icons.svg#i-sparkle"/></svg></span><div><h2 data-i="ai_t">Спросите что угодно о городе</h2><p data-i="ai_s">Это настоящий ИИ-помощник MyUzCity. Отвечает на узбекском, русском и английском.</p></div></div>
     <div class="ai-log" id="aiLog" aria-live="polite"></div>
     <div class="ai-sug" id="aiSug"></div>
     <form class="ai-form" id="aiForm"><label class="sr" for="aiIn" data-i="ai_ph">Ваш вопрос</label><input id="aiIn" autocomplete="off" maxlength="400" placeholder="Например: где ближайшая аптека 24/7?"><button class="btn btn-acc" type="submit" aria-label="send"><svg><use href="/portal/assets/icons.svg#i-arrow-right"/></svg></button></form>
   </div>
-</section>
+</section></div>
 
 <!-- ============ LIVE WIDGETS ============ -->
 <section class="live" id="live">
@@ -228,6 +235,7 @@
   </div>
 </section>
 </main>
+<div id="svView" hidden></div>
 
 <footer class="foot">
   <div class="f-brand"><img src="/icon-192.png" alt="" width="32" height="32"><b>MyUzCity</b></div>
@@ -237,6 +245,7 @@
 </footer>
 
 <script src="/portal/assets/qrcode.js" defer></script>
-<script src="/portal/portal.js?v=1" defer></script>
+<script src="/portal/portal.js?v=2" defer></script>
+<script src="/portal/pages.js?v=1" defer></script>
 </body>
 </html>
