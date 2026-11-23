@@ -1247,8 +1247,8 @@ function aiSheet() {
   if (w) { const b = w.querySelector('.bs-body'); const keep = b.querySelector('#aiCafQ') ? b.querySelector('#aiCafQ').value : ''; b.innerHTML = aiSheetHTML(); b.querySelector('#aiCafQ').value = keep; b.scrollTop = b.scrollHeight; aiBind(w); return; }
   const n = bsheet(aiSheetHTML(), 'bs-ai'); aiBind(n);
 }
-function aiBind(w) { const i = w.querySelector('#aiCafQ'); if (!i || i._b) return; i._b = 1; i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); aiAsk(i.value); } }); }
-async function aiAsk(q) {
+function aiBind(w) { const i = w.querySelector('#aiCafQ'); if (!i || i._b) return; i._b = 1; i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); cgAsk(i.value); } }); }
+async function cgAsk(q) {
   q = String(q || '').trim(); const S = AIC(); if (!q || S.busy) return;
   S.msgs.push({ role: 'user', text: q }); S.busy = true; aiSheet();
   const inp = document.getElementById('aiCafQ'); if (inp) inp.value = '';
@@ -1297,6 +1297,6 @@ function aiTip(el) {
 Object.assign(XACT, {
   cfroute: id => cafRoute(id),
   aiopen: () => aiSheet(),
-  aiq: k => { aiSheet(); aiAsk(t('aq_' + k) + (k === 'near' ? '' : (LANG === 'ru' ? ' рядом' : ''))); },
-  aisend: () => { const i = document.getElementById('aiCafQ'); if (i) aiAsk(i.value); },
+  aiq: k => { aiSheet(); cgAsk(t('aq_' + k) + (k === 'near' ? '' : (LANG === 'ru' ? ' рядом' : ''))); },
+  aisend: () => { const i = document.getElementById('aiCafQ'); if (i) cgAsk(i.value); },
 });
