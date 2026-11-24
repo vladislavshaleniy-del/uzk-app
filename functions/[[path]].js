@@ -2,11 +2,18 @@
 // myuzcity.uz (and www): the brand website, rendered per language and service for search engines (see _lib/site.js).
 // app.myuzcity.uz and *.pages.dev: the app, served as is (pages.dev copies are hidden from search engines).
 import { SITE_HOST, route, path, render } from './_lib/site.js';
+import { track } from './_lib/track.js';
 
 const LANG = ['ru', 'uz', 'en'];
 const go = (to, base) => Response.redirect(new URL(to, base).toString(), 301);
 
-export async function onRequest({ request, env }) {
+export async function onRequest(ctx) {
+  const res = await handle(ctx.request, ctx.env);
+  track(ctx, res); // роботы и источники переходов для /stats (в фоне)
+  return res;
+}
+
+async function handle(request, env) {
   const url = new URL(request.url);
   if (!SITE_HOST.test(url.hostname)) {
     const r = await env.ASSETS.fetch(request);

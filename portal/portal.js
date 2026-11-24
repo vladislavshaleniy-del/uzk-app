@@ -142,6 +142,9 @@
   const route = () => CLEAN ? parsePath().s : (new URLSearchParams(location.search).get('s') || '');
   const t = k => (T[L][k] != null ? T[L][k] : T.ru[k]);
   const title = k => (SEO && SEO.titles && SEO.titles[k || '']) || (k ? '' : t('title'));
+  // просмотр страницы для /stats (страна и город — на сервере, без cookies)
+  const hit = p => { if (!CLEAN) return; try { const b = JSON.stringify({ p }); if (!(navigator.sendBeacon && navigator.sendBeacon('/api/hit', new Blob([b], { type: 'application/json' })))) fetch('/api/hit', { method: 'POST', body: b, keepalive: true }).catch(() => {}); } catch (e) {} };
+  hit(location.pathname);
   const fmt = n => Math.round(n).toLocaleString(L === 'en' ? 'en-US' : 'ru-RU').replace(/,/g, L === 'en' ? ',' : ' ');
 
   // ---------------- language ----------------
@@ -352,7 +355,7 @@
   function drawQR() { if (!window.qrcode) return setTimeout(drawQR, 200); const url = APP === '/' ? location.origin + '/' : APP; const q = window.qrcode(0, 'M'); q.addData(url); q.make(); $('#qr').innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const s = $('#qr svg'); if (s) { s.querySelectorAll('rect').forEach(r => { if (r.getAttribute('fill') === '#ffffff' || r.getAttribute('fill') === 'white') r.setAttribute('fill', 'transparent'); }); s.querySelectorAll('path').forEach(p => p.setAttribute('fill', '#0B2413')); } }
   drawQR();
 
-  window.MZ = { t, lang: () => L, url, route, title, CLEAN, $, $$, esc, ic, getJ, fmt, DATA, API, APP, appLink, D, prayTimes, hm, WMO, aqLvl, AQC, ask: q => { $('#aiIn').value = ''; ask(q); }, PHONE: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) };
+  window.MZ = { t, lang: () => L, url, route, title, CLEAN, hit, $, $$, esc, ic, getJ, fmt, DATA, API, APP, appLink, D, prayTimes, hm, WMO, aqLvl, AQC, ask: q => { $('#aiIn').value = ''; ask(q); }, PHONE: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) };
   applyLang();
   document.dispatchEvent(new CustomEvent('mz:ready'));
 })();

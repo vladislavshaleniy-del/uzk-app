@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Статистика — MyUzCity</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0B2413">
+<link rel="icon" href="/icon-192.png">
+<!-- Статистика сайта myuzcity.uz и приложения app.myuzcity.uz (только для владельца).
+     Данные: /api/analytics (просмотры, страны, города, страницы) и /api/seo (роботы, источники, индексация).
+     Кодовое слово — секрет STATS_KEY в Cloudflare → Workers & Pages → проект → Settings → Variables and Secrets. -->
+<style>
+@font-face{font-family:Unbounded;font-weight:700;font-display:swap;src:url(/portal/assets/fonts/unbounded-cyrillic-700-normal.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:Unbounded;font-weight:700;font-display:swap;src:url(/portal/assets/fonts/unbounded-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+20AC,U+2122,U+2212}
+@font-face{font-family:Manrope;font-weight:500;font-display:swap;src:url(/portal/assets/fonts/manrope-cyrillic-500-normal.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:Manrope;font-weight:500;font-display:swap;src:url(/portal/assets/fonts/manrope-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+20AC,U+2122,U+2212}
+@font-face{font-family:Manrope;font-weight:700;font-display:swap;src:url(/portal/assets/fonts/manrope-cyrillic-700-normal.woff2) format('woff2');unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:Manrope;font-weight:700;font-display:swap;src:url(/portal/assets/fonts/manrope-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+20AC,U+2122,U+2212}
+[hidden]{display:none!important}
+:root{--bg:#EEF4F0;--card:#fff;--line:rgba(12,36,22,.1);--ink:#0C2416;--text:#34493C;--mute:#6B7F72;--acc:#1F8A55;--acc2:#5BC18A;--gold:#E3A24A;--blue:#3E7BE0;--red:#C8473B}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 15px/1.5 Manrope,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.hero{background:linear-gradient(135deg,#0B2413 0%,#145A34 60%,#1F8A55 100%);color:#fff;padding:22px 0 78px}
+.w{max-width:1240px;margin:0 auto;padding:0 24px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font:700 18px Unbounded,system-ui,sans-serif;letter-spacing:-.02em}
+.brand img{width:34px;height:34px;border-radius:9px}
+.top nav{display:flex;gap:8px;flex-wrap:wrap}
+.top nav a,.btn{font:700 13px/1 Manrope,system-ui,sans-serif;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:10px 16px;background:rgba(255,255,255,.06);cursor:pointer}
+.top nav a:hover,.btn:hover{background:rgba(255,255,255,.16)}
+h1{margin:44px 0 6px;font:700 clamp(30px,4.4vw,52px)/1.05 Unbounded,system-ui,sans-serif;letter-spacing:-.03em}
+.sub{margin:0;color:rgba(255,255,255,.75);font-size:16px}
+main.w{margin-top:-52px;padding-bottom:70px}
+.st{margin:0 0 16px;color:var(--mute);font-size:14px}
+.hero .st{color:rgba(255,255,255,.7);margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 22px 20px;box-shadow:0 10px 30px -22px rgba(12,36,22,.35);margin-bottom:16px}
+.card h2{margin:0 0 14px;font:700 16px/1.3 Manrope,system-ui,sans-serif;letter-spacing:-.01em}
+.login{max-width:460px}
+.login label{display:grid;gap:8px;font-weight:700}
+.login input{font:600 20px Manrope,system-ui,sans-serif;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:#F6FAF7;letter-spacing:.12em}
+.login input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.go{margin-top:14px;font:700 15px Manrope,system-ui,sans-serif;color:#fff;background:var(--acc);border:0;border-radius:14px;padding:14px 20px;cursor:pointer;width:100%}
+.go:hover{background:#18794A}
+.go:disabled{opacity:.6;cursor:wait}
+.err{color:var(--red);font-weight:700;margin:12px 0 0}
+.tabs{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--card);border:1px solid var(--line);margin-bottom:16px;box-shadow:0 10px 30px -22px rgba(12,36,22,.35)}
+.tabs button{font:700 14px Manrope,system-ui,sans-serif;border:0;background:none;color:var(--text);padding:10px 18px;border-radius:999px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--acc);color:#fff}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 18px 16px;display:grid;gap:4px;box-shadow:0 10px 30px -22px rgba(12,36,22,.35)}
+.tile i{font-style:normal;color:var(--mute);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.tile b{font:700 clamp(26px,3vw,36px)/1.1 Unbounded,system-ui,sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.tile small{color:var(--mute);font-size:13px;line-height:1.35}
+.meter{display:block;height:6px;border-radius:9px;background:#E3EDE6;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;width:0;background:var(--acc);border-radius:9px;transition:width .6s}
+.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+.grid>.card{margin-bottom:16px}
+svg.chart{width:100%;height:auto;display:block}
+.leg{display:flex;gap:16px;flex-wrap:wrap;color:var(--mute);font-size:13px;margin-top:8px}
+.leg span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;padding:0 8px 8px 0;border-bottom:1px solid var(--line)}
+td{padding:10px 8px 10px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;vertical-align:middle}
+th:not(:first-child),td:not(:first-child){text-align:right}
+tr.c{cursor:pointer}
+tr.c:hover td{background:#F6FAF7}
+tr.c td:first-child::before{content:'›';display:inline-block;width:14px;color:var(--mute);transition:transform .2s}
+tr.c.open td:first-child::before{transform:rotate(90deg)}
+tr.ci td:first-child{padding-left:30px;color:var(--text)}
+.share{display:inline-block;min-width:54px}
+.bar{display:block;height:5px;border-radius:9px;background:#E3EDE6;margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc2)}
+ol.list{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+ol.list li{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:9px 0;border-bottom:1px solid var(--line)}
+ol.list li b{font-variant-numeric:tabular-nums}
+ol.list li .bar{grid-column:1/-1;margin-top:0}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:#E3EDE6;color:var(--acc);margin-left:6px;vertical-align:1px}
+.tag.app{background:#FFF1DD;color:#93600F}
+.note{color:var(--mute);font-size:13px;margin:4px 2px 30px}
+.sx-h{font:700 clamp(24px,3vw,34px)/1.1 Unbounded,system-ui,sans-serif;letter-spacing:-.03em;margin:40px 0 8px}
+.feed{list-style:none;margin:0;padding:0;max-height:430px;overflow:auto}
+.feed li{display:grid;grid-template-columns:86px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.feed li em{font-style:normal;color:var(--mute);font-size:12px;white-space:nowrap}
+.feed li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bot{font-weight:700;font-size:12px;padding:3px 8px;border-radius:999px;text-align:center;background:#EEF1EF;color:var(--text)}
+.bot.google{background:#E5EEFC;color:#2F62B8}.bot.yandex{background:#FDE9E5;color:#B2392C}.bot.bing{background:#E3F4F1;color:#1C7A6B}
+.ok{color:var(--acc);font-weight:700}.bad{color:var(--red);font-weight:700}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0 0 12px;font-size:14px}
+.dl dt{color:var(--mute)}.dl dd{margin:0;font-weight:700}
+.act{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.act .go{width:auto;margin:0}
+.act a{font:700 14px Manrope,system-ui,sans-serif;color:var(--acc);text-decoration:none;border:1px solid var(--line);border-radius:14px;padding:13px 16px}
+.act a:hover{border-color:var(--acc)}
+.msg{color:var(--mute);font-size:13px;margin:12px 0 0}
+.empty{color:var(--mute);font-size:14px;padding:8px 0}
+@media (max-width:980px){.kpi{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+@media (max-width:560px){.w{padding:0 14px}.card{padding:18px 14px}.hide-s{display:none}.tabs button{padding:9px 12px}.feed li{grid-template-columns:74px 1fr}.feed li em{display:none}.top nav a,.btn{padding:9px 12px}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="w">
+    <div class="top">
+      <a class="brand" href="/"><img src="/icon-192.png" alt="">MyUzCity</a>
+      <nav><a href="#seo" id="nav-seo" hidden>Индексация</a><button class="btn" type="button" id="ref" hidden>Обновить</button><button class="btn" type="button" id="out" hidden>Выйти</button><a href="/">На сайт</a></nav>
+    </div>
+    <h1>Статистика</h1>
+    <p class="sub">Сайт myuzcity.uz и приложение app.myuzcity.uz: посещаемость, страны и города, поиск и индексация</p>
+    <p class="st" id="st">Загружаем…</p>
+  </div>
+</header>
+
+<main class="w">
+  <form class="card login" id="login" hidden>
+    <label>Кодовое слово<input type="password" name="k" inputmode="numeric" autocomplete="current-password" autocapitalize="off" spellcheck="false" required></label>
+    <button class="go" type="submit">Открыть статистику</button>
+    <p class="err" id="lerr" hidden></p>
+  </form>
+
+  <section id="app" hidden>
+    <div class="tabs" role="tablist" aria-label="Период">
+      <button type="button" role="tab" data-p="day">Сегодня</button>
+      <button type="button" role="tab" data-p="month">Этот месяц</button>
+      <button type="button" role="tab" data-p="all">Всё время</button>
+    </div>
+    <div class="kpi">
+      <div class="tile"><i>Просмотры</i><b id="k-views">—</b><small id="k-split"></small></div>
+      <div class="tile"><i>Посетители</i><b id="k-vis">—</b><small>уникальные за каждый день</small></div>
+      <div class="tile"><i>Страны</i><b id="k-cn">—</b><small id="k-top"></small></div>
+      <div class="tile"><i>Города</i><b id="k-ci">—</b><small id="k-topc"></small></div>
+    </div>
+    <div class="card">
+      <h2>Последние 30 дней</h2>
+      <svg class="chart" id="chart" viewBox="0 0 900 210" role="img" aria-label="Просмотры и посетители за 30 дней"></svg>
+      <div class="leg"><span style="--c:#A9DDBF">просмотры</span><span style="--c:#1F8A55">посетители</span></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h2>Страны и города — нажмите на страну</h2>
+        <table><thead><tr><th>Страна / город</th><th>Просмотры</th><th class="hide-s">Посетители</th><th>Доля</th></tr></thead><tbody id="geo"></tbody></table>
+      </div>
+      <div class="card">
+        <h2>Страницы</h2>
+        <ol class="list" id="pages"></ol>
+      </div>
+    </div>
+    <p class="note" id="an-note">Дни считаются по Ташкенту (UTC+5). Посетитель — уникальный за день, без cookies и без хранения IP. Страну и город определяет Cloudflare. Роботы не учитываются.</p>
+
+    <section id="seo">
+      <h2 class="sx-h">Поиск и индексация</h2>
+      <p class="st" id="sx-st">Загружаем данные поиска…</p>
+      <div class="kpi">
+        <div class="tile"><i>Страниц на сайте</i><b id="sx-total">—</b><small>3 языка + приложение</small></div>
+        <div class="tile"><i>Обошёл Google</i><b id="sx-g">—</b><small id="sx-g-s"></small><span class="meter"><i id="sx-g-m"></i></span></div>
+        <div class="tile"><i>Обошёл Яндекс</i><b id="sx-y">—</b><small id="sx-y-s"></small><span class="meter"><i id="sx-y-m"></i></span></div>
+        <div class="tile"><i>Отправлено в поиск</i><b id="sx-in">—</b><small id="sx-in-s"></small></div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h2>Визиты поисковых роботов — 30 дней</h2>
+          <svg class="chart" id="sx-chart" viewBox="0 0 900 210" role="img" aria-label="Визиты роботов Google, Яндекса и Bing по дням"></svg>
+          <div class="leg"><span style="--c:#3E7BE0">Google</span><span style="--c:#E0533F">Яндекс</span><span style="--c:#2AA58F">Bing</span><span style="--c:#B9C4BD">другие</span></div>
+        </div>
+        <div class="card">
+          <h2>По языкам: сколько страниц обошли роботы</h2>
+          <table><thead><tr><th>Язык</th><th class="hide-s">Страниц</th><th>Google</th><th>Яндекс</th></tr></thead><tbody id="sx-langs"></tbody></table>
+          <p class="msg" id="sx-app"></p>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h2>Откуда заходят — 30 дней</h2>
+          <ol class="list" id="sx-tr"></ol>
+          <p class="msg">Считаются переходы с других сайтов, из поиска, мессенджеров и соцсетей, а также прямые заходы. Переходы внутри сайта не считаются.</p>
+        </div>
+        <div class="card">
+          <h2>Последние визиты роботов</h2>
+          <ul class="feed" id="sx-feed"></ul>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card"><h2>Google Search Console</h2><div id="sx-gc"></div></div>
+        <div class="card"><h2>Яндекс Вебмастер</h2><div id="sx-yc"></div></div>
+      </div>
+      <div class="card" id="sx-err-c" hidden>
+        <h2>Ошибки при обходе — 30 дней</h2>
+        <ul class="feed" id="sx-err"></ul>
+      </div>
+      <div class="card">
+        <h2>Действия</h2>
+        <div class="act">
+          <button class="go" type="button" id="sx-push">Отправить все страницы в Яндекс и Bing</button>
+          <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fmyuzcity.uz%2F" target="_blank" rel="noopener">Search Console ↗</a>
+          <a href="https://webmaster.yandex.ru/site/https:myuzcity.uz:443/dashboard/" target="_blank" rel="noopener">Яндекс Вебмастер ↗</a>
+        </div>
+        <p class="msg" id="sx-push-st">Кнопка отправляет все 39 страниц сайта и приложение по протоколу IndexNow: Яндекс и Bing сразу ставят их в очередь на обход. Нажимайте после заметных изменений на сайте, не чаще раза в день.</p>
+      </div>
+    </section>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = n => (+n || 0).toLocaleString('ru-RU');
+const SV = { transport: 'Транспорт', health: 'Здоровье', gov: 'Госуслуги', edu: 'Образование', mahalla: 'Махалля и город', faith: 'Намаз и мечети', leisure: 'Отдых', map: 'Город на карте', market: 'Маркетплейс', business: 'Бизнесу', safety: 'Безопасность', ai: 'ИИ-ассистент' };
+const LN = { uz: 'UZ', en: 'EN' };
+const pageName = (path, host) => {
+  if (host === 'app') return 'Приложение' + (path && path !== '/' ? ' · ' + path : '');
+  if (path === '/robots.txt' || path === '/sitemap.xml') return path;
+  const m = String(path).match(/^\/(?:(uz|en)(?:\/|$))?([a-z]*)\/?$/);
+  if (!m) return path;
+  const name = m[2] ? (SV[m[2]] || m[2]) : 'Главная';
+  return name + (m[1] ? ' · ' + LN[m[1]] : '');
+};
+const REG = (() => { try { return new Intl.DisplayNames(['ru'], { type: 'region' }); } catch (e) { return null; } })();
+const country = c => !c ? 'Не определено' : c === 'T1' ? 'Сеть Tor' : c === 'XX' ? 'Не определено' : ((REG && REG.of(c)) || c);
+const flag = c => /^[A-Z]{2}$/.test(c || '') && c !== 'XX' && c !== 'T1' ? String.fromCodePoint(...[...c].map(x => 127397 + x.charCodeAt(0))) + ' ' : '';
+const BOTN = { google: 'Google', yandex: 'Яндекс', bing: 'Bing', baidu: 'Baidu', duckduckgo: 'DuckDuckGo', apple: 'Apple', petal: 'Petal', seznam: 'Seznam', naver: 'Naver', yahoo: 'Yahoo', mailru: 'Mail.ru' };
+const when = t => { const d = new Date(t); return d.toLocaleString('ru-RU', { timeZone: 'Asia/Tashkent', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); };
+const dateRu = s => s ? new Date(s.length === 10 ? s + 'T12:00:00Z' : s).toLocaleDateString('ru-RU', { timeZone: 'Asia/Tashkent', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+let KEY = ''; try { KEY = localStorage.getItem('mz-stats-key') || ''; } catch (e) {}
+let A = null, X = null, P = 'day';
+const hdr = () => ({ 'x-admin-key': encodeURIComponent(KEY) });
+const st = (t) => { $('#st').textContent = t; };
+
+function showLogin(err) {
+  $('#app').hidden = true; $('#login').hidden = false; ['#ref', '#out', '#nav-seo'].forEach(s => $(s).hidden = true);
+  st('Введите кодовое слово, чтобы открыть статистику.');
+  const e = $('#lerr'); e.hidden = !err; e.textContent = err || '';
+  setTimeout(() => $('#login input').focus(), 50);
+}
+
+async function load(fresh) {
+  if (!KEY) return showLogin();
+  st('Загружаем…');
+  let r, j;
+  try { r = await fetch('/api/analytics' + (fresh ? '?fresh=1' : ''), { headers: hdr(), cache: 'no-store' }); j = await r.json(); }
+  catch (e) { st('Не удалось загрузить данные. Проверьте интернет и нажмите «Обновить».'); return; }
+  if (r.status === 401) { try { localStorage.removeItem('mz-stats-key'); } catch (e) {} KEY = ''; return showLogin('Кодовое слово не подходит.'); }
+  if (r.status === 403 && j.error === 'no-key') { KEY = ''; return showLogin('Кодовое слово ещё не задано на сервере: добавьте секрет STATS_KEY в настройках проекта в Cloudflare.'); }
+  $('#login').hidden = true; $('#app').hidden = false; ['#ref', '#out', '#nav-seo'].forEach(s => $(s).hidden = false);
+  if (!j.ready) { st('Данных пока нет' + (j.error ? ': ' + j.error : '.')); return; }
+  A = j;
+  st('Обновлено ' + when(j.updated) + (j.since ? ' · данные с ' + dateRu(j.since) : ' · данные начнут появляться с первыми посетителями'));
+  render();
+  loadSeo(fresh);
+}
+
+function render() {
+  const p = A.periods[P] || { views: 0, visitors: 0, countries: [], pages: [], hosts: [] };
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.p === P)));
+  $('#k-views').textContent = fmt(p.views);
+  const h = Object.fromEntries((p.hosts || []).map(x => [x.host, x.views]));
+  $('#k-split').textContent = 'сайт ' + fmt(h.site) + ' · приложение ' + fmt(h.app);
+  $('#k-vis').textContent = fmt(p.visitors);
+  const cities = p.countries.reduce((n, c) => n + c.cities.filter(x => x.city).length, 0);
+  $('#k-cn').textContent = fmt(p.countries.filter(c => c.c).length);
+  $('#k-top').textContent = p.countries[0] ? 'больше всего: ' + country(p.countries[0].c) : '';
+  $('#k-ci').textContent = fmt(cities);
+  const allC = p.countries.flatMap(c => c.cities.filter(x => x.city).map(x => ({ ...x, c: c.c }))).sort((a, b) => b.views - a.views);
+  $('#k-topc').textContent = allC[0] ? 'больше всего: ' + allC[0].city : '';
+  // страны и города
+  const tb = $('#geo');
+  if (!p.countries.length) tb.innerHTML = '<tr><td colspan="4" class="empty">За этот период просмотров нет.</td></tr>';
+  else tb.innerHTML = p.countries.map((c, i) => {
+    const sh = p.views ? Math.round(c.views / p.views * 1000) / 10 : 0;
+    return `<tr class="c" data-i="${i}"><td>${flag(c.c)}${esc(country(c.c))}</td><td>${fmt(c.views)}</td><td class="hide-s">${fmt(c.visitors)}</td><td><span class="share">${sh}%</span><span class="bar"><i style="width:${sh}%"></i></span></td></tr>`
+      + c.cities.map(x => `<tr class="ci" data-p="${i}" hidden><td>${esc(x.city || 'Город не определён')}</td><td>${fmt(x.views)}</td><td class="hide-s">${fmt(x.visitors)}</td><td>${p.views ? Math.round(x.views / p.views * 1000) / 10 : 0}%</td></tr>`).join('');
+  }).join('');
+  // страницы
+  const mx = Math.max(1, ...p.pages.map(x => x.views));
+  $('#pages').innerHTML = p.pages.length ? p.pages.map(x => `<li><span>${esc(pageName(x.path, x.host))}${x.host === 'app' ? '<span class="tag app">приложение</span>' : ''}</span><b>${fmt(x.views)}</b><span class="bar"><i style="width:${x.views / mx * 100}%"></i></span></li>`).join('') : '<li class="empty">Пока пусто.</li>';
+  chart();
+}
+$('#geo').addEventListener('click', e => {
+  const tr = e.target.closest('tr.c'); if (!tr) return;
+  const open = !tr.classList.contains('open'); tr.classList.toggle('open', open);
+  document.querySelectorAll(`tr.ci[data-p="${tr.dataset.i}"]`).forEach(x => x.hidden = !open);
+});
+
+function days30() { const out = []; const now = Date.now(); for (let i = 29; i >= 0; i--) out.push(new Date(now + 5 * 3600e3 - i * 864e5).toISOString().slice(0, 10)); return out; }
+function axis(W, H, L, B, max, ds) {
+  let s = '';
+  for (let i = 0; i <= 4; i++) { const y = H - B - (H - B - 12) * i / 4; s += `<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="#E3EDE6"/><text x="${L - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#6B7F72">${fmt(Math.round(max * i / 4))}</text>`; }
+  ds.forEach((d, i) => { if (i % 5 === 4 || i === 0) s += `<text x="${L + (i + .5) * (W - L) / ds.length}" y="${H - 6}" text-anchor="middle" font-size="11" fill="#6B7F72">${d.slice(8)}.${d.slice(5, 7)}</text>`; });
+  return s;
+}
+function chart() {
+  const W = 900, H = 210, L = 44, B = 26, ds = days30(), m = Object.fromEntries((A.days || []).map(x => [x.d, x]));
+  const v = ds.map(d => (m[d] || {}).views || 0), u = ds.map(d => (m[d] || {}).visitors || 0);
+  const max = Math.max(4, ...v), bw = (W - L) / ds.length, y = n => H - B - (H - B - 12) * n / max;
+  let s = axis(W, H, L, B, max, ds);
+  v.forEach((n, i) => { if (n) s += `<rect x="${L + i * bw + 3}" y="${y(n)}" width="${bw - 6}" height="${H - B - y(n)}" rx="4" fill="#A9DDBF"><title>${ds[i]}: ${n} просм.</title></rect>`; });
+  s += `<polyline fill="none" stroke="#1F8A55" stroke-width="2.5" stroke-linejoin="round" points="${u.map((n, i) => `${L + (i + .5) * bw},${y(n)}`).join(' ')}"/>`;
+  u.forEach((n, i) => { if (n) s += `<circle cx="${L + (i + .5) * bw}" cy="${y(n)}" r="3" fill="#1F8A55"><title>${ds[i]}: ${n} посет.</title></circle>`; });
+  $('#chart').innerHTML = s;
+}
+
+async function loadSeo(fresh) {
+  $('#sx-st').textContent = 'Загружаем данные поиска…';
+  try { const r = await fetch('/api/seo' + (fresh ? '?fresh=1' : ''), { headers: hdr(), cache: 'no-store' }); X = await r.json(); }
+  catch (e) { $('#sx-st').textContent = 'Не удалось загрузить данные поиска.'; return; }
+  if (!X.ready) { $('#sx-st').textContent = 'Данных поиска пока нет' + (X.error ? ': ' + X.error : '.'); return; }
+  $('#sx-st').textContent = 'Обновлено ' + when(X.updated) + '. Визиты роботов считаются с момента подключения статистики.';
+  const T = X.total;
+  $('#sx-total').textContent = fmt(T);
+  const set = (k, n, label) => { $('#sx-' + k).textContent = fmt(n); $('#sx-' + k + '-s').textContent = 'из ' + T + ' страниц за 30 дней' + label; $('#sx-' + k + '-m').style.width = Math.min(100, n / T * 100) + '%'; };
+  set('g', X.crawled.google, X.crawled.app.google ? ' · приложение тоже' : '');
+  set('y', X.crawled.yandex, X.crawled.app.yandex ? ' · приложение тоже' : '');
+  const inx = X.indexnow || {};
+  $('#sx-in').textContent = fmt(inx.n || 0);
+  $('#sx-in-s').textContent = inx.t ? 'IndexNow, ' + when(inx.t) + (inx.ok ? ' · принято' : '') : 'ещё не отправляли';
+  // по языкам
+  $('#sx-langs').innerHTML = X.langs.map(l => `<tr><td>${esc(l.name)}</td><td class="hide-s">${l.pages}</td><td>${l.google} из ${l.pages}</td><td>${l.yandex} из ${l.pages}</td></tr>`).join('');
+  $('#sx-app').textContent = 'Приложение app.myuzcity.uz: Google — ' + (X.crawled.app.google ? 'заходил' : 'ещё не заходил') + ', Яндекс — ' + (X.crawled.app.yandex ? 'заходил' : 'ещё не заходил') + ' (за 30 дней).';
+  // роботы по дням
+  const W = 900, H = 210, L = 44, B = 26, ds = days30(), bw = (W - L) / ds.length, by = {};
+  for (const r of X.perDay) { const k = ['google', 'yandex', 'bing'].includes(r.bot) ? r.bot : 'o'; (by[r.d] = by[r.d] || {})[k] = ((by[r.d] || {})[k] || 0) + r.n; }
+  const C = { google: '#3E7BE0', yandex: '#E0533F', bing: '#2AA58F', o: '#B9C4BD' };
+  const max = Math.max(4, ...ds.map(d => Object.values(by[d] || {}).reduce((a, b) => a + b, 0)));
+  let s = axis(W, H, L, B, max, ds);
+  ds.forEach((d, i) => { let y0 = H - B; for (const k of ['google', 'yandex', 'bing', 'o']) { const n = (by[d] || {})[k] || 0; if (!n) continue; const h = (H - B - 12) * n / max; y0 -= h; s += `<rect x="${L + i * bw + 3}" y="${y0}" width="${bw - 6}" height="${h}" fill="${C[k]}"><title>${d}: ${k === 'o' ? 'другие' : BOTN[k]} — ${n}</title></rect>`; } });
+  $('#sx-chart').innerHTML = s;
+  // источники
+  const tr = {}; let tot = 0;
+  for (const r of X.traffic) { tr[r.src] = (tr[r.src] || 0) + r.n; tot += r.n; }
+  const tl = Object.entries(tr).sort((a, b) => b[1] - a[1]);
+  $('#sx-tr').innerHTML = tl.length ? tl.map(([k, n]) => `<li><span>${esc(k)}</span><b>${fmt(n)} · ${Math.round(n / tot * 100)}%</b><span class="bar"><i style="width:${n / tl[0][1] * 100}%"></i></span></li>`).join('') : '<li class="empty">Переходов пока нет.</li>';
+  // лента роботов
+  const row = r => `<li><span class="bot ${esc(r.bot)}">${esc(BOTN[r.bot] || r.bot)}</span><span>${esc(pageName(r.path, r.host))}${r.host === 'app' ? '<span class="tag app">приложение</span>' : ''}${r.st >= 400 ? ` <span class="bad">${r.st}</span>` : ''}</span><em>${when(r.t)}</em></li>`;
+  $('#sx-feed').innerHTML = X.feed.length ? X.feed.map(row).join('') : '<li class="empty">Роботы ещё не заходили с момента подключения статистики.</li>';
+  $('#sx-err-c').hidden = !X.errors.length;
+  $('#sx-err').innerHTML = X.errors.map(r => `<li><span class="bot ${esc(r.bot)}">${esc(BOTN[r.bot] || r.bot)}</span><span>${esc(r.path)} <span class="bad">${r.st}</span> ×${r.n}</span><em>${when(r.t)}</em></li>`).join('');
+  // кабинеты
+  const g = X.snap.google, y = X.snap.yandex;
+  $('#sx-gc').innerHTML = `<dl class="dl"><dt>Права на сайт</dt><dd class="ok">подтверждены ${dateRu(g.verified)}</dd><dt>Карта сайта</dt><dd>отправлена ${dateRu(g.submitted)}</dd><dt>Запрос индексации</dt><dd>${g.requested.map(p => esc(pageName(p, 'site'))).join(', ')}</dd><dt>Обошёл (наш учёт)</dt><dd>${X.crawled.google} из ${T} страниц</dd></dl><p class="msg">${esc(g.note)}</p><div class="act" style="margin-top:12px"><a href="${g.console}" target="_blank" rel="noopener">Открыть Search Console ↗</a></div>`;
+  $('#sx-yc').innerHTML = `<dl class="dl"><dt>Права на сайт</dt><dd class="ok">подтверждены ${dateRu(y.verified)}</dd><dt>IndexNow</dt><dd>${fmt(inx.n || y.indexnow.n)} адресов, ${when(inx.t || y.indexnow.t)}</dd><dt>Обошёл (наш учёт)</dt><dd>${X.crawled.yandex} из ${T} страниц</dd></dl><p class="msg">${esc(y.note)}</p><div class="act" style="margin-top:12px"><a href="${y.console}" target="_blank" rel="noopener">Открыть Вебмастер ↗</a></div>`;
+}
+
+$('#sx-push').addEventListener('click', async () => {
+  const b = $('#sx-push'), m = $('#sx-push-st'); b.disabled = true; m.textContent = 'Отправляем…';
+  try {
+    const r = await fetch('/api/seo', { method: 'POST', headers: { ...hdr(), 'content-type': 'application/json' }, body: JSON.stringify({ action: 'indexnow' }) });
+    const j = await r.json();
+    if (j.ok) { m.innerHTML = `<span class="ok">Готово:</span> ${j.n} адресов отправлены. Яндекс: ${j.site['yandex.com']}, Bing: ${j.site['www.bing.com']}.`; loadSeo(true); }
+    else m.innerHTML = `<span class="bad">Не отправлено.</span> ${esc(j.error || ('Яндекс: ' + (j.site || {})['yandex.com'] + ', Bing: ' + (j.site || {})['www.bing.com']))}`;
+  } catch (e) { m.textContent = 'Не удалось отправить: нет связи.'; }
+  b.disabled = false;
+});
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { P = b.dataset.p; if (A) render(); }));
+$('#login').addEventListener('submit', e => {
+  e.preventDefault(); KEY = e.target.k.value.trim(); if (!KEY) return;
+  try { localStorage.setItem('mz-stats-key', KEY); } catch (x) {}
+  e.target.k.value = ''; load(true);
+});
+$('#ref').addEventListener('click', () => load(true));
+$('#out').addEventListener('click', () => { try { localStorage.removeItem('mz-stats-key'); } catch (e) {} KEY = ''; A = X = null; showLogin(); });
+load(false);
+})();
+</script>
+</body>
+</html>

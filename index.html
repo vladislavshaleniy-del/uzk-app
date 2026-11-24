@@ -1445,5 +1445,6 @@ window.addEventListener('load', () => {
   show();
 })();
 </script>
+<script>/* просмотр для /stats (не считаем, когда приложение показано в телефоне на сайте) */try{var q=new URLSearchParams(location.search);if(/(^|\.)myuzcity\.uz$/.test(location.hostname)&&q.get('embed')!=='1'&&window.top===window){var b=JSON.stringify({p:'/'+(q.get('open')||'')});if(!(navigator.sendBeacon&&navigator.sendBeacon('/api/hit',new Blob([b],{type:'application/json'}))))fetch('/api/hit',{method:'POST',body:b,keepalive:true})}}catch(e){}</script>
 </body>
 </html>

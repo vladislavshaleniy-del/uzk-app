@@ -2,6 +2,8 @@
  "version": 1,
  "description": "Only the website pages and the API run as functions; everything else is a static file.",
  "include": [
+  "/sitemap.xml",
+  "/robots.txt",
   "/",
   "/uz",
   "/uz/*",

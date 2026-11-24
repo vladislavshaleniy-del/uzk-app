@@ -413,7 +413,7 @@
       if (fromEl) { const img = fromEl.querySelector('img'); if (img) img.style.viewTransitionName = 'sv-art'; }
       if (document.startViewTransition && !RM) await document.startViewTransition(go).updateCallbackDone; else await go();
       if (fromEl) { const img = fromEl.querySelector('img'); if (img) img.style.viewTransitionName = ''; }
-      if (push) history.pushState({ s: k }, '', MZ.url(k));
+      if (push) { history.pushState({ s: k }, '', MZ.url(k)); MZ.hit(MZ.url(k)); }
       if (k && k !== 'ai') fill(k);
     }
     async function fill(k) {

@@ -4,6 +4,7 @@ Allow: /
 Disallow: /functions/
 Disallow: /scripts/
 Disallow: /call.html
+Disallow: /stats
 
 # Yandex: these parameters do not change the page
 User-agent: Yandex
@@ -11,6 +12,7 @@ Allow: /
 Disallow: /functions/
 Disallow: /scripts/
 Disallow: /call.html
+Disallow: /stats
 Clean-param: v&embed&open&p&lang
 
 Sitemap: https://myuzcity.uz/sitemap.xml
