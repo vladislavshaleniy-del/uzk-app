@@ -670,7 +670,8 @@ function aiOpen() {
     <div class="ai-demo">${esc(t('demo'))}</div>`;
   document.body.appendChild(p);
   const fit = () => { const v = window.visualViewport;
-    p.style.top = (v ? v.offsetTop : 0) + 'px'; p.style.height = (v ? v.height : window.innerHeight) + 'px'; const b = document.getElementById('aiMsgs'); if (b) b.scrollTop = b.scrollHeight; };
+    const vh = v ? v.height : window.innerHeight, kb = window.innerHeight - vh > 80;
+    p.style.top = (v ? v.offsetTop : 0) + 'px'; p.style.height = (kb ? vh : Math.max(vh, window.__fullH || 0)) + 'px'; const b = document.getElementById('aiMsgs'); if (b) b.scrollTop = b.scrollHeight; };
   fit(); p._fit = fit; if (window.visualViewport) { window.visualViewport.addEventListener('resize', fit); window.visualViewport.addEventListener('scroll', fit); }
   requestAnimationFrame(() => p.classList.add('show'));
   aiRender(); updateFab();
