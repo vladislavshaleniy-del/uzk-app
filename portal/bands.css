@@ -1,0 +1,89 @@
+/* MyUzCity portal: the page is built from blocks with a rhythm of materials.
+   obsidian (green melting into black) · ivory (white, deep-green ink) · pearl (luminous emerald) · spotlight (the assistant).
+   The green pearl canvas shows between them as a thin frame. Loaded last. */
+:root { --gap: clamp(8px, 1.1vw, 16px); --bR: clamp(28px, 3vw, 48px); }
+
+.blk { position: relative; isolation: isolate; margin: var(--gap); border-radius: var(--bR); overflow: clip; }
+.blk > section:not(.story) { padding-top: clamp(76px, 8vw, 118px); padding-bottom: clamp(76px, 8vw, 118px); }
+.blk::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3; }
+
+/* ---------- obsidian: deep green into black ---------- */
+.blk-obs { background:
+    radial-gradient(60% 45% at 6% 0%, rgba(52, 216, 164, .14), transparent 70%),
+    radial-gradient(50% 40% at 100% 100%, rgba(237, 184, 98, .09), transparent 70%),
+    linear-gradient(180deg, #0D2716 0%, #07150D 46%, #020604 100%);
+  box-shadow: 0 50px 100px -50px rgba(0, 0, 0, .75); }
+.blk-obs::after { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px rgba(255, 255, 255, .045); }
+.blk-obs { --card: rgba(24, 60, 38, .5); }
+
+/* ---------- pearl: luminous emerald with a soft nacre sheen ---------- */
+.blk-pearl { background:
+    radial-gradient(70% 60% at 8% 0%, rgba(214, 255, 232, .32), transparent 62%),
+    radial-gradient(55% 55% at 100% 100%, rgba(246, 216, 152, .22), transparent 64%),
+    radial-gradient(40% 50% at 72% 28%, rgba(176, 226, 255, .10), transparent 70%),
+    linear-gradient(115deg, transparent 28%, rgba(255, 255, 255, .08) 45%, transparent 60%),
+    linear-gradient(160deg, #2B7C51 0%, #1B5D38 42%, #114628 100%);
+  box-shadow: 0 50px 100px -50px rgba(0, 0, 0, .6); }
+.blk-pearl::after { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .09); }
+.blk-pearl { --card: rgba(7, 34, 19, .42); --mut: rgba(250, 248, 240, .8); --dim: rgba(250, 248, 240, .6); --line: rgba(255, 255, 255, .14); }
+.blk-pearl .sec-head p, .blk-pearl .note { color: var(--mut); }
+
+/* ---------- spotlight: the assistant in a pool of light ---------- */
+.blk-spot { background:
+    radial-gradient(50% 62% at 50% 46%, rgba(52, 216, 164, .17), transparent 70%),
+    radial-gradient(40% 40% at 50% 100%, rgba(237, 184, 98, .09), transparent 70%),
+    linear-gradient(180deg, #071A0F, #010302);
+  box-shadow: 0 50px 100px -50px rgba(0, 0, 0, .8); }
+.blk-spot::after { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px rgba(255, 255, 255, .045); }
+.blk-spot .ai-card { box-shadow: 0 60px 120px -50px rgba(0, 0, 0, .9), 0 0 0 1px rgba(52, 216, 164, .12), 0 0 80px -30px rgba(52, 216, 164, .35); }
+
+/* ---------- ivory: white with deep-green ink ---------- */
+.blk-light {
+  --tx: #0C2416; --mut: rgba(12, 36, 22, .68); --dim: rgba(12, 36, 22, .5); --line: rgba(12, 36, 22, .1); --glass: rgba(12, 36, 22, .035); --card: #FFFFFF;
+  color: var(--tx); color-scheme: light;
+  background:
+    radial-gradient(55% 45% at 100% 0%, rgba(52, 216, 164, .09), transparent 70%),
+    radial-gradient(45% 40% at 0% 100%, rgba(237, 184, 98, .1), transparent 70%),
+    linear-gradient(180deg, #FFFFFF 0%, #F1F5F0 100%);
+  box-shadow: 0 50px 100px -50px rgba(0, 0, 0, .55); }
+.blk-light::after { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .6); }
+.blk-light h2, .blk-light h3 { color: #0A2013; }
+.blk-light ::selection { background: rgba(27, 93, 56, .18); color: #0A2013; }
+.blk-light .lnk { color: #8E5F14; }
+
+/* stats on ivory */
+.blk-light .stat-grid { background: rgba(12, 36, 22, .08); border-color: rgba(12, 36, 22, .08); box-shadow: 0 40px 70px -45px rgba(12, 44, 26, .45); }
+.blk-light .stat { background: #FFFFFF; }
+.blk-light .stat b { color: #0F3B21; }
+.blk-light .stat:nth-child(1) b, .blk-light .stat:nth-child(6) b { color: #A86F18; }
+.blk-light .stat span { color: rgba(12, 36, 22, .62); }
+.blk-light .stat::before { background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(52, 216, 164, .12), transparent 70%); }
+
+/* the map stays a dark instrument set into the white block */
+.blk-light .hub { --tx: #F4F1E8; --mut: rgba(244, 241, 232, .72); --dim: rgba(244, 241, 232, .5); --line: rgba(244, 241, 232, .085); --glass: rgba(244, 241, 232, .035);
+  color: var(--tx); color-scheme: dark; box-shadow: 0 50px 90px -45px rgba(6, 30, 16, .7), 0 0 0 1px rgba(12, 36, 22, .08); }
+.blk-light .map-head p { color: var(--mut); }
+
+/* partners on ivory: light rows, the form a deep-green card */
+.blk-light .tabs { background: rgba(12, 36, 22, .06); }
+.blk-light .tabs button { color: rgba(12, 36, 22, .62); }
+.blk-light .tabs button.on { background: #0F3B21; color: #FFFFFF; box-shadow: 0 8px 20px -10px rgba(15, 59, 33, .6); }
+.blk-light .tab-body .row { background: #FFFFFF; border-color: rgba(12, 36, 22, .08); box-shadow: 0 18px 40px -30px rgba(12, 44, 26, .45); }
+.blk-light .tab-body .row > span { background: linear-gradient(160deg, #1B5D38, #0D2E19); color: #F3CB7C; }
+.blk-light .tab-body p { color: rgba(12, 36, 22, .64); }
+.blk-light .pt-form { --tx: #F4F1E8; --mut: rgba(244, 241, 232, .72); --dim: rgba(244, 241, 232, .5); --line: rgba(244, 241, 232, .1);
+  color: var(--tx); color-scheme: dark; border: 0;
+  background: radial-gradient(90% 60% at 100% 0%, rgba(237, 184, 98, .16), transparent 60%), linear-gradient(170deg, #1B5D38 0%, #0F3B21 55%, #082414 100%) !important;
+  box-shadow: 0 50px 90px -40px rgba(6, 30, 16, .75), inset 0 1px 0 rgba(255, 255, 255, .14); }
+.blk-light .pt-form h3 { color: #FFFFFF; }
+
+/* the assistant section keeps its place while the chat is open in the side panel */
+#ai:not(:has(.ai-card)) { min-height: 360px; }
+
+@media (max-width: 760px) {
+  .blk > section:not(.story) { padding-top: 64px; padding-bottom: 64px; }
+  .blk-light .pt-form { padding: 24px; }
+}
+.partners, .pt-l, .pt-form { min-width: 0; }
+@media (max-width: 960px) { .partners { grid-template-columns: minmax(0, 1fr) !important; } }
+@media (max-width: 760px) { .tabs { width: 100%; justify-content: space-between; } .tabs button { padding: 10px 12px !important; font-size: 14px !important; flex: 1 1 auto; } }

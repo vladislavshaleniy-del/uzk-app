@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="/portal/portal.css?v=5">
 <link rel="stylesheet" href="/portal/pages.css?v=5">
 <link rel="stylesheet" href="/portal/luxe.css?v=14">
+<link rel="stylesheet" href="/portal/bands.css?v=1">
 </head>
 <body>
 <div class="pearl" aria-hidden="true"></div>
@@ -113,11 +114,11 @@
 </section>
 
 <!-- ============ LIVE CITY NUMBERS ============ -->
-<section class="services" id="services">
+<div class="blk blk-obs"><section class="services" id="services">
   <div class="sec-head reveal"><h2 id="svcT">Все сервисы города</h2><p id="svcS"></p></div>
   <div class="svc-grid" id="svcGrid"></div>
-</section>
-<section class="stats" id="stats">
+</section></div>
+<div class="blk blk-light"><section class="stats" id="stats">
   <h2 class="reveal" data-i="stats_t">Ташкент в приложении уже сегодня</h2>
   <div class="stat-grid">
     <div class="stat reveal"><b data-count="cafes">0</b><span data-i="s_cafes">кафе и ресторанов</span></div>
@@ -130,19 +131,19 @@
     <div class="stat reveal"><b data-count="speedcam">0</b><span data-i="s_cams">камер скорости</span></div>
   </div>
   <p class="note reveal" data-i="stats_src">Данные OpenStreetMap и открытых источников. Обновляются автоматически каждые 2 часа.</p>
-</section>
+</section></div>
 
 <!-- ============ LIFE MOMENTS ============ -->
-<section class="moments" id="moments">
+<div class="blk blk-pearl"><section class="moments" id="moments">
   <div class="sec-head reveal">
     <h2 data-i="mo_t">Сервисы под ваши жизненные ситуации</h2>
     <p data-i="mo_s">Не ищите нужную госслужбу или приложение. Выберите ситуацию, всё нужное уже собрано.</p>
   </div>
   <div class="mo-track" id="moTrack"></div>
-</section>
+</section></div>
 
 <!-- ============ THREE PILLARS (bento) ============ -->
-<section class="pillars" id="pillars">
+<div class="blk blk-obs"><section class="pillars" id="pillars">
   <h2 class="reveal" data-i="pi_t">Три опоры умного города</h2>
   <div class="bento">
     <article class="b b-trust reveal">
@@ -175,16 +176,16 @@
       <a class="lnk" href="#ai" data-i="pi5_l">Спросить сейчас</a>
     </article>
   </div>
-</section>
+</section></div>
 
 <!-- ============ CITY + SERVICES MAP ============ -->
-<section class="mapsec" id="map">
+<div class="blk blk-light"><section class="mapsec" id="map">
   <div class="map-head reveal"><h2 id="hubT">Город и сервисы на карте</h2><p id="hubS"></p></div>
   <div id="hubHome"></div>
-</section>
+</section></div>
 
 <!-- ============ AI LIVE ============ -->
-<div id="aiHome"><section class="ai" id="ai">
+<div id="aiHome" class="blk blk-spot"><section class="ai" id="ai">
   <div class="ai-card reveal">
     <div class="ai-top"><span class="ic ai-wv"><span class="ag-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span><div><h2 data-i="ai_t">Спросите что угодно о городе</h2><p data-i="ai_s">Это настоящий ИИ-помощник MyUzCity. Отвечает на узбекском, русском и английском.</p></div></div>
     <div class="ai-log" id="aiLog" aria-live="polite"></div>
@@ -194,7 +195,7 @@
 </section></div>
 
 <!-- ============ LIVE WIDGETS ============ -->
-<section class="live" id="live">
+<div class="blk blk-pearl"><section class="live" id="live">
   <h2 class="reveal" data-i="lv_t">Город прямо сейчас</h2>
   <div class="lv-grid">
     <article class="w w-wx reveal" id="wWx"><div class="sk"></div></article>
@@ -203,10 +204,10 @@
     <article class="w w-fl reveal" id="wFl"><div class="sk"></div></article>
     <article class="w w-nw reveal" id="wNw"><div class="sk"></div></article>
   </div>
-</section>
+</section></div>
 
 <!-- ============ PARTNERS ============ -->
-<section class="partners" id="partners">
+<div class="blk blk-light"><section class="partners" id="partners">
   <div class="pt-l reveal">
     <h2 data-i="pt_t">Для города, бизнеса и инвесторов</h2>
     <div class="tabs" role="tablist"><button role="tab" class="on" data-tab="gov" data-i="pt_gov">Хокимиятам</button><button role="tab" data-tab="biz" data-i="pt_biz">Бизнесу</button><button role="tab" data-tab="inv" data-i="pt_inv">Инвесторам</button></div>
@@ -220,10 +221,10 @@
     <button class="btn btn-acc" type="submit" data-i="pf_send">Отправить заявку</button>
     <p class="form-msg" id="pfMsg" role="status"></p>
   </form>
-</section>
+</section></div>
 
 <!-- ============ GET THE APP ============ -->
-<section class="get" id="get">
+<div class="blk blk-obs"><section class="get" id="get">
   <div class="get-card reveal">
     <div class="get-l">
       <h2 data-i="g_t">Откройте MyUzCity</h2>
@@ -233,7 +234,7 @@
     </div>
     <div class="get-r" id="qrBox"><div class="qr" id="qr" aria-label="QR"></div><p data-i="g_qr">Наведите камеру телефона</p></div>
   </div>
-</section>
+</section></div>
 </main>
 <div id="svView" hidden></div>
 
