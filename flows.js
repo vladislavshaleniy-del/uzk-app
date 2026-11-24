@@ -3675,3 +3675,81 @@ HS.services.mount = el => {
       : `<button class="lv-row" data-act="aiopen"><span class="lv-ri" style="background:#7A4C96;color:#fff">${ico('spark', 22)}</span><span class="lv-rt"><b>${esc(t('sv_none'))}</b></span>${IC.chev}</button>`;
   });
 };
+
+// ======================= Theme: system / light / dark, and the services grid ↔ list switch =======================
+Object.assign(ICP, {
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>',
+  auto: '<circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>',
+  updown: '<path d="M8 9l4-4 4 4M8 15l4 4 4-4"/>',
+  ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+});
+Object.assign(LV, {
+  p_theme: L4('Тема', 'Mavzu', 'Theme', '主题'),
+  th_system: L4('Системная', 'Tizim bo‘yicha', 'System', '跟随系统'),
+  th_light: L4('Светлая', 'Yorug‘', 'Light', '浅色'),
+  th_dark: L4('Тёмная', 'Qorong‘i', 'Dark', '深色'),
+  v_grid: L4('Плитки', 'Kataklar', 'Tiles', '网格'),
+  v_list: L4('Список', 'Ro‘yxat', 'List', '列表'),
+});
+let THEME = 'system'; try { THEME = localStorage.getItem('uzk-theme') || 'system'; } catch (e) {}
+const MQ_DARK = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+function applyTheme() {
+  const dk = THEME === 'dark' || (THEME === 'system' && !!MQ_DARK && MQ_DARK.matches);
+  document.documentElement.classList.toggle('dk', dk);
+}
+function setTheme(v) {
+  THEME = v; try { localStorage.setItem('uzk-theme', v); } catch (e) {}
+  const swap = () => { applyTheme(); const val = document.querySelector('.th-val b'); if (val) val.textContent = lt('th_' + v); };
+  if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.startViewTransition(swap); else swap();
+}
+if (MQ_DARK) { const f = () => THEME === 'system' && applyTheme(); MQ_DARK.addEventListener ? MQ_DARK.addEventListener('change', f) : MQ_DARK.addListener(f); }
+applyTheme();
+
+// a small glass menu that opens from the tapped row, like iOS context menus
+function popMenu(anchor, items, onPick) {
+  const host = anchor.closest('.hscreen'); if (!host) return;
+  document.querySelectorAll('.pmenu-wrap').forEach(x => x.remove());
+  const hr = host.getBoundingClientRect(), ar = anchor.getBoundingClientRect(), z = hr.width / host.offsetWidth || 1;
+  const wrap = document.createElement('div'); wrap.className = 'pmenu-wrap';
+  wrap.innerHTML = `<div class="pmenu" role="menu">${items.map(([k, label, icon, on]) => `<button role="menuitemradio" aria-checked="${on}" data-k="${k}" class="${on ? 'on' : ''}"><span class="pm-ok">${on ? ico('ok', 18, 'currentColor', 2.4) : ''}</span><b>${esc(label)}</b>${ico(icon, 20)}</button>`).join('')}</div>`;
+  host.appendChild(wrap);
+  const m = wrap.firstChild, mh = m.offsetHeight, H = host.offsetHeight;
+  let top = (ar.bottom - hr.top) / z + 6; if (top + mh > H - 90) top = (ar.top - hr.top) / z - mh - 6;
+  m.style.top = Math.max(60, top) + 'px'; m.style.right = '16px';
+  m.style.transformOrigin = top < (ar.top - hr.top) / z ? '90% 100%' : '90% 0%';
+  requestAnimationFrame(() => wrap.classList.add('in'));
+  const close = () => { wrap.classList.remove('in'); setTimeout(() => wrap.remove(), 180); };
+  wrap.addEventListener('click', e => { const b = e.target.closest('button[data-k]'); e.stopPropagation(); close(); if (b) setTimeout(() => onPick(b.dataset.k), 120); });
+}
+XACT.themepop = () => {
+  const row = document.querySelector('.hscreen [data-act="themepop"]'); if (!row) return;
+  popMenu(row, [['system', lt('th_system'), 'auto', THEME === 'system'], ['light', lt('th_light'), 'sun', THEME === 'light'], ['dark', lt('th_dark'), 'moon', THEME === 'dark']], setTheme);
+};
+const _set0 = HS.settings;
+HS.settings = () => _set0().replace(/(<button class="lv-row" data-act="langsheet">[\s\S]*?<\/button>)/, `$1${lvRow('moon', lt('p_theme'), '', 'themepop', { right: `<span class="th-val"><b>${esc(lt('th_' + THEME))}</b>${ico('updown', 16, 'currentColor', 2)}</span>` })}`);
+
+// services: tiles or a list, the cards glide between the two layouts
+let SVVIEW = 'grid'; try { SVVIEW = localStorage.getItem('uzk-svview') || 'grid'; } catch (e) {}
+const _svc1 = HS.services, _svcMount1 = HS.services.mount;
+HS.services = () => _svc1()
+  .replace('</h1></header>', `</h1><div class="lv-view" role="group"><button data-view="grid" class="${SVVIEW === 'grid' ? 'on' : ''}" aria-label="${esc(lt('v_grid'))}">${ico('grid', 20)}</button><button data-view="list" class="${SVVIEW === 'list' ? 'on' : ''}" aria-label="${esc(lt('v_list'))}">${ico('list', 20)}</button></div></header>`)
+  .replace(/class="lv-grid"/g, `class="lv-grid${SVVIEW === 'list' ? ' as-list' : ''}"`);
+HS.services.mount = el => {
+  if (_svcMount1) _svcMount1(el);
+  const body = el.querySelector('.lv-body');
+  el.querySelectorAll('.lv-view button').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation(); const v = b.dataset.view; if (v === SVVIEW) return;
+    SVVIEW = v; try { localStorage.setItem('uzk-svview', v); } catch (er) {}
+    el.querySelectorAll('.lv-view button').forEach(x => x.classList.toggle('on', x.dataset.view === v));
+    const items = [...body.querySelectorAll('.lv-tile, .lv-sec')];
+    const first = items.map(x => [x.offsetLeft, x.offsetTop, x.offsetWidth]);
+    body.querySelectorAll('.lv-grid').forEach(g => g.classList.toggle('as-list', v === 'list'));
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    items.forEach((x, i) => {
+      const dx = first[i][0] - x.offsetLeft, dy = first[i][1] - x.offsetTop; if (!dx && !dy) return;
+      x.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 460, easing: 'cubic-bezier(.2, .8, .2, 1)', delay: Math.min(i, 14) * 12, fill: 'backwards' });
+    });
+    body.querySelectorAll('.lv-grid').forEach(g => g.animate([{ opacity: .6 }, { opacity: 1 }], { duration: 300, easing: 'ease-out' }));
+  }));
+};
