@@ -129,14 +129,24 @@
       ['stack', { ru: 'Живые данные', uz: "Jonli ma'lumotlar", en: 'Live data' }, { ru: 'Транспорт, медицина, погода, курсы и новости обновляются автоматически.', uz: "Transport, tibbiyot, ob-havo, kurslar va yangiliklar avtomatik yangilanadi.", en: 'Transport, healthcare, weather, rates and news update automatically.' }],
       ['chart-line-up', { ru: 'Модель роста', uz: "O'sish modeli", en: 'Growth model' }, { ru: 'Подписка для хокимиятов, продвижение бизнеса на карте и партнёрские комиссии за билеты и услуги.', uz: "Hokimliklar uchun obuna, xaritada biznesni targ'ib qilish va chipta va xizmatlar uchun hamkorlik komissiyalari.", en: 'Subscriptions for city halls, business promotion on the map and partner commissions on tickets and services.' }]],
   };
+  // On myuzcity.uz every page has its own address: /, /uz/, /en/ and /transport, /uz/transport… (rendered by the server
+  // in functions/_lib/site.js). Opened as /portal/ (a preview), the old ?s=…&lang=… addresses are used instead.
+  const SEO = (() => { try { return JSON.parse($('#mz-seo').textContent); } catch (e) { return null; } })();
+  const CLEAN = !!SEO;
+  const parsePath = () => { const m = location.pathname.match(/^\/(?:(uz|en)(?:\/|$))?([a-z]*)\/?$/); return m ? { l: m[1] || 'ru', s: m[2] || '' } : { l: 'ru', s: '' }; };
   let L = 'ru';
-  try { const q = new URLSearchParams(location.search).get('lang'); L = T[q] ? q : (localStorage.getItem('mz-portal-lang') || ((navigator.language || '').startsWith('uz') ? 'uz' : (navigator.language || '').startsWith('en') ? 'en' : 'ru')); if (!T[L]) L = 'ru'; } catch (e) {}
+  try { const q = new URLSearchParams(location.search).get('lang'); L = CLEAN ? SEO.l : T[q] ? q : (localStorage.getItem('mz-portal-lang') || ((navigator.language || '').startsWith('uz') ? 'uz' : (navigator.language || '').startsWith('en') ? 'en' : 'ru')); if (!T[L]) L = 'ru'; } catch (e) {}
+  // address of a service page ('' = home) in a language
+  const url = (k, l = L) => CLEAN ? (l === 'ru' ? '/' : `/${l}/`) + (k || '') : k ? `?s=${k}${l !== 'ru' ? '&lang=' + l : ''}` : location.pathname + (l !== 'ru' ? '?lang=' + l : '');
+  // the service page the address points to
+  const route = () => CLEAN ? parsePath().s : (new URLSearchParams(location.search).get('s') || '');
   const t = k => (T[L][k] != null ? T[L][k] : T.ru[k]);
+  const title = k => (SEO && SEO.titles && SEO.titles[k || '']) || (k ? '' : t('title'));
   const fmt = n => Math.round(n).toLocaleString(L === 'en' ? 'en-US' : 'ru-RU').replace(/,/g, L === 'en' ? ',' : ' ');
 
   // ---------------- language ----------------
   function applyLang() {
-    document.documentElement.lang = L; document.title = t('title');
+    document.documentElement.lang = L; document.title = title(route()) || t('title');
     $$('[data-i]').forEach(e => { const v = t(e.dataset.i); if (typeof v === 'string') e.textContent = v; });
     $('#aiIn').placeholder = t('ai_ph');
     $$('.langs button').forEach(b => b.classList.toggle('on', b.dataset.lang === L));
@@ -149,7 +159,10 @@
     const f = $('#appFrame'); if (f && f.dataset.ready) try { f.contentWindow.postMessage({ mz: 'lang', l: L }, '*'); } catch (e) {}
   }
   const appLink = (id, p) => `${APP}?open=${encodeURIComponent(id)}${p ? '&p=' + encodeURIComponent(p) : ''}&lang=${L}`;
-  $$('.langs button').forEach(b => b.addEventListener('click', () => { L = b.dataset.lang; try { localStorage.setItem('mz-portal-lang', L); } catch (e) {} applyLang(); }));
+  $$('.langs button').forEach(b => b.addEventListener('click', () => {
+    const nl = b.dataset.lang; try { localStorage.setItem('mz-portal-lang', nl); } catch (e) {}
+    if (CLEAN) { if (nl !== L) location.assign(url(route(), nl) + location.hash); return; } // each language has its own pages
+    L = nl; applyLang(); }));
 
   // ---------------- nav state (sentinel, no scroll listener) ----------------
   const sent = document.createElement('div'); sent.style.cssText = 'position:absolute;top:80px;height:1px;width:1px'; document.body.prepend(sent);
@@ -339,7 +352,7 @@
   function drawQR() { if (!window.qrcode) return setTimeout(drawQR, 200); const url = APP === '/' ? location.origin + '/' : APP; const q = window.qrcode(0, 'M'); q.addData(url); q.make(); $('#qr').innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true }); const s = $('#qr svg'); if (s) { s.querySelectorAll('rect').forEach(r => { if (r.getAttribute('fill') === '#ffffff' || r.getAttribute('fill') === 'white') r.setAttribute('fill', 'transparent'); }); s.querySelectorAll('path').forEach(p => p.setAttribute('fill', '#0B2413')); } }
   drawQR();
 
-  window.MZ = { t, lang: () => L, $, $$, esc, ic, getJ, fmt, DATA, API, APP, appLink, D, prayTimes, hm, WMO, aqLvl, AQC, ask: q => { $('#aiIn').value = ''; ask(q); }, PHONE: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) };
+  window.MZ = { t, lang: () => L, url, route, title, CLEAN, $, $$, esc, ic, getJ, fmt, DATA, API, APP, appLink, D, prayTimes, hm, WMO, aqLvl, AQC, ask: q => { $('#aiIn').value = ''; ask(q); }, PHONE: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) };
   applyLang();
   document.dispatchEvent(new CustomEvent('mz:ready'));
 })();

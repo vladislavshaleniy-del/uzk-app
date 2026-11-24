@@ -1,6 +1,7 @@
 {
  "name": "MyUzCity",
  "short_name": "MyUzCity",
+ "description": "Приложение умного города для Ташкента и всего Узбекистана: транспорт, аптеки и клиники, госуслуги, детсады, время намаза, махалля, тревожная кнопка и ИИ-помощник.",
  "id": "./",
  "start_url": "./",
  "scope": "./",
@@ -28,5 +29,13 @@
    "type": "image/png",
    "purpose": "maskable"
   }
- ]
+ ],
+ "categories": [
+  "lifestyle",
+  "navigation",
+  "travel",
+  "utilities",
+  "government"
+ ],
+ "dir": "ltr"
 }

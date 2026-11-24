@@ -1,0 +1,31 @@
+name: Sync SEO texts
+# When the portal texts change, copy them into the server function (pre-rendered /uz/ and /en/ pages) and refresh sitemap.xml.
+on:
+  push:
+    branches: [main]
+    paths: ['portal/portal.js', 'portal/pages.js', 'scripts/build-seo-i18n.mjs']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/build-seo-i18n.mjs
+      - name: Commit
+        run: |
+          git config user.name "uzk-data-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add functions/_lib/i18n.gen.js sitemap.xml
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "seo: тексты портала для серверной версии страниц"
+          git pull --rebase origin main
+          git push origin HEAD:main

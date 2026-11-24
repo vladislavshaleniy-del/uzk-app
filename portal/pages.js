@@ -145,7 +145,7 @@
     function renderCatalog() {
       const box = $('#svcGrid'); if (!box) return;
       $('#svcT').textContent = s('svc_t'); $('#svcS').textContent = s('svc_s');
-      box.innerHTML = ORDER.map(k => { const v = SV[k]; const sz = TILE[k] || ''; return `<a class="tile ${sz}" href="?s=${k}" data-sv="${k}" style="--g:${v.g}">
+      box.innerHTML = ORDER.map(k => { const v = SV[k]; const sz = TILE[k] || ''; return `<a class="tile ${sz}" href="${MZ.url(k)}" data-sv="${k}" style="--g:${v.g}">
         ${v.art ? `<img src="${ART(v.art)}" alt="" loading="lazy" decoding="async">` : `<div class="tile-ag">${ROBOT()}</div>`}
         <span class="tile-ic">${ic(v.ic)}</span><span class="tile-tx"><b>${esc(pick(v.t))}</b><i>${esc(pick(v.sub))}</i></span><span class="tile-go">${ic('arrow-up-right')}</span></a>`; }).join('');
     }
@@ -181,7 +181,7 @@
             </div>
           </aside>
         </div>
-        <section class="sv-next"><h2>${esc(s('next'))}</h2><div class="next-row">${others.map(o => `<a class="tile sm" href="?s=${o}" data-sv="${o}" style="--g:${SV[o].g}">${SV[o].art ? `<img src="${ART(SV[o].art)}" alt="" loading="lazy">` : ''}<span class="tile-ic">${ic(SV[o].ic)}</span><span class="tile-tx"><b>${esc(pick(SV[o].t))}</b><i>${esc(pick(SV[o].sub))}</i></span><span class="tile-go">${ic('arrow-up-right')}</span></a>`).join('')}</div></section>
+        <section class="sv-next"><h2>${esc(s('next'))}</h2><div class="next-row">${others.map(o => `<a class="tile sm" href="${MZ.url(o)}" data-sv="${o}" style="--g:${SV[o].g}">${SV[o].art ? `<img src="${ART(SV[o].art)}" alt="" loading="lazy">` : ''}<span class="tile-ic">${ic(SV[o].ic)}</span><span class="tile-tx"><b>${esc(pick(SV[o].t))}</b><i>${esc(pick(SV[o].sub))}</i></span><span class="tile-go">${ic('arrow-up-right')}</span></a>`).join('')}</div></section>
       </div>`;
     }
 
@@ -293,7 +293,7 @@
     const HN = { med: tr3('Аптеки и клиники', 'Dorixona va klinikalar', 'Pharmacies and clinics'), gov: tr3('Госучреждения и ЦГУ', 'Davlat muassasalari', 'Public offices'), metro: tr3('Станции метро', 'Metro bekatlari', 'Metro stations'), edu: tr3('Школы и детсады', "Maktab va bog'chalar", 'Schools and kindergartens'), mosque: tr3('Мечети', 'Masjidlar', 'Mosques'), cafes: tr3('Кафе и рестораны', 'Kafe va restoranlar', 'Cafes and restaurants'), sight: tr3('Достопримечательности', 'Diqqatga sazovor joylar', 'Sights'), parking: tr3('Парковки', 'Parkovkalar', 'Parking'), ev: tr3('Электрозарядки', 'Elektr zaryadlash', 'EV chargers'), reports: tr3('Обращения жителей', 'Aholi murojaatlari', 'Residents’ reports'), speedcam: tr3('Камеры скорости', 'Tezlik kameralari', 'Speed cameras') };
     const hubOn = new Set(HL.filter(x => x[4]).map(x => x[0]));
     function hubHtml(big) {
-      return `<div class="hub ${big ? 'big' : ''}"><aside class="hub-side"><label class="hub-q">${ic('compass')}<input class="hubQ" placeholder="${esc(s('search'))}"></label><div class="hub-res"></div><p class="hub-l">${esc(s('layers'))}</p><div class="hub-cats">${HL.map(([k, c, i, sv]) => `<div class="hc ${hubOn.has(k) ? 'on' : ''}" data-k="${k}" style="--c:${c}"><button class="hc-t" data-k="${k}"><span class="hc-ic">${ic(i)}</span><span class="hc-n">${esc(pick(HN[k]))}</span><em class="hc-c" data-c="${k}"></em><i class="sw"></i></button><a class="hc-sv" href="?s=${sv}" data-sv="${sv}" title="${esc(pick(SV[sv].t))}">${ic('arrow-up-right')}</a></div>`).join('')}</div></aside><div class="hub-map"></div><div class="hub-card" hidden></div><div class="hub-count"></div></div>`;
+      return `<div class="hub ${big ? 'big' : ''}"><aside class="hub-side"><label class="hub-q">${ic('compass')}<input class="hubQ" placeholder="${esc(s('search'))}"></label><div class="hub-res"></div><p class="hub-l">${esc(s('layers'))}</p><div class="hub-cats">${HL.map(([k, c, i, sv]) => `<div class="hc ${hubOn.has(k) ? 'on' : ''}" data-k="${k}" style="--c:${c}"><button class="hc-t" data-k="${k}"><span class="hc-ic">${ic(i)}</span><span class="hc-n">${esc(pick(HN[k]))}</span><em class="hc-c" data-c="${k}"></em><i class="sw"></i></button><a class="hc-sv" href="${MZ.url(sv)}" data-sv="${sv}" title="${esc(pick(SV[sv].t))}">${ic('arrow-up-right')}</a></div>`).join('')}</div></aside><div class="hub-map"></div><div class="hub-card" hidden></div><div class="hub-count"></div></div>`;
     }
     function hubInit(root) {
       const mapEl = root.querySelector('.hub-map'), card = root.querySelector('.hub-card'), G = {};
@@ -303,7 +303,7 @@
         card.hidden = false; card.style.setProperty('--c', c[1]);
         card.innerHTML = `<button class="hcx" aria-label="close">${ic('x')}</button><span class="hk">${ic(c[2])}${esc(pick(HN[k]))}</span><b>${esc(x.n || x.text || pick(HN[k]))}</b>${x.n2 && x.n2 !== x.n ? `<i>${esc(x.n2)}</i>` : ''}
           ${x.ad ? `<p>${ic('map-pin')}${esc(x.ad)}</p>` : ''}${x.h ? `<p>${ic('calendar-check')}${esc(x.h)}${o !== null ? ` <em class="${o ? 'op' : 'cl'}">${esc(o ? s('open_now') : '')}</em>` : ''}</p>` : ''}${x.ph ? `<p>${ic('phone')}<a href="tel:${esc(x.ph.replace(/\s/g, ''))}">${esc(x.ph)}</a></p>` : ''}
-          <div class="hc-b"><a class="btn btn-ghost btn-sm" href="https://yandex.uz/maps/?rtext=~${x.la},${x.lo}&rtt=auto" target="_blank" rel="noopener">${ic('road-horizon')}<span>${esc(s('route'))}</span></a><a class="btn btn-acc btn-sm" href="?s=${sv}" data-sv="${sv}">${esc(s('service'))}: ${esc(pick(SV[sv].t))}</a></div>`;
+          <div class="hc-b"><a class="btn btn-ghost btn-sm" href="https://yandex.uz/maps/?rtext=~${x.la},${x.lo}&rtt=auto" target="_blank" rel="noopener">${ic('road-horizon')}<span>${esc(s('route'))}</span></a><a class="btn btn-acc btn-sm" href="${MZ.url(sv)}" data-sv="${sv}">${esc(s('service'))}: ${esc(pick(SV[sv].t))}</a></div>`;
         card.querySelector('.hcx').onclick = () => { card.hidden = true; }; };
       const draw = async () => { if (!m) return; let total = 0;
         for (const [k, c] of HL) { if (G[k]) { m.removeLayer(G[k]); delete G[k]; } if (!hubOn.has(k)) continue; const list = data[k] || (data[k] = await layer(k)); total += list.length; G[k] = dots(m, list, c, k === 'metro' ? 6 : 4.2, x => show(k, x)); }
@@ -367,7 +367,7 @@
     }
     document.addEventListener('mz:reply', e => { const { text, tags, el } = e.detail; blip(880, 1320, .1); speak(text);
       const svs = [...new Set((tags || []).map(k => GO2SV[k]).filter(Boolean))].slice(0, 2);
-      if (svs.length && el) el.insertAdjacentHTML('beforeend', `<span class="msg-go">${svs.map(k => `<a href="?s=${k}" data-sv="${k}">${ic(SV[k].ic)}${esc(pick(SV[k].t))} →</a>`).join('')}</span>`); });
+      if (svs.length && el) el.insertAdjacentHTML('beforeend', `<span class="msg-go">${svs.map(k => `<a href="${MZ.url(k)}" data-sv="${k}">${ic(SV[k].ic)}${esc(pick(SV[k].t))} →</a>`).join('')}</span>`); });
 
     // big robot beside the chat (home section and the assistant page)
     function agentInit() { const box = $('#agent'); if (box) box.remove(); }
@@ -395,23 +395,25 @@
     }
 
     // ---------------- routing with smooth transitions ----------------
+    // the text block the server adds above the footer describes the page it rendered; hide it on other pages
+    const seoBlk = k => { const b = $('#seo'); if (b) b.hidden = (k || '') !== (document.documentElement.dataset.sv || ''); };
     async function openSv(k, push, fromEl) {
       if (!SV[k]) k = null;
       const go = async () => {
         maps.splice(0).forEach(m => { try { m.remove(); } catch (e) {} });
-        if (!k) { $('#dock') && $('#dock').classList.remove('gone'); view.hidden = true; view.innerHTML = ''; home.hidden = false; document.body.classList.remove('on-sv'); cur = null; document.title = t('title'); return; }
+        if (!k) { $('#dock') && $('#dock').classList.remove('gone'); view.hidden = true; view.innerHTML = ''; home.hidden = false; document.body.classList.remove('on-sv'); cur = null; document.title = MZ.title('') || t('title'); seoBlk(''); return; }
         cur = k; home.hidden = true; view.hidden = false; document.body.classList.add('on-sv');
         if (window.MZdock) MZdock.close(); $('#dock') && $('#dock').classList.toggle('gone', k === 'ai');
         if (k === 'ai') { view.innerHTML = `<div class="sv sv-ai" style="--g:${SV.ai.g}"><div class="sv-ai-in" id="aiHost"></div></div>`; $('#aiHost').appendChild($('#ai')); $('#ai').classList.add('in-page'); }
         else { view.innerHTML = shell(k); }
-        document.title = `${pick(SV[k].t)} · MyUzCity`;
+        document.title = MZ.title(k) || `${pick(SV[k].t)} · MyUzCity`; seoBlk(k);
         scrollTo(0, 0);
       };
       if (!k || k !== 'ai') { const a = $('#ai'); if (a && a.classList.contains('in-page')) { a.classList.remove('in-page'); $('#aiHome').appendChild(a); } }
       if (fromEl) { const img = fromEl.querySelector('img'); if (img) img.style.viewTransitionName = 'sv-art'; }
       if (document.startViewTransition && !RM) await document.startViewTransition(go).updateCallbackDone; else await go();
       if (fromEl) { const img = fromEl.querySelector('img'); if (img) img.style.viewTransitionName = ''; }
-      if (push) history.pushState({ s: k }, '', k ? `?s=${k}${L() !== 'ru' ? '&lang=' + L() : ''}` : location.pathname + (L() !== 'ru' ? '?lang=' + L() : ''));
+      if (push) history.pushState({ s: k }, '', MZ.url(k));
       if (k && k !== 'ai') fill(k);
     }
     async function fill(k) {
@@ -428,7 +430,7 @@
       const sc = e.target.closest('a[data-scroll]'); if (sc) { e.preventDefault(); const el = document.querySelector(sc.getAttribute('href')); el && el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       const nav = e.target.closest('.nav a[href^="#"]'); if (nav && cur) { e.preventDefault(); const id = nav.getAttribute('href').slice(1); openSv(null, true).then(() => { const el = document.getElementById(id); el && el.scrollIntoView(); }); }
     });
-    addEventListener('popstate', () => openSv(new URLSearchParams(location.search).get('s'), false));
+    addEventListener('popstate', () => openSv(MZ.route(), false));
     document.addEventListener('mz:lang', () => { renderCatalog(); wireRobots($('#svcGrid')); agentInit(); hsInit(); if (cur) { const k = cur; cur = null; openSv(k, false); } });
     document.addEventListener('mz:data', () => { if (cur === 'transport' && !$('#svMain .board')) fill('transport'); });
 
@@ -507,9 +509,9 @@
     addEventListener('keydown', e => { const q = $('#hsQ'); if (q && e.key === '/' && !/input|textarea/i.test((document.activeElement || {}).tagName || '') && !cur) { e.preventDefault(); q.focus(); } });
 
     // story steps and nav links point to the service pages
-    $$('.go-app[data-sv]').forEach(a => { a.href = `?s=${a.dataset.sv}`; });
+    $$('.go-app[data-sv]').forEach(a => { a.href = MZ.url(a.dataset.sv); });
     renderCatalog(); wireRobots($('#svcGrid')); agentInit(); wireChat(); dockInit(); hsInit();
     const hubHome = $('#hubHome'); if (hubHome) { hubHome.innerHTML = hubHtml(false); hubInit(hubHome.querySelector('.hub')); const hh = $('#hubT'); if (hh) { hh.textContent = s('hub_t'); $('#hubS').textContent = s('hub_s'); } }
-    const s0 = new URLSearchParams(location.search).get('s'); if (s0) openSv(s0, false);
+    const s0 = MZ.route(); if (s0) openSv(s0, false);
   }
 })();

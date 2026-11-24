@@ -1,0 +1,13 @@
+# Copies of the site on *.pages.dev stay out of search results; myuzcity.uz and app.myuzcity.uz are the real addresses.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
+
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Cache-Control: public, max-age=3600
+
+/portal/og/*
+  Cache-Control: public, max-age=604800

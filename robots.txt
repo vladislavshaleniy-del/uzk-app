@@ -1,0 +1,16 @@
+# MyUzCity — https://myuzcity.uz (website) and https://app.myuzcity.uz (app)
+User-agent: *
+Allow: /
+Disallow: /functions/
+Disallow: /scripts/
+Disallow: /call.html
+
+# Yandex: these parameters do not change the page
+User-agent: Yandex
+Allow: /
+Disallow: /functions/
+Disallow: /scripts/
+Disallow: /call.html
+Clean-param: v&embed&open&p&lang
+
+Sitemap: https://myuzcity.uz/sitemap.xml
