@@ -146,7 +146,7 @@
       const box = $('#svcGrid'); if (!box) return;
       $('#svcT').textContent = s('svc_t'); $('#svcS').textContent = s('svc_s');
       box.innerHTML = ORDER.map(k => { const v = SV[k]; const sz = TILE[k] || ''; return `<a class="tile ${sz}" href="?s=${k}" data-sv="${k}" style="--g:${v.g}">
-        ${v.art ? `<img src="${ART(v.art)}" alt="" loading="lazy" decoding="async">` : `<div class="tile-ag">${ROBOT('botsm')}</div>`}
+        ${v.art ? `<img src="${ART(v.art)}" alt="" loading="lazy" decoding="async">` : `<div class="tile-ag">${ROBOT()}</div>`}
         <span class="tile-ic">${ic(v.ic)}</span><span class="tile-tx"><b>${esc(pick(v.t))}</b><i>${esc(pick(v.sub))}</i></span><span class="tile-go">${ic('arrow-up-right')}</span></a>`; }).join('');
     }
 
@@ -320,137 +320,12 @@
     }
     R.map = async () => ({ k: '', m: `<div class="pn wide hub-wrap">${hubHtml(true)}</div>`, after: () => hubInit($('#svMain .hub')) });
 
-    // ---------------- the whole page sits inside the Matrix: faint code streams behind everything ----------------
-    (function pageRain() {
-      const cv = document.createElement('canvas'); cv.id = 'mxbg'; cv.setAttribute('aria-hidden', 'true'); document.body.prepend(cv);
-      const ctx = cv.getContext('2d'), G = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ0123456789'.split('');
-      let W = 0, H = 0, fs = 16, cols = [], last = 0;
-      const fit = () => { const d = Math.min(1.5, devicePixelRatio || 1); W = cv.width = innerWidth * d; H = cv.height = innerHeight * d; fs = Math.round((innerWidth < 760 ? 14 : 17) * d);
-        cols = Array.from({ length: Math.ceil(W / fs) }, () => ({ y: Math.random() * H / fs, sp: .25 + Math.random() * .7, on: Math.random() > .35, gold: Math.random() > .9 })); ctx.font = `${fs * .82}px monospace`; };
-      fit(); addEventListener('resize', fit);
-      const step = () => {
-        ctx.fillStyle = 'rgba(2, 9, 8, .16)'; ctx.fillRect(0, 0, W, H);
-        cols.forEach((c, i) => { if (!c.on) return; const y = c.y * fs;
-          ctx.fillStyle = c.gold ? 'rgba(240, 190, 100, .55)' : 'rgba(70, 230, 170, .5)'; ctx.fillText(G[(Math.random() * G.length) | 0], i * fs, y);
-          ctx.fillStyle = 'rgba(210, 255, 235, .7)'; if (Math.random() > .7) ctx.fillText(G[(Math.random() * G.length) | 0], i * fs, y + fs);
-          c.y += c.sp; if (y > H && Math.random() > .97) { c.y = -Math.random() * 20; c.sp = .25 + Math.random() * .7; c.on = Math.random() > .35; c.gold = Math.random() > .9; } });
-      };
-      if (RM) { for (let i = 0; i < 60; i++) step(); return; }
-      const loop = now => { requestAnimationFrame(loop); if (document.hidden || now - last < 50) return; last = now; step(); }; requestAnimationFrame(loop);
-    })();
-
-    // ---------------- the digital assistant: pure falling code; a face presses through it like an imprint ----------------
-    // WebGL: a grid of glyph cells. Rain columns fall; where the face is, the glyphs glow brighter, so the face reads
-    // as an imprint inside the code. It surfaces and sinks back; while it speaks the lips part inside the code.
-    // face-imprint.png: R = face luminance, G = silhouette (380 x 465).
-    const FIM = { src: '/portal/art/face-imprint.png?v=1', w: 380, h: 465 };
-    const VIEW = { big: { f: [.5, .47], z: .96 }, mid: { f: [.5, .4], z: .62 }, botsm: { f: [.5, .4], z: .8 }, tiny: { f: [.5, .35], z: .5 } };
-    function ROBOT(cls = 'big') { return `<div class="bot ${cls}" aria-hidden="true"><canvas class="lv"></canvas></div>`; }
-    const LVS = 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0.,1.);}';
-    const LFS = `precision highp float;
-uniform sampler2D FT,GA;uniform vec2 R,F,S;uniform float t,o,ny,nx,as,cs,ng;varying vec2 v;
-const vec2 MC=vec2(.495,.534);const float MW=.075,LIP=.028,FL=.31,FR=.70,CH=.70,NK=.78;
-float h(float n){return fract(sin(n*12.9898)*43758.5453);}
-float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-vec2 face(vec2 uv,out float mouth){
- mouth=0.;uv-=vec2(nx,ny)*(1.-smoothstep(.6,.8,uv.y));
- if(o>.01&&uv.y>MC.y&&uv.x>FL&&uv.x<FR){
-  float dx=(uv.x-MC.x)/MW,sh=sqrt(max(0.,1.-dx*dx));
-  float hx=smoothstep(FL,FL+.06,uv.x)*(1.-smoothstep(FR-.06,FR,uv.x));
-  float d=o*LIP*hx*mix(sh,1.,smoothstep(MC.y,MC.y+.06,uv.y))*(1.-smoothstep(CH,NK,uv.y));
-  float sy=uv.y-d;if(sy<MC.y&&abs(dx)<1.){mouth=sh;return vec2(0.,1.);}uv.y=sy;}
- if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return vec2(0.);
- return texture2D(FT,uv).rg;
-}
-void main(){
- vec2 px=v*R;vec2 cell=floor(px/cs);vec2 lc=fract(px/cs);
- vec2 cc=(cell+.5)*cs/R;
- vec2 uv=F+(cc-.5)*S;
- float rows=R.y/cs;
- float sp=.35+h(cell.x)*.9,off=h(cell.x*3.7)*rows*2.;
- float per=rows*.9;float hd=mod(t*sp*9.+off,per);float hd2=mod(t*sp*9.+off+per*.5,per);
- float dist=mod(hd-cell.y+per,per),dist2=mod(hd2-cell.y+per,per);
- float trail=max(exp(-dist*.13),exp(-dist2*.13)*.8);float lead=(dist<1.||dist2<1.)?1.:0.;
- float mouth;vec2 fm=face(uv,mouth);
- float n=h2(cell*1.31)*.6+uv.y*.4;
- float vis=smoothstep(n-.08,n+.08,as*1.3-.15);
- float fl=fm.g*vis;
- float L=pow(fm.r,1.1);
- float b=trail*.62*(1.-fl*.45)+fl*(.16+L*1.45)*(.62+.5*trail)+lead*.9;
- b+=mouth*fl*0.;
- float mo=mouth*vis;
- float gi=floor(h2(cell+floor(t*(2.+h(cell.y)*6.)+h(cell.x)*40.))*16.);
- vec2 gu=vec2((gi+lc.x)/16.,lc.y);
- float g=texture2D(GA,gu).a;
- vec3 base=mix(vec3(.02,.35,.2),vec3(.55,1.,.78),clamp(b*1.1,0.,1.));
- vec3 col=base*g*b*2.3+vec3(.03,.22,.13)*b*.42;
- col+=vec3(.85,1.,.92)*lead*g*.8*(1.-fl*.6);
- col=mix(col,vec3(.0,.02,.01)+vec3(.15,.9,.55)*g*.25*(1.-mo),mo*.9);
- col+=vec3(.06,.42,.26)*fl*L*.22;
- float vg=1.-.45*smoothstep(.4,.95,length((v-.5)*vec2(1.,1.1)));
- gl_FragColor=vec4(col*vg,1.);
-}`;
-    let GAimg = null, FTimg = null;
-    function glyphAtlas() {
-      const c = document.createElement('canvas'), n = 16, s = 48; c.width = n * s; c.height = s; const x = c.getContext('2d');
-      const G = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾ01'.split(''); x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = `600 ${s * .78}px "MS Gothic","Hiragino Kaku Gothic ProN","Noto Sans CJK JP","Noto Sans JP",monospace`;
-      G.forEach((ch, i) => { x.save(); x.translate(i * s + s / 2, s / 2); if (i % 3 === 0) x.scale(-1, 1); x.fillText(ch, 0, 2); x.restore(); });
-      return c;
-    }
-    const lives = new Set();
-    const FTready = new Promise(res => { const i = new Image(); i.onload = () => { FTimg = i; res(); }; i.onerror = () => res(); i.src = FIM.src; });
-    function liveInit(bot) {
-      if (bot.dataset.w) return; bot.dataset.w = 1;
-      const kind = ['big', 'mid', 'botsm', 'tiny'].find(k => bot.classList.contains(k)) || 'big';
-      const cv = bot.querySelector('canvas.lv'); const gl = cv.getContext('webgl', { antialias: false, premultipliedAlpha: false });
-      if (!gl) { bot.classList.add('no-gl'); return; }
-      const sh = (ty, src) => { const o = gl.createShader(ty); gl.shaderSource(o, src); gl.compileShader(o); return o; };
-      const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, LVS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, LFS)); gl.linkProgram(pr);
-      if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { bot.classList.add('no-gl'); return; }
-      gl.useProgram(pr); const bf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-      const al = gl.getAttribLocation(pr, 'a'); gl.enableVertexAttribArray(al); gl.vertexAttribPointer(al, 2, gl.FLOAT, false, 0, 0);
-      const U = n => gl.getUniformLocation(pr, n);
-      const f = { bot, cv, gl, kind, u: { R: U('R'), F: U('F'), S: U('S'), t: U('t'), o: U('o'), ny: U('ny'), nx: U('nx'), as: U('as'), cs: U('cs') }, vis: false, ok: false };
-      FTready.then(() => { if (!FTimg) { bot.classList.add('no-gl'); return; }
-        const tex = (img, unit, fmt, filt) => { const tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filt); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filt);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-          gl.texImage2D(gl.TEXTURE_2D, 0, fmt, fmt, gl.UNSIGNED_BYTE, img); };
-        GAimg = GAimg || glyphAtlas();
-        tex(FTimg, 0, gl.RGB, gl.LINEAR); tex(GAimg, 1, gl.RGBA, gl.LINEAR); gl.uniform1i(U('FT'), 0); gl.uniform1i(U('GA'), 1);
-        f.ok = true; bot.classList.add('lv-on'); });
-      new IntersectionObserver(([e]) => { f.vis = e.isIntersecting; if (!e.isIntersecting) f.seen = 0; }).observe(bot);
-      lives.add(f);
-    }
-    function liveDraw(f, now, open, ny, nx, as) {
-      const { cv, gl, u } = f; const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
-      const dpr = Math.min(2, devicePixelRatio || 1);
-      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); gl.viewport(0, 0, cv.width, cv.height); }
-      const IA = FIM.w / FIM.h, A = w / h, V = VIEW[f.kind]; let sx, sy; if (A / IA >= 1) { sy = 1; sx = A / IA; } else { sx = 1; sy = IA / A; }
-      // the face fills the height; wider frames show code on both sides
-      sx *= V.z; sy *= V.z;
-      const cell = (f.kind === 'tiny' ? 4.5 : f.kind === 'mid' ? 6.5 : w < 420 ? 7.5 : 8.5) * dpr;
-      gl.uniform2f(u.R, cv.width, cv.height); gl.uniform2f(u.F, V.f[0], V.f[1]); gl.uniform2f(u.S, sx, sy); gl.uniform1f(u.cs, cell);
-      gl.uniform1f(u.t, now / 1000); gl.uniform1f(u.o, open); gl.uniform1f(u.ny, ny); gl.uniform1f(u.nx, nx); gl.uniform1f(u.as, as);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    }
-    // the mouth follows the speech: every spoken word opens it, syllables flutter inside the word
-    let talking = false, wordAt = 0, wordLen = 5, mOpen = 0;
-    window.MZmouth = { word(n) { wordAt = performance.now(); wordLen = Math.max(2, Math.min(12, n || 5)); } };
-    { let last = 0; const loop = now => { requestAnimationFrame(loop); if (now - last < 33) return; last = now;
-      const since = now - wordAt, dur = wordLen * 70 + 120; let target = 0;
-      if (talking) { const inWord = since < dur ? 1 : Math.max(0, 1 - (since - dur) / 160); target = inWord * (.45 + .55 * Math.abs(Math.sin(since / 62 + Math.sin(since / 211) * 1.7)));
-        if (since > 1600) target = .3 + .5 * Math.abs(Math.sin(now / 95) * Math.sin(now / 157)); }
-      mOpen += (target - mOpen) * (target > mOpen ? .6 : .35);
-      const s = now / 1000, ny = talking ? .004 * Math.sin(s * 5.3) + .002 * Math.sin(s * 8.1) : .0015 * Math.sin(s * 1.1), nx = talking ? .003 * Math.sin(s * 3.4) : .001 * Math.sin(s * .7);
-      lives.forEach(f => { if (!f.ok || !f.vis) return; if (RM && f.drawnRM && !talking) return; f.drawnRM = RM;
-        if (!f.seen) f.seen = now;
-        // mostly pure code; now and then the face surfaces as an imprint (2.6 s), stays ~5 s and sinks back; always present while speaking
-        const age = (now - f.seen) / 1000 + 4, c = age % 17; let as = c < 6 ? 0 : c < 8.6 ? (c - 6) / 2.6 : c < 13.4 ? 1 : c < 16 ? 1 - (c - 13.4) / 2.6 : 0;
-        as = as * as * (3 - 2 * as); f.as = talking ? Math.min(1, (f.as || 0) + .06) : as; if (talking) as = f.as;
-        liveDraw(f, RM ? 0 : now, mOpen, RM ? 0 : ny, RM ? 0 : nx, RM ? 1 : as); }); }; requestAnimationFrame(loop); }
-    function wireRobots(root = document) { root.querySelectorAll('.bot').forEach(liveInit); }
-    const setTalk = on => { talking = on; if (on) wordAt = performance.now(); document.body.classList.toggle('rb-talking', on); };
+    // ---------------- the digital assistant: a quiet icon, as in the app ----------------
+    // no face: a few quiet sound-wave bars that breathe, and pulse while the assistant speaks
+    function ROBOT(c = '') { return `<span class="ag-wave ${c}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>`; }
+    function wireRobots() {}
+    window.MZmouth = { word() {} };
+    const setTalk = on => document.body.classList.toggle('rb-talking', on);
     window.MZtalk = setTalk;
 
     // ---------------- voice: speak replies, listen with the microphone, soft sounds ----------------
@@ -495,27 +370,13 @@ void main(){
       if (svs.length && el) el.insertAdjacentHTML('beforeend', `<span class="msg-go">${svs.map(k => `<a href="?s=${k}" data-sv="${k}">${ic(SV[k].ic)}${esc(pick(SV[k].t))} →</a>`).join('')}</span>`); });
 
     // big robot beside the chat (home section and the assistant page)
-    function agentInit() {
-      const box = $('#agent'); if (!box) return;
-      if (box.dataset.w) { const id = box.querySelector('.ag-id'); if (id) id.innerHTML = `<span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i>`; return; }
-      box.dataset.w = 1;
-      box.innerHTML = `${ROBOT('big')}<div class="ag-id"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_role'))}</i></div>`;
-      wireRobots(box);
-    }
-    function rain(cv, box) {
-      if (RM || !cv) return; const ctx = cv.getContext('2d'); let cols = [], W = 0, H = 0, fs = 14, last = 0, vis = true;
-      const size = () => { W = cv.width = box.clientWidth; H = cv.height = box.clientHeight; cols = Array(Math.ceil(W / fs)).fill(0).map(() => Math.random() * H / fs); };
-      size(); addEventListener('resize', size); new IntersectionObserver(([e]) => { vis = e.isIntersecting; }).observe(box);
-      const tick = now => { requestAnimationFrame(tick); if (!vis || now - last < 60) return; last = now; if (!W) size(); ctx.fillStyle = 'rgba(6, 22, 13, .18)'; ctx.fillRect(0, 0, W, H); ctx.font = fs + 'px monospace';
-        cols.forEach((y, i) => { ctx.fillStyle = Math.random() > .96 ? '#CCFBF1' : 'rgba(45, 212, 191, .5)'; ctx.fillText(MGL[(Math.random() * MGL.length) | 0], i * fs, y * fs); cols[i] = y * fs > H && Math.random() > .975 ? 0 : y + 1; }); };
-      requestAnimationFrame(tick);
-    }
+    function agentInit() { const box = $('#agent'); if (box) box.remove(); }
 
     // floating robot on every screen: opens the same chat beside it
     function dockInit() {
       if ($('#dock')) return;
-      document.body.insertAdjacentHTML('beforeend', `<div class="dock" id="dock"><div class="dock-panel" id="dockPanel" hidden><button class="dock-x" aria-label="close">${ic('x')}</button><div class="dock-bot">${ROBOT('mid')}<div class="dock-name"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_status'))}</i></div></div><div class="dock-chat" id="dockChat"></div></div>
-        <button class="dock-btn" id="dockBtn" aria-label="assistant"><span class="dock-bub">${esc(L() === 'en' ? 'Ask me anything' : L() === 'uz' ? "Menga savol bering" : 'Спросите меня')}</span><span class="dock-av">${ROBOT('tiny')}</span></button></div>`);
+      document.body.insertAdjacentHTML('beforeend', `<div class="dock" id="dock"><div class="dock-panel" id="dockPanel" hidden><button class="dock-x" aria-label="close">${ic('x')}</button><div class="dock-bot" hidden><div class="dock-name"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_status'))}</i></div></div><div class="dock-chat" id="dockChat"></div></div>
+        <button class="dock-btn" id="dockBtn" aria-label="assistant"><span class="dock-bub">${esc(L() === 'en' ? 'Ask me anything' : L() === 'uz' ? "Menga savol bering" : 'Спросите меня')}</span><span class="dock-av">${ROBOT()}</span></button></div>`);
       wireRobots($('#dock'));
       const btn = $('#dockBtn'), panel = $('#dockPanel'), host = $('#dockChat');
       let greeted = false;
@@ -524,8 +385,7 @@ void main(){
         setTimeout(() => $('#aiIn').focus(), 300); };
       const close = () => { panel.hidden = true; $('#dock').classList.remove('open'); document.documentElement.classList.remove('dock-on'); const ai = $('#ai'); const card = $('.ai-card'); if (ai && card && card.parentElement === host) ai.appendChild(card); };
       btn.onclick = () => (panel.hidden ? open() : close()); panel.querySelector('.dock-x').onclick = close;
-      // the round button steps aside while the big assistant is on screen; an open conversation is never closed or hidden by scrolling
-      const ai = $('#ai'); if (ai) new IntersectionObserver(([e]) => { $('#dock').classList.toggle('away', e.isIntersecting && panel.hidden && !ai.closest('#svView')); }, { threshold: .25 }).observe(ai);
+      // the button stays on the right edge the whole time; scrolling never hides it or an open conversation
       // phones: the panel follows the visible area, so the field stays above the keyboard
       function fitVV() { const vv = window.visualViewport; const r = document.documentElement.style; if (!vv) return; r.setProperty('--vvh', vv.height + 'px'); r.setProperty('--vvt', vv.offsetTop + 'px'); }
       if (window.visualViewport) { visualViewport.addEventListener('resize', fitVV); visualViewport.addEventListener('scroll', fitVV); }

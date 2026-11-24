@@ -12,9 +12,9 @@
 <link rel="icon" href="/icon-192.png">
 <link rel="preload" href="/portal/assets/fonts/unbounded-cyrillic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/portal/assets/fonts/manrope-cyrillic-500-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/portal/portal.css?v=4">
-<link rel="stylesheet" href="/portal/pages.css?v=4">
-<link rel="stylesheet" href="/portal/luxe.css?v=11">
+<link rel="stylesheet" href="/portal/portal.css?v=5">
+<link rel="stylesheet" href="/portal/pages.css?v=5">
+<link rel="stylesheet" href="/portal/luxe.css?v=14">
 </head>
 <body>
 <div class="pearl" aria-hidden="true"></div>
@@ -36,9 +36,9 @@
 </header>
 
 <main id="top">
+<div class="hero-bg" aria-hidden="true"></div>
 <!-- ============ HERO + STORY: the phone stays pinned and shows the real app ============ -->
 <section class="story" id="story">
-  <div class="hero-bg" aria-hidden="true"></div>
   <div class="story-l">
     <div class="hero step on" data-go="1:1909" style="--g:#F2B45A">
       <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -185,9 +185,8 @@
 
 <!-- ============ AI LIVE ============ -->
 <div id="aiHome"><section class="ai" id="ai">
-  <div class="agent reveal" id="agent"></div>
   <div class="ai-card reveal">
-    <div class="ai-top"><span class="ic"><svg><use href="/portal/assets/icons.svg#i-sparkle"/></svg></span><div><h2 data-i="ai_t">Спросите что угодно о городе</h2><p data-i="ai_s">Это настоящий ИИ-помощник MyUzCity. Отвечает на узбекском, русском и английском.</p></div></div>
+    <div class="ai-top"><span class="ic ai-wv"><span class="ag-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></span><div><h2 data-i="ai_t">Спросите что угодно о городе</h2><p data-i="ai_s">Это настоящий ИИ-помощник MyUzCity. Отвечает на узбекском, русском и английском.</p></div></div>
     <div class="ai-log" id="aiLog" aria-live="polite"></div>
     <div class="ai-sug" id="aiSug"></div>
     <form class="ai-form" id="aiForm"><label class="sr" for="aiIn" data-i="ai_ph">Ваш вопрос</label><input id="aiIn" autocomplete="off" maxlength="400" placeholder="Например: где ближайшая аптека 24/7?"><button class="btn btn-acc" type="submit" aria-label="send"><svg><use href="/portal/assets/icons.svg#i-arrow-right"/></svg></button></form>
@@ -247,6 +246,6 @@
 
 <script src="/portal/assets/qrcode.js" defer></script>
 <script src="/portal/portal.js?v=5" defer></script>
-<script src="/portal/pages.js?v=14" defer></script>
+<script src="/portal/pages.js?v=17" defer></script>
 </body>
 </html>
