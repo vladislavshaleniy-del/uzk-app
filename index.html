@@ -1392,6 +1392,7 @@ render(first, openOk ? OPEN_P : undefined);
 if (EMBED) window.addEventListener('message', e => {
   if (!/^https:\/\/([a-z0-9-]+\.)*(myuzcity\.uz|myuzcity\.pages\.dev)$|^http:\/\/localhost(:\d+)?$/.test(e.origin)) return;
   const d = e.data || {}; if (d.mz === 'go' && d.id) { if (typeof aiClose === 'function') aiClose(); bsheetClose && bsheetClose(true); go(d.id, d.p || undefined); }
+  else if (d.mz === 'tap' && d.x >= 0 && d.x <= 1 && d.y >= 0 && d.y <= 1) { const el = document.elementFromPoint(d.x * innerWidth, d.y * innerHeight); const b = el && el.closest('button, a, input, textarea, select, [data-act], [data-nidx], [role="button"]'); if (b) { if (/^(INPUT|TEXTAREA|SELECT)$/.test(b.tagName)) b.focus(); else b.click(); } }
   else if (d.mz === 'ai' && typeof aiOpen === 'function') aiOpen();
   else if (d.mz === 'lang' && LANGS[d.l]) { setLang(d.l); render(current, currentP); }
 });

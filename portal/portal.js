@@ -200,6 +200,13 @@
   const wide = matchMedia('(min-width: 961px)');
   if (wide.matches) loadFrame(); else new IntersectionObserver(([e], o) => { if (e.isIntersecting) { loadFrame(); o.disconnect(); } }, { rootMargin: '300px' }).observe(phone);
   $('#tryBtn').addEventListener('click', () => { phone.classList.add('live'); loadFrame(); });
+  // нажатие прямо по телефону: сразу включаем приложение и передаём нажатие внутрь
+  phone.addEventListener('click', e => {
+    if (phone.classList.contains('live') || e.target.closest('#tryBtn')) return;
+    phone.classList.add('live'); loadFrame();
+    const r = frame.getBoundingClientRect(); if (!r.width || !frame.dataset.ready) return;
+    send({ mz: 'tap', x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height });
+  });
   let stepT = 0, curStep = null;
   const steps = $$('.step');
   story.classList.add('at-hero');
