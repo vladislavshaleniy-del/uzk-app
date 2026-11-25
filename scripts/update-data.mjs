@@ -35,7 +35,14 @@ const FEEDS = [
   { id: 'gazeta', name: 'Gazeta.uz', url: 'https://www.gazeta.uz/ru/rss/' },
   { id: 'kun', name: 'Kun.uz', url: 'https://kun.uz/ru/news/rss' },
   { id: 'podrobno', name: 'Podrobno.uz', url: 'https://podrobno.uz/rss/' },
+  // на узбекском (латиница) — для приложения и сайта на узбекском языке; кириллические заголовки отбрасываются
+  { id: 'kun_uz', name: 'Kun.uz', url: 'https://kun.uz/news/rss', lang: 'uz' },
+  { id: 'gazeta_uz', name: 'Gazeta.uz', url: 'https://www.gazeta.uz/oz/rss/', lang: 'uz' },
+  { id: 'daryo', name: 'Daryo.uz', url: 'https://daryo.uz/feed/', lang: 'uz' },
 ];
+// новости кино, сериалов и игр со всего мира — не про город, в ленту не берём
+const OFFTOPIC = /(трейлер|тизер|сериал|\bсезон|кинопрем|кассов|бокс-офис|box office|GTA|видеоигр|игровой индустр|Marvel|Мстител|Netflix|Голливуд|Оскар|Disney|treyler|serial|o'yin industr)/i;
+const LATIN = s => { const c = (s.match(/[А-Яа-яЁёЎўҚқҒғҲҳ]/g) || []).length, l = (s.match(/[A-Za-z]/g) || []).length; return l > c * 3; };
 // afisha.uz URL section -> tag shown on the card
 const AFISHA_TAG = { cinema: 'cinema', gorod: 'city', shops: 'sale', food: 'food', restaurants: 'food', fashion: 'fashion', concerts: 'concert', music: 'concert', theatre: 'theatre', kids: 'kids', art: 'art', sport: 'sport', travel: 'travel' };
 
@@ -72,10 +79,11 @@ export const GLOOM = /(погиб|гибел|смерт|скончал|умер(
 async function news() {
   const all = [];
   for (const f of FEEDS) {
-    try { const items = await readFeed(f); items.forEach(n => n.tashkentOnly = !!f.tashkentOnly); all.push(...items); console.log(`news ${f.id}: ${items.length}`); }
+    try { const items = (await readFeed(f)).filter(n => !f.lang || LATIN(n.t)); items.forEach(n => { n.tashkentOnly = !!f.tashkentOnly; n.lang = f.lang || 'ru'; }); all.push(...items); console.log(`news ${f.id}: ${items.length}`); }
     catch (e) { console.log(`news ${f.id} failed: ${e.message}`); }
   }
-  const seen = new Set(); const items = all.filter(n => !seen.has(n.u) && seen.add(n.u) && !GLOOM.test(n.t + ' ' + n.x)).sort((a, b) => b.d.localeCompare(a.d));
+  const seen = new Set(); const fresh = all.filter(n => !seen.has(n.u) && seen.add(n.u) && !GLOOM.test(n.t + ' ' + n.x) && n.k !== 'cinema' && !OFFTOPIC.test(n.t)).sort((a, b) => b.d.localeCompare(a.d));
+  const items = fresh.filter(n => n.lang !== 'uz'), uzItems = fresh.filter(n => n.lang === 'uz');
   const out = { updated: new Date().toISOString(), cities: {}, all: [] };
   const pick = new Set();
   CITIES.forEach((_, i) => {
@@ -86,11 +94,23 @@ async function news() {
     if (top.length) { out.cities[i] = top; top.forEach(n => pick.add(n)); }
   });
   out.all = items.filter(n => !n.tashkentOnly).slice(0, 15); out.all.forEach(n => pick.add(n));
+  // на узбекском: города по узбекским названиям (Toshkent, Samarqand…), для Ташкента ещё «poytaxt»
+  if (uzItems.length) {
+    out.uz = { cities: {}, all: uzItems.slice(0, 15) };
+    CITIES.forEach((c, i) => {
+      const name = String(c[1] || '').replace(/[‘’ʻ`']/g, "['‘’ʻ`]");
+      const re = new RegExp(`(?<![A-Za-z])${name}` + (i === 0 ? '|(?<![A-Za-z])poytaxt' : ''), 'i');
+      const list = uzItems.filter(n => re.test(n.t + ' ' + n.x)).slice(0, 12);
+      if (list.length) { out.uz.cities[i] = list; list.forEach(n => pick.add(n)); }
+    });
+    out.uz.all.forEach(n => pick.add(n));
+  }
   const need = [...pick].filter(n => !n.i);
   for (let k = 0; k < need.length; k += 5) await Promise.all(need.slice(k, k + 5).map(async n => { n.i = await ogImage(n.u); }));
   const clean = n => ({ t: n.t, u: n.u, i: n.i, x: n.x, d: n.d, s: n.s, k: n.k });
   for (const c in out.cities) out.cities[c] = out.cities[c].map(clean);
   out.all = out.all.map(clean);
+  if (out.uz) { for (const c in out.uz.cities) out.uz.cities[c] = out.uz.cities[c].map(clean); out.uz.all = out.uz.all.map(clean); }
   mkdirSync(ROOT + 'data', { recursive: true });
   const file = ROOT + 'data/news.json';
   const prev = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : null;

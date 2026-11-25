@@ -385,7 +385,8 @@
     }
     // news
     if (D.news) {
-      const items = ((D.news.cities && D.news.cities['0']) || D.news.all || []).slice(0, 3);
+      const NW = L === 'uz' && D.news.uz && ((D.news.uz.cities || {})['0'] || D.news.uz.all || []).length ? D.news.uz : D.news; // на узбекском — узбекские новости
+      const items = ((NW.cities && NW.cities['0']) || NW.all || []).slice(0, 3);
       $('#wNw').innerHTML = `<h3>${ic('newspaper')}${esc(t('w_nw'))}</h3>${items.length ? '' : `<p class="sub">${esc(t('w_none'))}</p>`}<div class="nw">${items.map(x => `<a href="${esc(x.u)}" target="_blank" rel="noopener">${x.i ? `<img src="${esc(x.i)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '<img alt="">'}<div><b>${esc(x.t)}</b><span>${esc(x.s)} · ${esc(String(x.d).slice(0, 10).split('-').reverse().join('.'))}</span></div></a>`).join('')}</div><a class="lnk more" href="${esc(appLink('h:news', 'all'))}">${esc(t('w_more'))}</a>`;
     }
     document.dispatchEvent(new CustomEvent('mz:data'));

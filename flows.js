@@ -910,7 +910,7 @@ function loadNews() {
   NEWS_AT = Date.now();
   return (NEWS_P = fetch(DATA_BASE + 'data/news.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.cities) NEWS = j; return NEWS; }).catch(() => NEWS));
 }
-function cityNews(i = cityIdx()) { if (!NEWS) return null; const l = NEWS.cities[i]; return l && l.length ? { items: l, own: true } : { items: NEWS.all || [], own: false }; }
+function cityNews(i = cityIdx()) { if (!NEWS) return null; const U = NEWS.uz, src = LANG === 'uz' && U && (((U.cities || {})[i] || []).length || (U.all || []).length) ? U : NEWS; const l = (src.cities || {})[i]; return l && l.length ? { items: l, own: true } : { items: src.all || [], own: false }; }
 const NEWS_GRAD = ['#1a4a28,#2f6b3d', '#3b2a5e,#6b4c9a', '#7c2d12,#c2410c', '#0f4c5c,#2a7f8f'];
 function newsTag(n) { return t('nk_' + (n.k || 'news')); }
 function newsCard(n, idx) {
@@ -2376,17 +2376,17 @@ function fxSheet() {
 
 // ======================= QR scanner (camera) =======================
 const QR_I = {
-  ru: { qr_t: 'Сканер QR', qr_hint: 'Наведите камеру на QR-код', qr_gal: 'Из галереи', qr_noc: 'Нет доступа к камере. Разрешите камеру в настройках браузера или выберите фото из галереи.', qr_none: 'QR-код на фото не найден', qr_link: 'Ссылка', qr_pay: 'Оплата', qr_open: 'Открыть', qr_copy: 'Скопировать', qr_copied: 'Скопировано', qr_again: 'Сканировать ещё', qr_text: 'Текст', qr_wifi: 'Wi-Fi', qr_net: 'Сеть', qr_pass: 'Пароль', qr_call: 'Позвонить', qr_safe: 'Открывайте ссылки только из надёжных источников.' },
-  uz: { qr_t: 'QR skaner', qr_hint: 'Kamerani QR-kodga qarating', qr_gal: 'Galereyadan', qr_noc: "Kameraga ruxsat yo'q. Brauzer sozlamalarida kamerani yoqing yoki galereyadan rasm tanlang.", qr_none: 'Rasmda QR-kod topilmadi', qr_link: 'Havola', qr_pay: "To'lov", qr_open: 'Ochish', qr_copy: 'Nusxalash', qr_copied: 'Nusxalandi', qr_again: 'Yana skanerlash', qr_text: 'Matn', qr_wifi: 'Wi-Fi', qr_net: 'Tarmoq', qr_pass: 'Parol', qr_call: "Qo'ng'iroq", qr_safe: 'Havolalarni faqat ishonchli manbalardan oching.' },
-  en: { qr_t: 'QR scanner', qr_hint: 'Point the camera at a QR code', qr_gal: 'From gallery', qr_noc: 'No camera access. Allow the camera in browser settings or pick a photo from the gallery.', qr_none: 'No QR code found in the photo', qr_link: 'Link', qr_pay: 'Payment', qr_open: 'Open', qr_copy: 'Copy', qr_copied: 'Copied', qr_again: 'Scan again', qr_text: 'Text', qr_wifi: 'Wi-Fi', qr_net: 'Network', qr_pass: 'Password', qr_call: 'Call', qr_safe: 'Open links only from sources you trust.' },
-  zh: { qr_t: '二维码扫描', qr_hint: '将摄像头对准二维码', qr_gal: '从相册选择', qr_noc: '无法使用摄像头。请在浏览器设置中允许摄像头，或从相册选择照片。', qr_none: '照片中未找到二维码', qr_link: '链接', qr_pay: '支付', qr_open: '打开', qr_copy: '复制', qr_copied: '已复制', qr_again: '再次扫描', qr_text: '文本', qr_wifi: 'Wi-Fi', qr_net: '网络', qr_pass: '密码', qr_call: '拨打', qr_safe: '只打开可信来源的链接。' },
+  ru: { qr_t: 'Сканер QR', qr_hint: 'Наведите камеру на QR-код', qr_wait: 'Разрешите доступ к камере, чтобы сканировать QR-код', qr_gal: 'Из галереи', qr_noc: 'Нет доступа к камере. Разрешите камеру в настройках браузера или выберите фото из галереи.', qr_none: 'QR-код на фото не найден', qr_link: 'Ссылка', qr_pay: 'Оплата', qr_open: 'Открыть', qr_copy: 'Скопировать', qr_copied: 'Скопировано', qr_again: 'Сканировать ещё', qr_text: 'Текст', qr_wifi: 'Wi-Fi', qr_net: 'Сеть', qr_pass: 'Пароль', qr_call: 'Позвонить', qr_safe: 'Открывайте ссылки только из надёжных источников.' },
+  uz: { qr_t: 'QR skaner', qr_hint: 'Kamerani QR-kodga qarating', qr_wait: 'QR-kodni skanerlash uchun kameraga ruxsat bering', qr_gal: 'Galereyadan', qr_noc: "Kameraga ruxsat yo'q. Brauzer sozlamalarida kamerani yoqing yoki galereyadan rasm tanlang.", qr_none: 'Rasmda QR-kod topilmadi', qr_link: 'Havola', qr_pay: "To'lov", qr_open: 'Ochish', qr_copy: 'Nusxalash', qr_copied: 'Nusxalandi', qr_again: 'Yana skanerlash', qr_text: 'Matn', qr_wifi: 'Wi-Fi', qr_net: 'Tarmoq', qr_pass: 'Parol', qr_call: "Qo'ng'iroq", qr_safe: 'Havolalarni faqat ishonchli manbalardan oching.' },
+  en: { qr_t: 'QR scanner', qr_hint: 'Point the camera at a QR code', qr_wait: 'Allow camera access to scan a QR code', qr_gal: 'From gallery', qr_noc: 'No camera access. Allow the camera in browser settings or pick a photo from the gallery.', qr_none: 'No QR code found in the photo', qr_link: 'Link', qr_pay: 'Payment', qr_open: 'Open', qr_copy: 'Copy', qr_copied: 'Copied', qr_again: 'Scan again', qr_text: 'Text', qr_wifi: 'Wi-Fi', qr_net: 'Network', qr_pass: 'Password', qr_call: 'Call', qr_safe: 'Open links only from sources you trust.' },
+  zh: { qr_t: '二维码扫描', qr_hint: '将摄像头对准二维码', qr_wait: '请允许使用摄像头以扫描二维码', qr_gal: '从相册选择', qr_noc: '无法使用摄像头。请在浏览器设置中允许摄像头，或从相册选择照片。', qr_none: '照片中未找到二维码', qr_link: '链接', qr_pay: '支付', qr_open: '打开', qr_copy: '复制', qr_copied: '已复制', qr_again: '再次扫描', qr_text: '文本', qr_wifi: 'Wi-Fi', qr_net: '网络', qr_pass: '密码', qr_call: '拨打', qr_safe: '只打开可信来源的链接。' },
 };
 for (const l in QR_I) Object.assign(I[l], QR_I[l]);
 let QR_STREAM = null, QR_LOOP = 0, QR_DET = null;
 function qrLib() { if (window.jsQR) return Promise.resolve(); if (!window.__qrP) window.__qrP = new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'vendor/jsqr/jsQR.min.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); return window.__qrP; }
 function qrStop() { cancelAnimationFrame(QR_LOOP); if (QR_STREAM) { QR_STREAM.getTracks().forEach(t => t.stop()); QR_STREAM = null; } }
 HS.qr = () => `<div class="h-hdr"><button class="h-back" data-act="back">${IC.back}</button><div class="h-title">${esc(t('qr_t'))}</div></div>
-  <div class="qr-cam"><video id="qrV" playsinline muted autoplay></video><div class="qr-frame"><i></i><i></i><i></i><i></i></div><div class="qr-hint" id="qrH">${esc(t('qr_hint'))}</div></div>
+  <div class="qr-cam"><video id="qrV" playsinline muted autoplay></video><div class="qr-frame"><i></i><i></i><i></i><i></i></div><div class="qr-hint" id="qrH">${esc(t('qr_wait'))}</div></div>
   <div class="qr-bar"><label class="h-btn h-ghostd qr-gal">${esc(t('qr_gal'))}<input type="file" accept="image/*" id="qrF" hidden></label></div>`;
 HS.qr.mount = el => {
   qrStop();
@@ -2413,7 +2413,7 @@ HS.qr.mount = el => {
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false }).then(s => {
       if (!document.body.contains(v)) { s.getTracks().forEach(t => t.stop()); return; }
-      QR_STREAM = s; v.srcObject = s; v.play().catch(() => {}); QR_LOOP = requestAnimationFrame(tick);
+      QR_STREAM = s; v.srcObject = s; v.play().catch(() => {}); hint.textContent = t('qr_hint'); QR_LOOP = requestAnimationFrame(tick);
     }).catch(() => { hint.textContent = t('qr_noc'); hint.classList.add('err'); });
   } else { hint.textContent = t('qr_noc'); hint.classList.add('err'); }
   el.querySelector('#qrF').addEventListener('change', e => {
@@ -2505,7 +2505,7 @@ function sgWiki(p) {
 
 // ======================= Community: polls, problem reports, document reminders, panic button =======================
 const CM_I = {
-  ru: { need_login: 'Нужно войти', need_login_s: 'Чтобы голосовать, отправлять сообщения и получать напоминания, войдите через Telegram — это займёт минуту.',
+  ru: { need_login: 'Нужно войти', need_login_s: 'Чтобы голосовать, отправлять сообщения и получать напоминания, войдите через Telegram — это займёт минуту.', need_login_docs: 'Войдите через Telegram, чтобы хранить сроки паспорта, прав и страховки, — бот напомнит заранее.', need_login_sos: 'Войдите через Telegram и добавьте близких — по кнопке SOS они сразу получат вашу геолокацию.',
     pl_t: 'Опросы', pl_t_m: 'Опросы махалли', pl_votes: 'Голосов: {n}', pl_left: 'осталось {n} дн.', pl_closed: 'Опрос завершён', pl_yours: 'Ваш голос', pl_change: 'Голос можно изменить', pl_thx: 'Голос учтён', pl_src: 'Один голос на одного жителя (вход через Telegram)',
     rp_t: 'Проблемы в городе', rp_t_road: 'Дороги и ремонт', rp_t_clean: 'Чистый город', rp_t_appeal: 'Обращения жителей', rp_add: 'Сообщить о проблеме', rp_none: 'Пока нет сообщений — будьте первым', rp_kind: 'Что случилось?', rp_text: 'Опишите проблему', rp_text_ph: 'Например: глубокая яма у остановки, опасно для машин', rp_photo: 'Добавить фото', rp_photo2: 'Заменить фото', rp_where: 'Место', rp_here: 'Моё местоположение', rp_pick: 'Нажмите на карту, чтобы указать место', rp_send: 'Отправить', rp_ok: 'Сообщение №{n} отправлено', rp_up: 'У меня тоже', rp_upped: 'Вы поддержали', rp_ups: 'Поддержали: {n}', rp_err: 'Не удалось отправить', rp_need: 'Добавьте описание или фото',
     rk_road: 'Яма / дорога', rk_light: 'Не горит свет', rk_clean: 'Мусор / свалка', rk_water: 'Вода / канализация', rk_park: 'Парк / двор', rk_transport: 'Транспорт / остановка', rk_other: 'Другое',
@@ -2514,7 +2514,7 @@ const CM_I = {
     dk_passport: 'Паспорт', dk_idcard: 'ID-карта', dk_intl: 'Загранпаспорт', dk_license: 'Водительские права', dk_inspection: 'Техосмотр', dk_insurance: 'Страховка ОСАГО', dk_tinting: 'Разрешение на тонировку', dk_gas: 'Газовый баллон', dk_poa: 'Доверенность', dk_other: 'Другое',
     sos_t: 'SOS близким', sos_s: 'Отправит вашу геолокацию всем близким в Telegram', sos_btn: 'Отправить SOS', sos_q: 'Отправить тревогу близким?', sos_q_s: 'Они получат сообщение и вашу геолокацию в Telegram.', sos_ok: 'Тревога отправлена: {n}', sos_none: 'Сначала добавьте близких', sos_err: 'Не удалось отправить — позвоните 112',
     tc_t: 'Мои близкие', tc_add: 'Добавить близкого', tc_add_s: 'Отправьте ссылку близкому человеку — он откроет бота и станет вашим доверенным контактом', tc_share: 'Отправить ссылку', tc_copy: 'Скопировать ссылку', tc_none: 'Пока никого нет', tc_rm: 'Удалить', call_go: 'Позвонить' },
-  uz: { need_login: 'Kirish kerak', need_login_s: "Ovoz berish, xabar yuborish va eslatmalar olish uchun Telegram orqali kiring — bir daqiqa vaqt oladi.",
+  uz: { need_login: 'Kirish kerak', need_login_docs: "Pasport, guvohnoma va sug'urta muddatlarini saqlash uchun Telegram orqali kiring — bot oldindan eslatadi.", need_login_sos: "Telegram orqali kiring va yaqinlaringizni qo'shing — SOS tugmasi bosilganda ular darhol joylashuvingizni oladi.", need_login_s: "Ovoz berish, xabar yuborish va eslatmalar olish uchun Telegram orqali kiring — bir daqiqa vaqt oladi.",
     pl_t: "So'rovnomalar", pl_t_m: "Mahalla so'rovnomalari", pl_votes: '{n} ovoz', pl_left: '{n} kun qoldi', pl_closed: "So'rovnoma yakunlandi", pl_yours: 'Sizning ovozingiz', pl_change: "Ovozni o'zgartirish mumkin", pl_thx: 'Ovoz qabul qilindi', pl_src: 'Har bir aholiga bitta ovoz (Telegram orqali kirish)',
     rp_t: 'Shahardagi muammolar', rp_t_road: "Yo'llar va ta'mirlash", rp_t_clean: 'Toza shahar', rp_t_appeal: 'Aholi murojaatlari', rp_add: 'Muammo haqida xabar berish', rp_none: "Hozircha xabarlar yo'q — birinchi bo'ling", rp_kind: 'Nima bo‘ldi?', rp_text: 'Muammoni yozing', rp_text_ph: "Masalan: bekat yonida chuqur o'ra", rp_photo: "Rasm qo'shish", rp_photo2: 'Rasmni almashtirish', rp_where: 'Joy', rp_here: 'Mening joylashuvim', rp_pick: "Joyni ko'rsatish uchun xaritani bosing", rp_send: 'Yuborish', rp_ok: '№{n} xabar yuborildi', rp_up: 'Menda ham', rp_upped: "Qo'llab-quvvatladingiz", rp_ups: "Qo'llab-quvvatladi: {n}", rp_err: "Yuborib bo'lmadi", rp_need: "Tavsif yoki rasm qo'shing",
     rk_road: "O'ra / yo'l", rk_light: 'Chiroq yonmayapti', rk_clean: 'Axlat', rk_water: 'Suv / kanalizatsiya', rk_park: 'Park / hovli', rk_transport: 'Transport / bekat', rk_other: 'Boshqa',
@@ -2523,7 +2523,7 @@ const CM_I = {
     dk_passport: 'Pasport', dk_idcard: 'ID-karta', dk_intl: 'Xorijiy pasport', dk_license: 'Haydovchilik guvohnomasi', dk_inspection: "Texnik ko'rik", dk_insurance: "OSAGO sug'urtasi", dk_tinting: 'Tonirovka ruxsatnomasi', dk_gas: 'Gaz ballon', dk_poa: 'Ishonchnoma', dk_other: 'Boshqa',
     sos_t: 'Yaqinlarga SOS', sos_s: 'Joylashuvingizni Telegramda barcha yaqinlaringizga yuboradi', sos_btn: 'SOS yuborish', sos_q: 'Yaqinlarga signal yuborilsinmi?', sos_q_s: 'Ular Telegramda xabar va joylashuvingizni oladi.', sos_ok: 'Signal yuborildi: {n}', sos_none: "Avval yaqinlaringizni qo'shing", sos_err: "Yuborib bo'lmadi — 112 ga qo'ng'iroq qiling",
     tc_t: 'Yaqinlarim', tc_add: "Yaqin odam qo'shish", tc_add_s: "Havolani yaqin odamga yuboring — u botni ochib, ishonchli kontaktingiz bo'ladi", tc_share: 'Havolani yuborish', tc_copy: 'Havolani nusxalash', tc_none: "Hozircha hech kim yo'q", tc_rm: "O'chirish", call_go: "Qo'ng'iroq qilish" },
-  en: { need_login: 'Sign in required', need_login_s: 'Sign in with Telegram to vote, send reports and get reminders — it takes a minute.',
+  en: { need_login: 'Sign in required', need_login_s: 'Sign in with Telegram to vote, send reports and get reminders — it takes a minute.', need_login_docs: 'Sign in with Telegram to keep your passport, licence and insurance dates — the bot will remind you in advance.', need_login_sos: 'Sign in with Telegram and add your loved ones — when you press SOS they get your location at once.',
     pl_t: 'Polls', pl_t_m: 'Mahalla polls', pl_votes: '{n} votes', pl_left: '{n} days left', pl_closed: 'Poll closed', pl_yours: 'Your vote', pl_change: 'You can change your vote', pl_thx: 'Vote counted', pl_src: 'One vote per resident (sign in with Telegram)',
     rp_t: 'City problems', rp_t_road: 'Roads and repairs', rp_t_clean: 'Clean city', rp_t_appeal: 'Residents’ reports', rp_add: 'Report a problem', rp_none: 'No reports yet — be the first', rp_kind: 'What happened?', rp_text: 'Describe the problem', rp_text_ph: 'E.g. a deep pothole near the bus stop', rp_photo: 'Add a photo', rp_photo2: 'Replace photo', rp_where: 'Place', rp_here: 'My location', rp_pick: 'Tap the map to set the place', rp_send: 'Send', rp_ok: 'Report #{n} sent', rp_up: 'Me too', rp_upped: 'You supported it', rp_ups: 'Supported: {n}', rp_err: 'Could not send', rp_need: 'Add a description or a photo',
     rk_road: 'Pothole / road', rk_light: 'Street light out', rk_clean: 'Garbage / dump', rk_water: 'Water / sewage', rk_park: 'Park / yard', rk_transport: 'Transport / stop', rk_other: 'Other',
@@ -2646,7 +2646,7 @@ function drawDocs(layers, y) {
   w.addEventListener('click', e => { const b = e.target.closest('[data-dc]'); if (!b) return; e.preventDefault(); e.stopPropagation(); if (b.dataset.dc === 'add') dcForm(); else if (b.dataset.dc === 'login') tgLogin(); else { const [k, ...tt] = b.dataset.dc.split('|'); dcForm(k, tt.join('|')); } });
   const box = w.querySelector('#dcBox');
   const paint = () => {
-    if (!authUser()) { box.innerHTML = `<p class="dc-empty">${esc(t('need_login_s'))}</p><button class="h-btn h-tgbtn" data-dc="login">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`; return; }
+    if (!authUser()) { box.innerHTML = `<p class="dc-empty">${esc(t('need_login_docs'))}</p><button class="h-btn h-tgbtn" data-dc="login">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`; return; }
     if (!DC || !DC.length) { box.innerHTML = `<p class="dc-empty">${esc(t('dc_none'))}</p>`; return; }
     box.innerHTML = DC.map(d => { const n = dcLeft(d.expires); const col = n < 0 ? '#DC2626' : n <= 30 ? '#D97706' : '#15803D'; return `<button class="hv-mq" data-dc="${esc(d.kind + '|' + d.title)}"><span class="hv-dot" style="background:${col}"></span><span><b>${esc(t('dk_' + d.kind))}${d.title ? ' · ' + esc(d.title) : ''}</b><i>${esc(d.expires.split('-').reverse().join('.'))} · <em style="color:${col};font-style:normal">${esc(n < 0 ? t('dc_exp') : n === 0 ? t('dc_today') : t('dc_left', { n }))}</em></i></span>${IC.chev}</button>`; }).join('');
   };
@@ -2674,7 +2674,7 @@ function drawSos(layers, y) {
   w.addEventListener('click', e => { const b = e.target.closest('[data-sos]'); if (!b) return; e.preventDefault(); e.stopPropagation(); const a = b.dataset.sos; if (a === 'go') sosGo(); else if (a === 'add') tcInvite(); else if (a === 'login') tgLogin(); else if (a.startsWith('rm:')) api('/api/trust', { action: 'remove', tg_id: +a.slice(3) }).then(() => { TC = null; render(current, currentP); }); });
   const box = w.querySelector('#tcBox');
   const paint = () => {
-    if (!authUser()) { box.innerHTML = `<p class="dc-empty">${esc(t('need_login_s'))}</p><button class="h-btn h-tgbtn" data-sos="login">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`; return; }
+    if (!authUser()) { box.innerHTML = `<p class="dc-empty">${esc(t('need_login_sos'))}</p><button class="h-btn h-tgbtn" data-sos="login">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`; return; }
     box.innerHTML = TC && TC.length ? TC.map(c => `<div class="hv-mq"><span class="hv-dot" style="background:#229ED9"></span><span><b>${esc(c.name)}</b><i>Telegram</i></span><button class="tc-rm" data-sos="rm:${c.tg_id}">${esc(t('tc_rm'))}</button></div>`).join('') : `<p class="dc-empty">${esc(t('tc_none'))}. ${esc(t('tc_add_s'))}</p>`;
   };
   paint();
@@ -3303,7 +3303,11 @@ const GOLD = '#D7A866', DK = '#113F1D';
 const LV = {
   tab_home: L4('Главная', 'Asosiy', 'Home', '首页'), tab_qr: L4('Scan QR', 'QR skaner', 'Scan QR', '扫码'), tab_all: L4('Все услуги', 'Barcha xizmatlar', 'All services', '全部服务'), tab_prof: L4('Профиль', 'Profil', 'Profile', '我的'),
   svc_t: L4('Все сервисы', 'Barcha xizmatlar', 'All services', '全部服务'), qa_t: L4('Быстрые действия', 'Tezkor amallar', 'Quick actions', '快捷操作'), news: L4('Новости', 'Yangiliklar', 'News', '新闻'), all: L4('Все', 'Barchasi', 'All', '全部'), ai: L4('AI Агент', 'AI Agent', 'AI Agent', 'AI 助手'),
-  sec_driver: L4('Водителю', 'Haydovchiga', 'For drivers', '驾车'), sec_admin: L4('Административные', 'Ma’muriy', 'Administrative', '行政'), sec_city: L4('Городские сервисы', 'Shahar xizmatlari', 'City services', '城市服务'), sec_edu: L4('Образование и здоровье', 'Ta’lim va sog‘liq', 'Education and health', '教育与健康'), sec_tour: L4('Туризм и досуг', 'Turizm va dam olish', 'Tourism and leisure', '旅游休闲'), sec_inv: L4('Инвестиции', 'Investitsiyalar', 'Investment', '投资'), sec_cam: L4('Видеокамеры', 'Videokameralar', 'Cameras', '摄像头'),
+  sec_driver: L4('Транспорт и дороги', 'Transport va yo‘llar', 'Transport and roads', '交通与道路'), sec_admin: L4('Госуслуги и платежи', 'Davlat xizmatlari va to‘lovlar', 'Public services and payments', '政务与缴费'), sec_city: L4('Махалля и город', 'Mahalla va shahar', 'Mahalla and city', '社区与城市'), sec_edu: L4('Здоровье и образование', 'Sog‘liq va ta’lim', 'Health and education', '健康与教育'), sec_tour: L4('Досуг и туризм', 'Dam olish va turizm', 'Leisure and tourism', '休闲旅游'),
+  td_t: L4('Сегодня', 'Bugun', 'Today', '今天'), td_hm: L4('через {h} ч {m} мин', '{h} soat {m} daqiqadan so‘ng', 'in {h} h {m} min', '{h} 小时 {m} 分钟后'), td_m: L4('через {m} мин', '{m} daqiqadan so‘ng', 'in {m} min', '{m} 分钟后'),
+  td_wx: L4('Погода', 'Ob-havo', 'Weather', '天气'), td_aq0: L4('чистый воздух', 'havo toza', 'clean air', '空气清新'), td_aq1: L4('воздух в норме', 'havo me’yorida', 'air is fine', '空气良好'), td_aq2: L4('чувствительным — меньше гулять', 'sezgirlar kamroq yursin', 'sensitive groups: less time outside', '敏感人群减少外出'), td_aq3: L4('лучше остаться дома', 'uyda qolgan ma’qul', 'better stay indoors', '最好待在室内'),
+  td_med: L4('Аптеки и клиники', 'Dorixona va klinikalar', 'Pharmacies and clinics', '药店和诊所'), td_med_s: L4('на карте, рядом с вами', 'xaritada, yoningizda', 'on the map near you', '地图上，在您附近'), td_docs: L4('Мои документы', 'Hujjatlarim', 'My documents', '我的证件'), td_docs_v: L4('Паспорт, права', 'Pasport, guvohnoma', 'Passport, licence', '护照、驾照'), td_docs_s: L4('напомним о сроках', 'muddatini eslatamiz', 'we remind you of expiry', '到期提醒'),
+  p_app: L4('Приложение', 'Ilova', 'App', '应用'), sec_inv: L4('Инвестиции', 'Investitsiyalar', 'Investment', '投资'), sec_cam: L4('Видеокамеры', 'Videokameralar', 'Cameras', '摄像头'),
   s_transport: L4('Транспорт', 'Transport', 'Transport', '交通'), s_parking: L4('Парковка', 'Parkovka', 'Parking', '停车'), s_ev: L4('Электрозарядка', 'Elektr zaryadlash', 'EV charging', '充电桩'), s_fines: L4('Штрафы', 'Jarimalar', 'Fines', '罚款'), s_roads: L4('Дороги и ремонт', 'Yo‘llar va ta’mir', 'Roads and repairs', '道路维修'), s_cams: L4('Камеры скорости', 'Tezlik kameralari', 'Speed cameras', '测速摄像头'),
   s_gov: L4('Госуслуги', 'Davlat xizmatlari', 'Public services', '政务服务'), s_vol: L4('Стать волонтёром', 'Volontyor bo‘lish', 'Volunteer', '志愿者'), s_docs: L4('Мои документы', 'Hujjatlarim', 'My documents', '我的证件'), s_polls: L4('Опросы', 'So‘rovnomalar', 'Polls', '投票'),
   s_home: L4('Электронный дом', 'Elektron uy', 'E-home', '智慧家庭'), s_sos: L4('Тревожная кнопка', 'Xavf tugmasi', 'Panic button', '紧急按钮'), s_clean: L4('Чистый город', 'Toza shahar', 'Clean city', '清洁城市'), s_market: L4('Маркетплейс', 'Marketpleys', 'Marketplace', '商城'), s_fairs: L4('Афиша и события', 'Afisha va tadbirlar', 'Events', '活动'), s_mah: L4('Цифровая махалля', 'Raqamli mahalla', 'Digital mahalla', '数字社区'), s_appeal: L4('Обращение к хокиму', 'Hokimga murojaat', 'Appeal to the hokim', '向市长反映'), s_cash: L4('Национальный кешбэк', 'Milliy keshbek', 'National cashback', '国家返现'),
@@ -3406,7 +3410,7 @@ const lvLink = (icon, title, sub, href, opt = {}) => `<a class="lv-row" href="${
 const page = (title, body, opt = {}) => `${lvHdr(title, opt.back !== false)}<main class="lv-body vs">${body}<div class="lv-pad"></div></main>`;
 
 // ---------- home ----------
-const QA = [['grid', 's_camsv', 'go:1:2763', 'tab_all'], ['video', 's_camsv', 'go:h:cams'], ['food', 's_cafes', 'go:h:cafes'], ['steth', 's_med', 'go:h:poi?med'], ['mosque', 's_mosques', 'go:1:3529'], ['bus', 's_transport', 'go:h:transport'], ['car', 's_parking', 'go:1:4858'], ['gov', 's_gov', 'go:1:2573'], ['zap', 's_ev', 'go:h:poi?ev'], ['trend', 's_invest', 'go:1:140']];
+const QA = [['grid', 's_camsv', 'go:1:2763', 'tab_all'], ['steth', 's_med', 'go:h:poi?med'], ['bus', 's_transport', 'go:h:transport'], ['gov', 's_gov', 'go:1:2573'], ['sos', 's_sos', 'go:1:4475'], ['build', 's_mah', 'go:1:996'], ['mosque', 's_mosques', 'go:1:3529'], ['food', 's_cafes', 'go:h:cafes'], ['file', 's_docs', 'go:1:19'], ['car', 's_parking', 'go:1:4858']];
 HS.home = () => {
   const qa = QA.map(([i, k, act, k2]) => `<button class="lv-qa" data-act="${act}">${ico(i, 28, '#C8924A', 1.7)}<b>${esc(lt(k2 || k))}</b></button>`).join('');
   return `<header class="lv-home">
@@ -3417,6 +3421,8 @@ HS.home = () => {
     <main class="lv-body vs lv-hbody">
       <div class="lv-h2">${esc(lt('qa_t'))}</div>
       <div class="lv-qas">${qa}</div>
+      <div class="lv-h2">${esc(lt('td_t'))}</div>
+      <div class="lv-today" id="hToday"></div>
       <div class="lv-h2">${esc(lt('news'))}<button data-act="go:h:news?all">${esc(lt('all'))} ›</button></div>
       <div id="hNews"><div class="hv-sk"></div><div class="hv-sk"></div></div><div class="lv-pad"></div>
     </main>`;
@@ -3430,25 +3436,41 @@ HS.home.mount = el => {
     if (lv >= 0) { aq.hidden = false; aq.innerHTML = `<span class="wx-dot" style="background:${AQ_COL[lv]}"></span><b>AQI ${a}</b>`; }
     if (FX && FX.list) { const u = FX.list.find(x => x.c === 'USD'); if (u) { fx.hidden = false; fx.innerHTML = `<b>$ ${fmtRate(u.r)}</b><i class="${u.d >= 0 ? 'up' : 'dn'}">${u.d >= 0 ? '▲' : '▼'}</i>`; } }
   };
-  paint(); wxLoad(ci).then(() => document.body.contains(wx) && paint()).catch(() => {}); fxLoad().then(() => document.body.contains(fx) && paint());
+  // «Сегодня»: следующий намаз, погода и воздух с советом, аптеки и клиники, ближайший срок документа
+  const td = el.querySelector('#hToday'); let MEDN = null, DOCN = null;
+  const card = (icon, label, value, sub, act) => `<button class="lv-td" data-act="${act}">${icon ? ico(icon, 22, '#C8924A', 1.8) : ''}<i>${esc(label)}</i><b>${value}</b><span>${esc(sub)}</span></button>`;
+  const drawT = () => {
+    if (!td || !document.body.contains(td)) return;
+    const pn = prayNow(ci), hhmm = m => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+    const left = pn.left >= 60 ? lt('td_hm').replace('{h}', Math.floor(pn.left / 60)).replace('{m}', pn.left % 60) : lt('td_m').replace('{m}', pn.left);
+    const W = WX[ci], c = W && W.w && W.w.current, a = W && W.a && W.a.current ? Math.round(W.a.current.us_aqi) : null, lv = aqLvl(a);
+    const out = [card('mosque', t('pr_' + pn.next), hhmm(pn.tm[pn.next]), left, 'go:1:3529')];
+    out.push(card('', lt('td_wx'), c ? `<em>${wxIcon(c.weather_code, !c.is_day)}</em>${c.temperature_2m > 0 ? '+' : ''}${Math.round(c.temperature_2m)}°C` : '…', lv >= 0 ? `AQI ${a} · ${lt('td_aq' + Math.min(lv, 3))}` : '', 'wxsheet'));
+    out.push(card('steth', lt('td_med'), MEDN ? MEDN.toLocaleString('ru-RU') : '…', lt('td_med_s'), 'go:h:poi?med'));
+    const d = DOCN, dn = d ? dcLeft(d.expires) : null;
+    out.push(card('file', lt('td_docs'), esc(d ? t('dk_' + d.kind) : lt('td_docs_v')), d ? (dn < 0 ? t('dc_exp') : dn === 0 ? t('dc_today') : t('dc_left', { n: dn })) : lt('td_docs_s'), 'go:1:19'));
+    td.innerHTML = out.join('');
+  };
+  drawT();
+  fetch(DATA_BASE + 'data/poi/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { const n = j && j.n && j.n.med && j.n.med[ci]; if (n) { MEDN = n; drawT(); } }).catch(() => {});
+  if (authUser()) api('/api/docs').then(j => { if (j && j.ok && j.list) { const l = j.list.filter(x => x.kind !== 'appt' && x.expires).sort((x, y) => dcLeft(x.expires) - dcLeft(y.expires)); DOCN = l.find(x => dcLeft(x.expires) >= -30) || null; drawT(); } }).catch(() => {});
+  paint(); wxLoad(ci).then(() => { if (document.body.contains(wx)) { paint(); drawT(); } }).catch(() => {}); fxLoad().then(() => document.body.contains(fx) && paint());
   [wx, aq].forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); wxSheet(); })); fx.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); fxSheet(); });
   const box = el.querySelector('#hNews');
   const drawN = () => { if (!document.body.contains(box)) return; const cn = cityNews(); const list = cn ? cn.items.slice(0, 8) : []; window.__newsList = list; box.innerHTML = list.length ? list.map((n, i) => newsCard(n, i)).join('') : `<div class="cf-empty">${esc(t('caf_load'))}</div>`; };
   if (NEWS) drawN(); loadNews().then(drawN);
   box.addEventListener('click', e => { const c = e.target.closest('[data-nidx]'); if (!c) return; e.preventDefault(); e.stopPropagation(); openNews(window.__newsList[+c.dataset.nidx]); });
-  const dt = el.querySelector('#hDate'); const iv = setInterval(() => { if (!document.body.contains(dt)) return clearInterval(iv); dt.textContent = liveText('date'); }, 15000);
+  const dt = el.querySelector('#hDate'); const iv = setInterval(() => { if (!document.body.contains(dt)) return clearInterval(iv); dt.textContent = liveText('date'); drawT(); }, 15000);
 };
 ICP.chev = '<path d="m6 9 6 6 6-6"/>';
 
 // ---------- all services ----------
 const SVC = [
   ['sec_driver', [['bus', 's_transport', 'go:h:transport'], ['car', 's_parking', 'go:1:4858'], ['zap', 's_ev', 'go:h:poi?ev'], ['alert', 's_fines', 'go:1:2649'], ['road', 's_roads', 'go:h:reports?road'], ['video', 's_cams', 'go:h:poi?speedcam']]],
-  ['sec_admin', [['gov', 's_gov', 'go:1:2573'], ['heart', 's_vol', 'go:1:4356'], ['file', 's_docs', 'go:1:19'], ['chart', 's_polls', 'go:h:polls?city']]],
-  ['sec_city', [['home', 's_home', 'go:1:5285'], ['sos', 's_sos', 'go:1:4475', '#C81E1E', '#fff'], ['trash', 's_clean', 'go:h:eco'], ['store', 's_market', 'go:1:5149'], ['bag', 's_fairs', 'go:h:news?afisha'], ['build', 's_mah', 'go:1:996'], ['msg', 's_appeal', 'go:h:reports?appeal'], ['gift', 's_cash', 'go:1:448']]],
-  ['sec_edu', [['cap', 's_family', 'go:1:3042'], ['heart', 's_health', 'go:1:5032']]],
-  ['sec_tour', [['map', 's_sights', 'go:h:poi?sight'], ['mosque', 's_mosques', 'go:1:3529'], ['food', 's_cafes', 'go:h:cafes'], ['card', 's_tickets', 'go:h:tickets']]],
-  ['sec_inv', [['trend', 's_invest', 'go:1:140']]],
-  ['sec_cam', [['video', 's_camsv', 'go:h:cams']]],
+  ['sec_admin', [['gov', 's_gov', 'go:1:2573'], ['file', 's_docs', 'go:1:19'], ['home', 's_home', 'go:1:5285'], ['gift', 's_cash', 'go:1:448'], ['trend', 's_invest', 'go:1:140']]],
+  ['sec_city', [['sos', 's_sos', 'go:1:4475', '#C81E1E', '#fff'], ['build', 's_mah', 'go:1:996'], ['msg', 's_appeal', 'go:h:reports?appeal'], ['trash', 's_clean', 'go:h:eco'], ['chart', 's_polls', 'go:h:polls?city'], ['heart', 's_vol', 'go:1:4356'], ['store', 's_market', 'go:1:5149']]],
+  ['sec_edu', [['steth', 's_health', 'go:1:5032'], ['cap', 's_family', 'go:1:3042']]],
+  ['sec_tour', [['bag', 's_fairs', 'go:h:news?afisha'], ['food', 's_cafes', 'go:h:cafes'], ['map', 's_sights', 'go:h:poi?sight'], ['mosque', 's_mosques', 'go:1:3529'], ['card', 's_tickets', 'go:h:tickets'], ['video', 's_camsv', 'go:h:cams']]],
 ];
 HS.services = () => page(lt('svc_t'), SVC.map(([s, items]) => lvSec(lt(s)) + `<div class="lv-grid">${items.map(([i, k, act, bg, col]) => lvTile(i, lt(k), act, { bg, col })).join('')}</div>`).join(''), { back: false });
 
@@ -3464,8 +3486,9 @@ HS.profile = () => {
       <div class="lv-pad"></div></main>`;
 };
 HS.profile.mount = el => { const f = el.querySelector('#pStats'); f.classList.add('flow'); drawStats({ r: f }); };
+XACT.wxsheet = () => wxSheet();
 XACT.privacy = () => window.open('privacy.html?lang=' + LANG, '_blank', 'noopener');
-HS.settings = () => page(lt('p_set'), `${fl('settings')}<div class="lv-sec">${esc(lt('p_other'))}</div><div class="lv-card">${lvRow('bell', lt('p_notif'), '', 'go:h:notif')}${lvRow('globe', lt('p_lang'), ({ ru: 'Русский', uz: "O'zbekcha", en: 'English', zh: '中文' })[LANG], 'langsheet')}${lvRow('lock', lt('p_priv'), '', 'privacy')}</div>${authUser() ? `<div class="lv-card">${lvRow('trash', lt('p_del'), '', 'delacc', { bg: '#FDECEC', col: '#C81E1E', right: '' })}</div>` : ''}`);
+HS.settings = () => page(lt('p_set'), `${fl('settings')}<div class="lv-sec">${esc(lt('p_app'))}</div><div class="lv-card">${lvRow('bell', lt('p_notif'), '', 'go:h:notif')}${lvRow('globe', lt('p_lang'), ({ ru: 'Русский', uz: "O'zbekcha", en: 'English', zh: '中文' })[LANG], 'langsheet')}${lvRow('lock', lt('p_priv'), '', 'privacy')}</div>${authUser() ? `<div class="lv-card">${lvRow('trash', lt('p_del'), '', 'delacc', { bg: '#FDECEC', col: '#C81E1E', right: '' })}</div>` : ''}`);
 HS.help = () => page(lt('p_help'), `<div class="lv-sec">${esc(lt('faq_t'))}</div><div class="lv-card">${t('faq_cats').split('|').map((c, i) => lvRow('help', c, '', 'go:h:faq?' + i)).join('')}</div>${fl('help')}`);
 
 // ---------- sections ----------
