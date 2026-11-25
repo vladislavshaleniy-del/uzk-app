@@ -2069,8 +2069,16 @@ function drawProfile(layers) {
     });
   };
   vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit);
-  document.addEventListener('focusin', e => { if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) { [120, 350, 700].forEach(ms => setTimeout(() => { fit(); const p = document.getElementById('aiPanel'); if (p && p._fit) p._fit(); }, ms)); } });
+  const kick = () => [80, 300, 650, 1200].forEach(ms => setTimeout(() => { fit(); const p = document.getElementById('aiPanel'); if (p && p._fit) p._fit(); }, ms));
+  const isField = n => n && /^(INPUT|TEXTAREA)$/.test(n.tagName);
+  document.addEventListener('focusin', e => { if (isField(e.target)) kick(); });
   document.addEventListener('focusout', () => setTimeout(fit, 150));
+  // нажали на поле, которое уже в фокусе (клавиатура открылась снова) — focusin второй раз не приходит
+  document.addEventListener('touchend', e => { if (isField(e.target)) kick(); }, { passive: true });
+  // ушли в Telegram за кодом и вернулись: снимаем фокус, чтобы клавиатура открылась заново по нажатию
+  // и окно ввода подстроилось над ней; при возврате пересчитываем ещё раз
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (isField(document.activeElement)) document.activeElement.blur(); } else kick(); });
+  window.addEventListener('pageshow', kick);
   window.__kbFit = fit;
 })();
 
@@ -3304,7 +3312,12 @@ const LV = {
   tab_home: L4('Главная', 'Asosiy', 'Home', '首页'), tab_qr: L4('Scan QR', 'QR skaner', 'Scan QR', '扫码'), tab_all: L4('Все услуги', 'Barcha xizmatlar', 'All services', '全部服务'), tab_prof: L4('Профиль', 'Profil', 'Profile', '我的'),
   svc_t: L4('Все сервисы', 'Barcha xizmatlar', 'All services', '全部服务'), qa_t: L4('Быстрые действия', 'Tezkor amallar', 'Quick actions', '快捷操作'), news: L4('Новости', 'Yangiliklar', 'News', '新闻'), all: L4('Все', 'Barchasi', 'All', '全部'), ai: L4('AI Агент', 'AI Agent', 'AI Agent', 'AI 助手'),
   sec_driver: L4('Транспорт и дороги', 'Transport va yo‘llar', 'Transport and roads', '交通与道路'), sec_admin: L4('Госуслуги и платежи', 'Davlat xizmatlari va to‘lovlar', 'Public services and payments', '政务与缴费'), sec_city: L4('Махалля и город', 'Mahalla va shahar', 'Mahalla and city', '社区与城市'), sec_edu: L4('Здоровье и образование', 'Sog‘liq va ta’lim', 'Health and education', '健康与教育'), sec_tour: L4('Досуг и туризм', 'Dam olish va turizm', 'Leisure and tourism', '休闲旅游'),
-  td_t: L4('Сегодня', 'Bugun', 'Today', '今天'), td_hm: L4('через {h} ч {m} мин', '{h} soat {m} daqiqadan so‘ng', 'in {h} h {m} min', '{h} 小时 {m} 分钟后'), td_m: L4('через {m} мин', '{m} daqiqadan so‘ng', 'in {m} min', '{m} 分钟后'),
+  td_t: L4('Сегодня', 'Bugun', 'Today', '今天'), qa_edit: L4('Изменить', 'O‘zgartirish', 'Edit', '编辑'), qa_add: L4('Добавить', 'Qo‘shish', 'Add', '添加'),
+  qa_pick_s: L4('Отметьте сервисы, которые нужны вам на главной', 'Bosh sahifada kerakli xizmatlarni belgilang', 'Tick the services you want on the home screen', '勾选您想放在首页的服务'),
+  td_pick_s: L4('Выберите, что показывать в «Сегодня»', '«Bugun» bo‘limida nimani ko‘rsatishni tanlang', 'Choose what to show in “Today”', '选择在“今天”中显示的内容'),
+  td_add_s: L4('выбрать сервис', 'xizmatni tanlash', 'choose a service', '选择服务'), td_wg: L4('Карточки', 'Kartochkalar', 'Cards', '卡片'), td_sv: L4('Сервисы', 'Xizmatlar', 'Services', '服务'),
+  td_svc: L4('Сервис', 'Xizmat', 'Service', '服务'), td_open: L4('открыть', 'ochish', 'open', '打开'), td_fx: L4('Курс валют', 'Valyuta kursi', 'Exchange rates', '汇率'), td_pray: L4('Время намаза', 'Namoz vaqti', 'Prayer time', '礼拜时间'),
+  pk_reset: L4('Вернуть как было', 'Avvalgidek qilish', 'Reset to default', '恢复默认'), pk_done: L4('Готово', 'Tayyor', 'Done', '完成'), td_hm: L4('через {h} ч {m} мин', '{h} soat {m} daqiqadan so‘ng', 'in {h} h {m} min', '{h} 小时 {m} 分钟后'), td_m: L4('через {m} мин', '{m} daqiqadan so‘ng', 'in {m} min', '{m} 分钟后'),
   td_wx: L4('Погода', 'Ob-havo', 'Weather', '天气'), td_aq0: L4('чистый воздух', 'havo toza', 'clean air', '空气清新'), td_aq1: L4('воздух в норме', 'havo me’yorida', 'air is fine', '空气良好'), td_aq2: L4('чувствительным — меньше гулять', 'sezgirlar kamroq yursin', 'sensitive groups: less time outside', '敏感人群减少外出'), td_aq3: L4('лучше остаться дома', 'uyda qolgan ma’qul', 'better stay indoors', '最好待在室内'),
   td_med: L4('Аптеки и клиники', 'Dorixona va klinikalar', 'Pharmacies and clinics', '药店和诊所'), td_med_s: L4('на карте, рядом с вами', 'xaritada, yoningizda', 'on the map near you', '地图上，在您附近'), td_docs: L4('Мои документы', 'Hujjatlarim', 'My documents', '我的证件'), td_docs_v: L4('Паспорт, права', 'Pasport, guvohnoma', 'Passport, licence', '护照、驾照'), td_docs_s: L4('напомним о сроках', 'muddatini eslatamiz', 'we remind you of expiry', '到期提醒'),
   p_app: L4('Приложение', 'Ilova', 'App', '应用'), p_upd: L4('Обновить приложение', 'Ilovani yangilash', 'Update the app', '更新应用'), p_upd_s: L4('Загрузить последнюю версию', 'Eng so‘nggi versiyani yuklash', 'Load the latest version', '加载最新版本'), sec_inv: L4('Инвестиции', 'Investitsiyalar', 'Investment', '投资'), sec_cam: L4('Видеокамеры', 'Videokameralar', 'Cameras', '摄像头'),
@@ -3411,17 +3424,51 @@ const page = (title, body, opt = {}) => `${lvHdr(title, opt.back !== false)}<mai
 
 // ---------- home ----------
 const QA = [['grid', 's_camsv', 'go:1:2763', 'tab_all'], ['steth', 's_med', 'go:h:poi?med'], ['bus', 's_transport', 'go:h:transport'], ['gov', 's_gov', 'go:1:2573'], ['sos', 's_sos', 'go:1:4475'], ['build', 's_mah', 'go:1:996'], ['mosque', 's_mosques', 'go:1:3529'], ['food', 's_cafes', 'go:h:cafes'], ['file', 's_docs', 'go:1:19'], ['car', 's_parking', 'go:1:4858']];
+// ---- Свои «Быстрые действия» и «Сегодня»: человек сам выбирает, что держать на главной (хранится на телефоне) ----
+let SVALL_ = null;
+const svAll = () => SVALL_ || (SVALL_ = (() => { const m = new Map(); [...QA, ...SVC.flatMap(([, it]) => it)].forEach(x => { if (!m.has(x[2])) m.set(x[2], x); }); return m; })());
+const svLab = x => lt(x[3] && x[3][0] !== '#' ? x[3] : x[1]);
+const prefGet = (k, def) => { try { const v = JSON.parse(localStorage.getItem(k)); return Array.isArray(v) ? v : def; } catch (e) { return def; } };
+const prefSet = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const TDW = { 'w:pray': ['mosque', 'td_pray'], 'w:wx': ['drop', 'td_wx'], 'w:med': ['steth', 'td_med'], 'w:docs': ['file', 'td_docs'], 'w:fx': ['chart', 'td_fx'] };
+const TD_DEF = ['w:pray', 'w:wx', 'w:med', 'w:docs'];
+const qaList = () => prefGet('uzk-qa', QA.map(x => x[2])).filter(a => svAll().has(a));
+const tdList = () => prefGet('uzk-td', TD_DEF).filter(id => TDW[id] || (id.startsWith('s:') && svAll().has(id.slice(2))));
+const qaHtml = () => qaList().map(a => { const x = svAll().get(a); return `<button class="lv-qa" data-act="${x[2]}">${ico(x[0], 28, '#C8924A', 1.7)}<b>${esc(svLab(x))}</b></button>`; }).join('')
+  + `<button class="lv-qa lv-qa-add" data-act="pick:qa">${ico('plus', 28, '#C8924A', 1.8)}<b>${esc(lt('qa_add'))}</b></button>`;
+const homeRefresh = () => { const q = document.querySelector('.lv-qas'); if (q) q.innerHTML = qaHtml(); if (window.__hDrawT) window.__hDrawT(); };
+function pickSheet(kind) {
+  const isQ = kind === 'qa', sel = isQ ? qaList() : tdList(), pre = isQ ? '' : 's:';
+  const row = (id, icon, label) => `<button class="pk-row${sel.includes(id) ? ' on' : ''}" data-act="pktog:${kind}|${id}">${ico(icon, 22, '#C8924A', 1.7)}<span>${esc(label)}</span><i>${IC.check}</i></button>`;
+  const inSvc = new Set(SVC.flatMap(([, it]) => it.map(x => x[2])));
+  let h = `<div class="pk-h"><b>${esc(lt(isQ ? 'qa_t' : 'td_t'))}</b><span>${esc(lt(isQ ? 'qa_pick_s' : 'td_pick_s'))}</span></div>`;
+  if (!isQ) h += `<div class="pk-sec">${esc(lt('td_wg'))}</div><div class="pk-list">${Object.entries(TDW).map(([id, w]) => row(id, w[0], lt(w[1]))).join('')}</div><div class="pk-sec">${esc(lt('td_sv'))}</div>`;
+  h += `<div class="pk-list">${[...svAll().values()].filter(x => !inSvc.has(x[2])).map(x => row(pre + x[2], x[0], svLab(x))).join('')}</div>`;
+  h += SVC.map(([s, items]) => `<div class="pk-sec sub">${esc(lt(s))}</div><div class="pk-list">${items.map(x => row(pre + x[2], x[0], svLab(x))).join('')}</div>`).join('');
+  h += `<div class="pk-foot"><button class="pk-reset" data-act="pkreset:${kind}">${esc(lt('pk_reset'))}</button><button class="pk-done" data-act="bsclose">${esc(lt('pk_done'))}</button></div>`;
+  bsheet(h, 'pk-sheet');
+}
+XACT.pick = k => pickSheet(k);
+XACT.pktog = arg => {
+  const i = arg.indexOf('|'), kind = arg.slice(0, i), id = arg.slice(i + 1), key = kind === 'qa' ? 'uzk-qa' : 'uzk-td';
+  const cur = kind === 'qa' ? qaList() : tdList(), at = cur.indexOf(id);
+  if (at >= 0) cur.splice(at, 1); else cur.push(id);
+  prefSet(key, cur); homeRefresh();
+  document.querySelectorAll('.pk-row').forEach(b => { if (b.dataset.act === 'pktog:' + arg) b.classList.toggle('on', at < 0); });
+};
+XACT.pkreset = k => { prefSet(k === 'qa' ? 'uzk-qa' : 'uzk-td', null); homeRefresh(); pickSheet(k); };
+XACT.fxsheet = () => fxSheet();
 HS.home = () => {
-  const qa = QA.map(([i, k, act, k2]) => `<button class="lv-qa" data-act="${act}">${ico(i, 28, '#C8924A', 1.7)}<b>${esc(lt(k2 || k))}</b></button>`).join('');
+  const qa = qaHtml();
   return `<header class="lv-home">
       <div class="lv-pills"><button class="lv-pill" id="hWx">🌤️ …</button><button class="lv-pill" id="hAq" hidden></button><button class="lv-pill" id="hFx" hidden></button><button class="lv-lang" data-act="langsheet">${esc(LANG.toUpperCase())} ${ico('chev', 14)}</button></div>
       <div class="lv-hrow"><button class="lv-city" data-act="go:h:city">${PIN(18)}<span>${esc(cityName())}</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button><button class="lv-ai" data-act="aiopen">${ico('spark', 18, '#fff')}<span>${esc(lt('ai'))}</span></button></div>
       <div class="lv-date" id="hDate">${esc(liveText('date'))}</div>
     </header>
     <main class="lv-body vs lv-hbody">
-      <div class="lv-h2">${esc(lt('qa_t'))}</div>
+      <div class="lv-h2">${esc(lt('qa_t'))}<button data-act="pick:qa">${esc(lt('qa_edit'))}</button></div>
       <div class="lv-qas">${qa}</div>
-      <div class="lv-h2">${esc(lt('td_t'))}</div>
+      <div class="lv-h2">${esc(lt('td_t'))}<button data-act="pick:td">${esc(lt('qa_edit'))}</button></div>
       <div class="lv-today" id="hToday"></div>
       <div class="lv-h2">${esc(lt('news'))}<button data-act="go:h:news?all">${esc(lt('all'))} ›</button></div>
       <div id="hNews"><div class="hv-sk"></div><div class="hv-sk"></div></div><div class="lv-pad"></div>
@@ -3444,14 +3491,20 @@ HS.home.mount = el => {
     const pn = prayNow(ci), hhmm = m => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
     const left = pn.left >= 60 ? lt('td_hm').replace('{h}', Math.floor(pn.left / 60)).replace('{m}', pn.left % 60) : lt('td_m').replace('{m}', pn.left);
     const W = WX[ci], c = W && W.w && W.w.current, a = W && W.a && W.a.current ? Math.round(W.a.current.us_aqi) : null, lv = aqLvl(a);
-    const out = [card('mosque', t('pr_' + pn.next), hhmm(pn.tm[pn.next]), left, 'go:1:3529')];
-    out.push(card('', lt('td_wx'), c ? `<em>${wxIcon(c.weather_code, !c.is_day)}</em>${c.temperature_2m > 0 ? '+' : ''}${Math.round(c.temperature_2m)}°C` : '…', lv >= 0 ? `AQI ${a} · ${lt('td_aq' + Math.min(lv, 3))}` : '', 'wxsheet'));
-    out.push(card('steth', lt('td_med'), MEDN ? MEDN.toLocaleString('ru-RU') : '…', lt('td_med_s'), 'go:h:poi?med'));
     const d = DOCN, dn = d ? dcLeft(d.expires) : null;
-    out.push(card('file', lt('td_docs'), esc(d ? t('dk_' + d.kind) : lt('td_docs_v')), d ? (dn < 0 ? t('dc_exp') : dn === 0 ? t('dc_today') : t('dc_left', { n: dn })) : lt('td_docs_s'), 'go:1:19'));
+    const fxr = cc => FX && FX.list ? FX.list.find(x => x.c === cc) : null, usd = fxr('USD'), eur = fxr('EUR'), rub = fxr('RUB');
+    const WG = {
+      'w:pray': () => card('mosque', t('pr_' + pn.next), hhmm(pn.tm[pn.next]), left, 'go:1:3529'),
+      'w:wx': () => card('', lt('td_wx'), c ? `<em>${wxIcon(c.weather_code, !c.is_day)}</em>${c.temperature_2m > 0 ? '+' : ''}${Math.round(c.temperature_2m)}°C` : '…', lv >= 0 ? `AQI ${a} · ${lt('td_aq' + Math.min(lv, 3))}` : '', 'wxsheet'),
+      'w:med': () => card('steth', lt('td_med'), MEDN ? MEDN.toLocaleString('ru-RU') : '…', lt('td_med_s'), 'go:h:poi?med'),
+      'w:docs': () => card('file', lt('td_docs'), esc(d ? t('dk_' + d.kind) : lt('td_docs_v')), d ? (dn < 0 ? t('dc_exp') : dn === 0 ? t('dc_today') : t('dc_left', { n: dn })) : lt('td_docs_s'), 'go:1:19'),
+      'w:fx': () => card('chart', lt('td_fx'), usd ? '$ ' + fmtRate(usd.r) : '…', [eur && '€ ' + fmtRate(eur.r), rub && '₽ ' + fmtRate(rub.r)].filter(Boolean).join(' · '), 'fxsheet'),
+    };
+    const out = tdList().map(id => { if (WG[id]) return WG[id](); const x = svAll().get(id.slice(2)); return card(x[0], lt('td_svc'), esc(svLab(x)), lt('td_open') + ' ›', x[2]); });
+    out.push(`<button class="lv-td lv-td-add" data-act="pick:td">${ico('plus', 22, '#C8924A', 1.8)}<b>${esc(lt('qa_add'))}</b><span>${esc(lt('td_add_s'))}</span></button>`);
     td.innerHTML = out.join('');
   };
-  drawT();
+  drawT(); window.__hDrawT = drawT; fxLoad().then(() => drawT());
   fetch(DATA_BASE + 'data/poi/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { const n = j && j.n && j.n.med && j.n.med[ci]; if (n) { MEDN = n; drawT(); } }).catch(() => {});
   if (authUser()) api('/api/docs').then(j => { if (j && j.ok && j.list) { const l = j.list.filter(x => x.kind !== 'appt' && x.expires).sort((x, y) => dcLeft(x.expires) - dcLeft(y.expires)); DOCN = l.find(x => dcLeft(x.expires) >= -30) || null; drawT(); } }).catch(() => {});
   paint(); wxLoad(ci).then(() => { if (document.body.contains(wx)) { paint(); drawT(); } }).catch(() => {}); fxLoad().then(() => document.body.contains(fx) && paint());
