@@ -28,7 +28,7 @@ const SRC = [
 ];
 function chan(ref) {
   if (!ref) return 'Прямой заход';
-  let h; try { h = new URL(ref).host.replace(/^www\./, '').toLowerCase(); } catch (e) { return 'Другие сайты'; }
+  let h; try { h = new URL(ref).hostname.replace(/^www\./, '').toLowerCase(); } catch (e) { return 'Другие сайты'; }
   if (h === 'myuzcity.uz' || h.endsWith('.myuzcity.uz') || h.endsWith('.pages.dev')) return null; // переход внутри сайта
   for (const [re, name] of SRC) if (re.test(h)) return name;
   return h;
