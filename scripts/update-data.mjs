@@ -74,7 +74,7 @@ async function ogImage(url) {
 
 // Аварии, гибель людей, криминал и суды на сайт и в приложение «умного города» не берём:
 // это лента о жизни города, а не криминальная хроника.
-export const GLOOM = /(погиб|гибел|смерт|скончал|умер(?:ла|ли)?\b|убий|убит|труп|тело\s|ДТП|авари|катастроф|столкнов|сбил[аио]?\b|задерж|арест|наркот|наркос|мошенн|краж|украл|похищ|изнасил|насили|суицид|самоубий|взрыв|теракт|стрельб|ножев|избил|ранен|пострадав|преступ|криминал|уголовн|приговор|осужд|колони|тюрьм|взятк|коррупц|онколог|тяжело заболел|halok|vafot|o'ldi|o‘ldi|avariya|YTH|hibs|giyohvand|firibgar|o'g'ri|jinoyat|qamoq|pora|killed|death|dead\b|crash|arrest|drug|murder|fraud|police)/i;
+export const GLOOM = /(погиб|гибел|смерт|скончал|умер(?:ла|ли)?\b|убий|убит|труп|тело\s|ДТП|авари|катастроф|столкнов|сбил[аио]?\b|задерж|арест|наркот|наркос|мошенн|краж|украл|похищ|изнасил|насили|суицид|самоубий|взрыв|теракт|стрельб|ножев|избил|ранен|пострадав|преступ|криминал|уголовн|приговор|осужд|колони|тюрьм|взятк|коррупц|онколог|тяжело заболел|halok|vafot|o'ldi|o‘ldi|avariya|YTH|hibs|giyohvand|firibgar|o'g'ri|jinoyat|qamoq|pora|tushib ket|yiqil|jarohat|yong[''‘’ʻ`]?in|\bo[''‘’ʻ`]?lim\b|\bo[''‘’ʻ`]?ldir|qotil|o[''‘’ʻ`]?g[''‘’ʻ`]?irla|zo[''‘’ʻ`]?rla|portla|otishma|qurbon|bedarak|g[''‘’ʻ`]?oyib|joniga qasd|onkolog|saraton|sud qaror|killed|death|dead\b|crash|arrest|drug|murder|fraud|police)/i;
 
 async function news() {
   const all = [];

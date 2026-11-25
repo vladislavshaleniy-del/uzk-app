@@ -910,7 +910,7 @@ function loadNews() {
   NEWS_AT = Date.now();
   return (NEWS_P = fetch(DATA_BASE + 'data/news.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.cities) NEWS = j; return NEWS; }).catch(() => NEWS));
 }
-function cityNews(i = cityIdx()) { if (!NEWS) return null; const U = NEWS.uz, src = LANG === 'uz' && U && (((U.cities || {})[i] || []).length || (U.all || []).length) ? U : NEWS; const l = (src.cities || {})[i]; return l && l.length ? { items: l, own: true } : { items: src.all || [], own: false }; }
+function cityNews(i = cityIdx()) { if (!NEWS) return null; const U = NEWS.uz, src = LANG === 'uz' && U && (((U.cities || {})[i] || []).length || (U.all || []).length) ? U : NEWS; const l = (src.cities || {})[i] || [], a = src.all || []; if (!l.length) return { items: a, own: false }; if (l.length >= 6) return { items: l, own: true }; const seen = new Set(l.map(n => n.u)); return { items: l.concat(a.filter(n => !seen.has(n.u))), own: true }; }
 const NEWS_GRAD = ['#1a4a28,#2f6b3d', '#3b2a5e,#6b4c9a', '#7c2d12,#c2410c', '#0f4c5c,#2a7f8f'];
 function newsTag(n) { return t('nk_' + (n.k || 'news')); }
 function newsCard(n, idx) {
