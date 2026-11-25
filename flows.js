@@ -4310,15 +4310,18 @@ function wgExtra(card) {
 }
 
 // ---- экран: радар + список, и вкладка «Чаты» ----
-function nrRadar(list) {
+function nrDots(list) {
   const max = Math.max(1000, ...(list || []).map(p => p.dist || 0));
   const dots = (list || []).slice(0, 24).map(p => {
     let h = 0; for (const ch of String(p.id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
     const ang = (h % 360), r = 14 + 32 * Math.sqrt((p.dist || 100) / max), x = 50 + r * Math.cos(ang * Math.PI / 180), y = 50 + r * Math.sin(ang * Math.PI / 180);
     return `<button class="nr-dot" style="left:${x}%;top:${y}%;animation-delay:${((ang + 90) % 360) / 360 * 4 - 4}s" data-act="nrmsg:${p.id}">${nrAv(p, 36)}</button>`;
   }).join('');
+  return dots;
+}
+function nrRadar(list) {
   const me = authUser();
-  return `<div class="nr-radar"><div class="nr-ring r1"></div><div class="nr-ring r2"></div><div class="nr-ring r3"></div><div class="nr-sweep"></div>${dots}<span class="nr-me">${me && avaGet() ? `<img src="${avaGet()}" alt="">` : ico('user', 20, '#fff', 2)}</span></div>`;
+  return `<div class="nr-radar"><div class="nr-ring r1"></div><div class="nr-ring r2"></div><div class="nr-ring r3"></div><div class="nr-sweep"></div><div class="nr-dots">${nrDots(list)}</div><span class="nr-me">${me && avaGet() ? `<img src="${avaGet()}" alt="">` : ico('user', 20, '#fff', 2)}</span></div>`;
 }
 const nrItem = p => `<div class="nr-item">${nrAv(p)}<span class="nr-it"><b>${esc(p.name)}</b><i>${esc(nrDist(p.dist))}</i></span><button class="nr-write" data-act="nrmsg:${p.id}">${esc(t('nr_write'))}</button></div>`;
 const nrChatItem = c => `<button class="nr-item nr-chat" data-act="go:h:dm?${c.id}">${nrAv(c.who)}<span class="nr-it"><b>${esc(c.who.name)}</b><i>${esc([nrDist(c.who.dist), c.last].filter(Boolean).join(' · '))}</i></span>${c.unread ? `<em class="nr-un">${c.unread}</em>` : ''}</button>`;
@@ -4332,6 +4335,14 @@ HS.near = (p) => {
   return page(lt('s_near'), `${tabs}<div id="nrR">${nrRadar(NEAR.list || [])}</div><div class="nr-st" id="nrSt">${esc(NEAR.list ? (NEAR.list.length ? t('nr_found', { n: NEAR.list.length, r: 10 }) : t('nr_none')) : t('nr_search'))}</div>
     <div id="nrL">${(NEAR.list || []).map(nrItem).join('')}</div><button class="nr-hide" data-act="nrhide">${esc(t('nr_hide'))}</button><div class="h-muted small nr-note">${esc(t('nr_safe'))}</div>`);
 };
+// полоса локатора крутится всегда — через Web Animations; если их нет, остаётся CSS-анимация
+function nrSpin(root) {
+  (root || document).querySelectorAll('.nr-sweep:not([data-spin])').forEach(el => {
+    el.setAttribute('data-spin', '1');
+    if (el.animate) { el.style.animation = 'none'; el.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 4000, iterations: Infinity, easing: 'linear' }); }
+  });
+}
+new MutationObserver(() => { if (document.querySelector('.nr-sweep:not([data-spin])')) nrSpin(); }).observe(document.documentElement, { childList: true, subtree: true });
 function nrLocate() {
   return new Promise((ok, no) => { if (!navigator.geolocation) return no(new Error('geo')); navigator.geolocation.getCurrentPosition(p => ok([p.coords.latitude, p.coords.longitude]), no, { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 }); })
     .then(([lat, lon]) => api('/api/near', { action: 'locate', lat, lon }))
@@ -4342,7 +4353,7 @@ HS.near.mount = (el, p) => {
   if (ch) { api('/api/near?chats=1').then(j => { if (!j || !j.ok) return; NEAR.chats = j.list; NEAR.unread = j.n || 0; nrPaint(); if (document.body.contains(ch)) ch.innerHTML = j.list.length ? j.list.map(nrChatItem).join('') : `<div class="so-card"><p>${esc(t('nr_chats_none'))}</p></div>`; }).catch(() => {}); return; }
   if (!el.querySelector('#nrR')) return;
   const R = el.querySelector('#nrR'), L = el.querySelector('#nrL'), S = el.querySelector('#nrSt');
-  const draw = () => { if (!document.body.contains(R)) return; R.innerHTML = nrRadar(NEAR.list); L.innerHTML = NEAR.list.map(nrItem).join(''); S.textContent = NEAR.list.length ? t('nr_found', { n: NEAR.list.length, r: 10 }) : t('nr_none'); };
+  const draw = () => { if (!document.body.contains(R)) return; const D = R.querySelector('.nr-dots'); if (D) D.innerHTML = nrDots(NEAR.list); else R.innerHTML = nrRadar(NEAR.list); L.innerHTML = NEAR.list.map(nrItem).join(''); S.textContent = NEAR.list.length ? t('nr_found', { n: NEAR.list.length, r: 10 }) : t('nr_none'); };
   const tick = () => { if (!document.body.contains(R)) return clearInterval(iv); if (!document.hidden) nrLocate().then(draw).catch(e => { S.textContent = e && e.code ? t('nr_geo') : t('po_err'); }); };
   const iv = setInterval(tick, 45000); tick();
 };
