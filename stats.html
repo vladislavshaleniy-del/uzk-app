@@ -93,6 +93,17 @@ ol.list li .bar{grid-column:1/-1;margin-top:0}
 .act a:hover{border-color:var(--acc)}
 .msg{color:var(--mute);font-size:13px;margin:12px 0 0}
 .empty{color:var(--mute);font-size:14px;padding:8px 0}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.trio.duo{grid-template-columns:repeat(2,1fr);margin-top:16px}
+.qh{margin:18px 0 6px;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em}
+.trio h3{margin:0 0 6px;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em}
+ol.list.sm li{padding:7px 0;font-size:14px}
+.tw{overflow-x:auto;margin:0 -4px}
+table.rec{min-width:720px}
+table.rec td,table.rec th{text-align:left!important;vertical-align:top;padding-right:14px}
+table.rec td small{display:block;color:var(--mute);font-size:12px;line-height:1.35;margin-top:2px}
+table.rec td:first-child{white-space:nowrap}
+@media (max-width:700px){.trio{grid-template-columns:1fr}}
 @media (max-width:980px){.kpi{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
 @media (max-width:560px){.w{padding:0 14px}.card{padding:18px 14px}.hide-s{display:none}.tabs button{padding:9px 12px}.feed li{grid-template-columns:74px 1fr}.feed li em{display:none}.top nav a,.btn{padding:9px 12px}}
 </style>
@@ -144,6 +155,26 @@ ol.list li .bar{grid-column:1/-1;margin-top:0}
         <ol class="list" id="pages"></ol>
       </div>
     </div>
+    <div class="grid">
+      <div class="card">
+        <h2>Откуда пришли</h2>
+        <ol class="list" id="srcs"></ol>
+        <h3 class="qh">Поисковые запросы</h3>
+        <ol class="list sm" id="qs"></ol>
+        <p class="msg">По первому открытию сайта или приложения. «Прямой заход» — набрали адрес, открыли закладку или ссылку из места, которое не сообщает источник. Запрос виден, только если поисковик его передал (Google не передаёт никогда, Яндекс — редко); все запросы из поиска — в Search Console и Вебмастере.</p>
+      </div>
+      <div class="card">
+        <h2>Устройства, системы и браузеры</h2>
+        <div class="trio"><div><h3>Устройство</h3><ol class="list sm" id="devs"></ol></div><div><h3>Система</h3><ol class="list sm" id="oss"></ol></div><div><h3>Браузер</h3><ol class="list sm" id="brs"></ol></div></div>
+        <div class="trio duo"><div><h3>Модель телефона</h3><ol class="list sm" id="models"></ol></div><div><h3>Оператор / провайдер</h3><ol class="list sm" id="isps"></ol></div></div>
+        <p class="msg">Считаются посетители, а не просмотры. Модель видна у Android; iPhone модель не сообщает.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Последние посещения</h2>
+      <div class="tw"><table class="rec"><thead><tr><th>Когда</th><th>Откуда</th><th>Источник</th><th>Устройство</th><th>Что открыли</th></tr></thead><tbody id="rec"></tbody></table></div>
+      <p class="msg">Один посетитель за день — одна строка. Подробности о браузере и источнике собираются с 25 ноября.</p>
+    </div>
     <p class="note" id="an-note">Дни считаются по Ташкенту (UTC+5). Посетитель — уникальный за день, без cookies и без хранения IP. Страну и город определяет Cloudflare. Роботы не учитываются.</p>
 
     <section id="seo">
@@ -168,11 +199,6 @@ ol.list li .bar{grid-column:1/-1;margin-top:0}
         </div>
       </div>
       <div class="grid">
-        <div class="card">
-          <h2>Откуда заходят — 30 дней</h2>
-          <ol class="list" id="sx-tr"></ol>
-          <p class="msg">Считаются переходы с других сайтов, из поиска, мессенджеров и соцсетей, а также прямые заходы. Переходы внутри сайта не считаются.</p>
-        </div>
         <div class="card">
           <h2>Последние визиты роботов</h2>
           <ul class="feed" id="sx-feed"></ul>
@@ -274,6 +300,23 @@ function render() {
   // страницы
   const mx = Math.max(1, ...p.pages.map(x => x.views));
   $('#pages').innerHTML = p.pages.length ? p.pages.map(x => `<li><span>${esc(pageName(x.path, x.host))}${x.host === 'app' ? '<span class="tag app">приложение</span>' : ''}</span><b>${fmt(x.views)}</b><span class="bar"><i style="width:${x.views / mx * 100}%"></i></span></li>`).join('') : '<li class="empty">Пока пусто.</li>';
+  const lst = (id, arr, empty) => { const tot = arr.reduce((a, x) => a + x.n, 0), mx = Math.max(1, ...arr.map(x => x.n));
+    $(id).innerHTML = arr.length ? arr.map(x => `<li><span>${esc(x.k)}</span><b>${fmt(x.n)}${tot ? ' · ' + Math.round(x.n / tot * 100) + '%' : ''}</b><span class="bar"><i style="width:${x.n / mx * 100}%"></i></span></li>`).join('') : `<li class="empty">${empty}</li>`; };
+  lst('#srcs', p.srcs || [], 'Пока нет данных.');
+  lst('#devs', p.devs || [], '—'); lst('#oss', p.oss || [], '—'); lst('#brs', p.brs || [], '—');
+  lst('#models', p.models || [], '—'); lst('#isps', p.isps || [], '—');
+  $('#qs').innerHTML = (p.qs || []).length ? p.qs.map(x => `<li><span>«${esc(x.k)}» <span class="tag">${esc(x.src || '')}</span></span><b>${fmt(x.n)}</b></li>`).join('') : '<li class="empty">Пока ни одного переданного запроса.</li>';
+  const LG = { ru: 'русский', uz: 'узбекский', en: 'английский', zh: 'китайский', kk: 'казахский', tr: 'турецкий', ky: 'киргизский', tg: 'таджикский' };
+  const rec = A.recent || [];
+  $('#rec').innerHTML = rec.length ? rec.map(r => {
+    const paths = [...new Set(String(r.paths || '').split(' ').filter(Boolean))];
+    const what = paths.slice(0, 4).map(x => esc(pageName(x, r.host))).join(', ') + (paths.length > 4 ? ' …' : '');
+    return `<tr><td>${when(r.t2 || r.t)}${r.t2 && r.t && r.t2 - r.t > 6e4 ? `<small>с ${new Date(r.t).toLocaleTimeString('ru-RU', { timeZone: 'Asia/Tashkent', hour: '2-digit', minute: '2-digit' })}</small>` : ''}</td>`
+      + `<td>${flag(r.country)}${esc(r.city || country(r.country))}<small>${esc([r.region && r.region !== r.city ? r.region : '', r.city ? country(r.country) : ''].filter(Boolean).join(', '))}</small>${r.isp ? `<small>${esc(r.isp)}</small>` : ''}</td>`
+      + `<td>${esc(r.src || '—')}${r.q ? `<small>запрос: «${esc(r.q)}»</small>` : ''}</td>`
+      + `<td>${esc([r.dev, r.model && r.model !== 'iPhone' && r.model !== 'iPad' ? r.model : ''].filter(Boolean).join(' · ') || '—')}${r.os || r.br ? `<small>${esc([r.os, r.br].filter(Boolean).join(' · '))}</small>` : ''}${r.scr || r.lang ? `<small>${esc([r.scr ? 'экран ' + r.scr : '', r.lang ? 'язык ' + (LG[r.lang] || r.lang) : ''].filter(Boolean).join(' · '))}</small>` : ''}</td>`
+      + `<td>${r.host === 'app' ? '<span class="tag app">приложение</span> ' : ''}${what}${r.n > 1 ? `<small>${r.n} просм.</small>` : ''}</td></tr>`;
+  }).join('') : '<tr><td colspan="5" class="empty">Пока посещений нет.</td></tr>';
   chart();
 }
 $('#geo').addEventListener('click', e => {
@@ -325,11 +368,6 @@ async function loadSeo(fresh) {
   let s = axis(W, H, L, B, max, ds);
   ds.forEach((d, i) => { let y0 = H - B; for (const k of ['google', 'yandex', 'bing', 'o']) { const n = (by[d] || {})[k] || 0; if (!n) continue; const h = (H - B - 12) * n / max; y0 -= h; s += `<rect x="${L + i * bw + 3}" y="${y0}" width="${bw - 6}" height="${h}" fill="${C[k]}"><title>${d}: ${k === 'o' ? 'другие' : BOTN[k]} — ${n}</title></rect>`; } });
   $('#sx-chart').innerHTML = s;
-  // источники
-  const tr = {}; let tot = 0;
-  for (const r of X.traffic) { tr[r.src] = (tr[r.src] || 0) + r.n; tot += r.n; }
-  const tl = Object.entries(tr).sort((a, b) => b[1] - a[1]);
-  $('#sx-tr').innerHTML = tl.length ? tl.map(([k, n]) => `<li><span>${esc(k)}</span><b>${fmt(n)} · ${Math.round(n / tot * 100)}%</b><span class="bar"><i style="width:${n / tl[0][1] * 100}%"></i></span></li>`).join('') : '<li class="empty">Переходов пока нет.</li>';
   // лента роботов
   const row = r => `<li><span class="bot ${esc(r.bot)}">${esc(BOTN[r.bot] || r.bot)}</span><span>${esc(pageName(r.path, r.host))}${r.host === 'app' ? '<span class="tag app">приложение</span>' : ''}${r.st >= 400 ? ` <span class="bad">${r.st}</span>` : ''}</span><em>${when(r.t)}</em></li>`;
   $('#sx-feed').innerHTML = X.feed.length ? X.feed.map(row).join('') : '<li class="empty">Роботы ещё не заходили с момента подключения статистики.</li>';

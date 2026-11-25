@@ -1445,6 +1445,6 @@ window.addEventListener('load', () => {
   show();
 })();
 </script>
-<script>/* просмотр для /stats (не считаем, когда приложение показано в телефоне на сайте) */try{var q=new URLSearchParams(location.search);if(/(^|\.)myuzcity\.uz$/.test(location.hostname)&&q.get('embed')!=='1'&&window.top===window){var b=JSON.stringify({p:'/'+(q.get('open')||'')});if(!(navigator.sendBeacon&&navigator.sendBeacon('/api/hit',new Blob([b],{type:'application/json'}))))fetch('/api/hit',{method:'POST',body:b,keepalive:true})}}catch(e){}</script>
+<script>/* просмотр для /stats (не считаем, когда приложение показано в телефоне на сайте) */try{var q=new URLSearchParams(location.search);if(/(^|\.)myuzcity\.uz$/.test(location.hostname)&&q.get('embed')!=='1'&&window.top===window){var o={p:'/'+(q.get('open')||''),r:document.referrer||'',l:navigator.language||'',s:screen.width+'x'+screen.height},go=function(){var b=JSON.stringify(o);if(!(navigator.sendBeacon&&navigator.sendBeacon('/api/hit',new Blob([b],{type:'application/json'}))))fetch('/api/hit',{method:'POST',body:b,keepalive:true})};if(navigator.userAgentData&&navigator.userAgentData.getHighEntropyValues)navigator.userAgentData.getHighEntropyValues(['model']).then(function(v){o.m=v.model||''}).catch(function(){}).finally(go);else go()}}catch(e){}</script>
 </body>
 </html>

@@ -143,7 +143,13 @@
   const t = k => (T[L][k] != null ? T[L][k] : T.ru[k]);
   const title = k => (SEO && SEO.titles && SEO.titles[k || '']) || (k ? '' : t('title'));
   // просмотр страницы для /stats (страна и город — на сервере, без cookies)
-  const hit = p => { if (!CLEAN) return; try { const b = JSON.stringify({ p }); if (!(navigator.sendBeacon && navigator.sendBeacon('/api/hit', new Blob([b], { type: 'application/json' })))) fetch('/api/hit', { method: 'POST', body: b, keepalive: true }).catch(() => {}); } catch (e) {} };
+  let hit1 = true;
+  const hit = p => { if (!CLEAN) return; try { const o = { p }; const send = () => { const b = JSON.stringify(o); if (!(navigator.sendBeacon && navigator.sendBeacon('/api/hit', new Blob([b], { type: 'application/json' })))) fetch('/api/hit', { method: 'POST', body: b, keepalive: true }).catch(() => {}); };
+    if (!hit1) return send();
+    hit1 = false; o.r = document.referrer || ''; o.l = navigator.language || ''; o.s = screen.width + 'x' + screen.height;
+    const ch = navigator.userAgentData && navigator.userAgentData.getHighEntropyValues;
+    if (!ch) return send();
+    navigator.userAgentData.getHighEntropyValues(['model']).then(v => { o.m = v.model || ''; }).catch(() => {}).finally(send); } catch (e) {} };
   hit(location.pathname);
   const fmt = n => Math.round(n).toLocaleString(L === 'en' ? 'en-US' : 'ru-RU').replace(/,/g, L === 'en' ? ',' : ' ');
 

@@ -26,7 +26,10 @@ const SRC = [
   [/(^|\.)duckduckgo\.com$/, 'DuckDuckGo'],
   [/(^|\.)(mail\.ru|go\.mail\.ru)$/, 'Mail.ru'],
 ];
-function chan(ref) {
+export function query(ref) {
+  try { const u = new URL(ref); return (u.searchParams.get('text') || u.searchParams.get('q') || u.searchParams.get('query') || '').trim().slice(0, 120); } catch (e) { return ''; }
+}
+export function chan(ref) {
   if (!ref) return 'Прямой заход';
   let h; try { h = new URL(ref).hostname.replace(/^www\./, '').toLowerCase(); } catch (e) { return 'Другие сайты'; }
   if (h === 'myuzcity.uz' || h.endsWith('.myuzcity.uz') || h.endsWith('.pages.dev')) return null; // переход внутри сайта
@@ -63,6 +66,20 @@ export function track(ctx, res) {
     run(ctx, 'INSERT INTO st_visits(d,host,src,path,t) VALUES(?,?,?,?,?)', [day(now), h, src.slice(0, 60), p.slice(0, 200), now],
       'CREATE TABLE IF NOT EXISTS st_visits(d TEXT,host TEXT,src TEXT,path TEXT,t INTEGER)');
   } catch (e) {}
+}
+
+// браузер, система, устройство и встроенный браузер приложения (Telegram, Instagram…) — по строке user-agent
+export function device(ua) {
+  const app = /Telegram/i.test(ua) ? 'Telegram' : /Instagram/i.test(ua) ? 'Instagram' : /FBAN|FBAV|FB_IAB|FBIOS/i.test(ua) ? 'Facebook'
+    : /musical_ly|BytedanceWebview|TikTok/i.test(ua) ? 'TikTok' : /WhatsApp/i.test(ua) ? 'WhatsApp' : /YandexSearch|YaApp|YaSearchBrowser/i.test(ua) ? 'Приложение Яндекс'
+    : /GSA\//.test(ua) ? 'Приложение Google' : /OKApp|OdnoklassnikiApp/i.test(ua) ? 'Одноклассники' : /VKAndroidApp|com\.vk/i.test(ua) ? 'ВКонтакте' : '';
+  const br = app ? app + ' (встроенный)' : /Edg(e|A|iOS)?\//.test(ua) ? 'Edge' : /OPR\/|Opera|OPT\//.test(ua) ? 'Opera' : /YaBrowser/.test(ua) ? 'Яндекс Браузер'
+    : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /MiuiBrowser|XiaoMi/i.test(ua) ? 'Mi Browser' : /Firefox|FxiOS/.test(ua) ? 'Firefox'
+    : /Chrome|CriOS/.test(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : 'Другой';
+  const os = /Windows/.test(ua) ? 'Windows' : /Android/.test(ua) ? 'Android' : /iPhone|iPad|iPod/.test(ua) ? 'iOS' : /Mac OS X|Macintosh/.test(ua) ? 'macOS'
+    : /CrOS/.test(ua) ? 'ChromeOS' : /Linux/.test(ua) ? 'Linux' : 'Другая';
+  const dev = /iPad|Tablet/i.test(ua) || (/Android/.test(ua) && !/Mobile/.test(ua)) ? 'Планшет' : /Mobi|iPhone|iPod|Android/i.test(ua) ? 'Телефон' : 'Компьютер';
+  return { app, br, os, dev };
 }
 
 // доступ к /api/analytics и /api/seo: заголовок x-admin-key = кодовое слово STATS_KEY (секрет в Cloudflare)
