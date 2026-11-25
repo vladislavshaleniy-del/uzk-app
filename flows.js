@@ -3508,6 +3508,7 @@ HS.home.mount = el => {
       'w:docs': () => card('file', lt('td_docs'), esc(d ? t('dk_' + d.kind) : lt('td_docs_v')), d ? (dn < 0 ? t('dc_exp') : dn === 0 ? t('dc_today') : t('dc_left', { n: dn })) : lt('td_docs_s'), 'go:1:19'),
       'w:fx': () => card('chart', lt('td_fx'), usd ? '$ ' + fmtRate(usd.r) : '…', [eur && '€ ' + fmtRate(eur.r), rub && '₽ ' + fmtRate(rub.r)].filter(Boolean).join(' · '), 'fxsheet'),
     };
+    if (typeof wgExtra === 'function') Object.assign(WG, wgExtra(card));
     const out = tdList().map(id => { if (WG[id]) return WG[id](); const x = svAll().get(id.slice(2)); return card(x[0], lt('td_svc'), esc(svLab(x)), lt('td_open') + ' ›', x[2]); });
     out.push(`<button class="lv-td lv-td-add" data-act="pick:td">${ico('plus', 22, '#C8924A', 1.8)}<b>${esc(lt('qa_add'))}</b><span>${esc(lt('td_add_s'))}</span></button>`);
     td.innerHTML = out.join('');
@@ -4236,3 +4237,177 @@ function fkLockShow() {
 document.addEventListener('visibilitychange', () => { if (document.hidden) FK_HID = Date.now(); else if (FK_HID && Date.now() - FK_HID > 60e3) fkLockShow(); });
 setTimeout(fkLockShow, 50);
 Object.assign(XACT, { fklogin: fkLogin, fkset: fkSettings });
+
+// ======================= Люди рядом и личные чаты =======================
+// Видны только те, кто сам включил «показывать меня»; другим — только имя, фото и примерное расстояние.
+// Новые сообщения не всплывают: на кнопке «Люди рядом» просто появляется красная цифра.
+Object.assign(LV, { sec_other: L4('Другое', 'Boshqa', 'Other', '其他'), s_near: L4('Люди рядом', 'Yaqindagi odamlar', 'People nearby', '附近的人') });
+Object.assign(ICP, {
+  radar: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12 18.4 5.6"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>',
+  clip: '<path d="m21 11-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/>',
+  more: '<circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/>',
+});
+const NR_I = {
+  ru: { nr_find: 'найти людей рядом', nr_near_s: 'человек рядом с вами', nr_unread: 'новых сообщений: {n}', nr_tab_near: 'Рядом', nr_tab_chats: 'Чаты', nr_on: 'Включить и найти людей',
+    nr_intro_t: 'Найдите людей рядом', nr_intro: 'Включите, чтобы видеть тех, кто рядом, и чтобы они видели вас. Другим видно только ваше имя, фото и примерное расстояние — точное место и телефон не показываются. Выключить можно в любой момент.',
+    nr_safe: 'Будьте осторожны с незнакомцами: встречайтесь в людных местах. На навязчивых пользователей жалуйтесь — мы их блокируем.',
+    nr_login: 'Войдите через Telegram, чтобы находить людей рядом и переписываться', nr_geo: 'Разрешите доступ к геолокации, чтобы найти людей рядом', nr_search: 'Ищем людей рядом…', nr_found: 'Рядом {n} — в радиусе {r} км', nr_none: 'Пока никого рядом нет. Загляните позже — список обновляется сам.',
+    nr_write: 'Написать', nr_hide: 'Скрыть меня', nr_hidden: 'Вы больше не видны другим', nr_m: 'м', nr_km: 'км', nr_chats_none: 'Чатов пока нет. Найдите людей рядом и напишите первым.', nr_ph: 'Сообщение', nr_photo: 'Фото',
+    nr_block: 'Заблокировать', nr_report: 'Пожаловаться', nr_blocked: 'Пользователь заблокирован', nr_reported: 'Жалоба отправлена, пользователь заблокирован', nr_unblock: 'Разблокировать', nr_isblocked: 'Переписка недоступна',
+    nr_limit: 'Слишком много сообщений — подождите минуту', nr_err: 'Не удалось отправить', nr_notnear: 'Человек больше не рядом — написать новому собеседнику можно, пока он показывается рядом', nr_first: 'Напишите первое сообщение 👋' },
+  uz: { nr_find: 'yaqindagi odamlarni topish', nr_near_s: 'kishi yoningizda', nr_unread: 'yangi xabarlar: {n}', nr_tab_near: 'Yaqinda', nr_tab_chats: 'Chatlar', nr_on: 'Yoqish va odamlarni topish',
+    nr_intro_t: 'Yaqindagi odamlarni toping', nr_intro: 'Yoqing — yaqindagilarni ko‘rasiz, ular ham sizni ko‘radi. Boshqalarga faqat ismingiz, rasmingiz va taxminiy masofa ko‘rinadi — aniq joy va telefon ko‘rsatilmaydi. Istalgan vaqtda o‘chirish mumkin.',
+    nr_safe: 'Notanish odamlar bilan ehtiyot bo‘ling: odam ko‘p joylarda uchrashing. Bezovta qiluvchilar ustidan shikoyat qiling — biz ularni bloklaymiz.',
+    nr_login: 'Yaqindagi odamlarni topish va yozishish uchun Telegram orqali kiring', nr_geo: 'Yaqindagi odamlarni topish uchun joylashuvga ruxsat bering', nr_search: 'Yaqindagi odamlar qidirilmoqda…', nr_found: 'Yaqinda {n} kishi — {r} km radiusda', nr_none: 'Hozircha yaqinda hech kim yo‘q. Keyinroq qarang — ro‘yxat o‘zi yangilanadi.',
+    nr_write: 'Yozish', nr_hide: 'Meni yashirish', nr_hidden: 'Endi sizni boshqalar ko‘rmaydi', nr_m: 'm', nr_km: 'km', nr_chats_none: 'Hozircha chatlar yo‘q. Yaqindagi odamlarni toping va birinchi bo‘lib yozing.', nr_ph: 'Xabar', nr_photo: 'Rasm',
+    nr_block: 'Bloklash', nr_report: 'Shikoyat qilish', nr_blocked: 'Foydalanuvchi bloklandi', nr_reported: 'Shikoyat yuborildi, foydalanuvchi bloklandi', nr_unblock: 'Blokdan chiqarish', nr_isblocked: 'Yozishish mumkin emas',
+    nr_limit: 'Xabarlar juda ko‘p — bir daqiqa kuting', nr_err: 'Yuborib bo‘lmadi', nr_notnear: 'Bu odam endi yaqinda emas — yangi suhbatdoshga u yaqinda ko‘rinayotganda yozish mumkin', nr_first: 'Birinchi xabarni yozing 👋' },
+  en: { nr_find: 'find people nearby', nr_near_s: 'people near you', nr_unread: 'new messages: {n}', nr_tab_near: 'Nearby', nr_tab_chats: 'Chats', nr_on: 'Turn on and find people',
+    nr_intro_t: 'Find people nearby', nr_intro: 'Turn it on to see people around you — and they will see you. Others see only your first name, photo and approximate distance; your exact place and phone are never shown. You can turn it off at any time.',
+    nr_safe: 'Be careful with strangers: meet in busy places. Report anyone who bothers you — we block them.',
+    nr_login: 'Sign in with Telegram to find people nearby and chat', nr_geo: 'Allow location access to find people nearby', nr_search: 'Looking for people nearby…', nr_found: '{n} nearby — within {r} km', nr_none: 'Nobody nearby yet. Check back later — the list updates by itself.',
+    nr_write: 'Message', nr_hide: 'Hide me', nr_hidden: 'Others can no longer see you', nr_m: 'm', nr_km: 'km', nr_chats_none: 'No chats yet. Find people nearby and say hi first.', nr_ph: 'Message', nr_photo: 'Photo',
+    nr_block: 'Block', nr_report: 'Report', nr_blocked: 'User blocked', nr_reported: 'Report sent, user blocked', nr_unblock: 'Unblock', nr_isblocked: 'Messaging is unavailable',
+    nr_limit: 'Too many messages — wait a minute', nr_err: 'Couldn’t send', nr_notnear: 'This person is no longer nearby — you can message someone new only while they show up nearby', nr_first: 'Say hi 👋' },
+};
+NR_I.zh = NR_I.en;
+for (const l in NR_I) Object.assign(I[l], NR_I[l]);
+
+const NEAR = { list: null, unread: 0, chats: null, at: 0 };
+const nrOn = () => { try { return localStorage.getItem('uzk-near') === '1'; } catch (e) { return false; } };
+const nrUsed = () => { try { return !!localStorage.getItem('uzk-near-used'); } catch (e) { return false; } };
+const nrDist = m => m == null ? '' : m < 1000 ? `≈ ${m} ${t('nr_m')}` : `≈ ${String(m / 1000).replace('.', ',')} ${t('nr_km')}`;
+const nrCol = id => ['#1F7A3A', '#2563EB', '#7C3AED', '#B45309', '#0F766E', '#DB2777', '#0891B2'][Math.abs(+id || 0) % 7];
+const nrAv = (p, size = 48) => `<span class="nr-av" style="width:${size}px;height:${size}px;background:${nrCol(p.id)}">${esc((p.name || '?')[0].toUpperCase())}${p.photo ? `<img src="${esc(p.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`;
+// подсветка красной цифрой: на всех кнопках «Люди рядом» (быстрые действия, «Сегодня», каталог, вкладка «Чаты»)
+function nrPaint() {
+  const n = NEAR.unread > 99 ? '99+' : String(NEAR.unread || 0);
+  document.querySelectorAll('[data-act="go:h:near"], [data-nbadge]').forEach(e => { if (e.getAttribute('data-n') !== n) e.setAttribute('data-n', n); });
+}
+let nrPT = 0;
+new MutationObserver(() => { clearTimeout(nrPT); nrPT = setTimeout(nrPaint, 60); }).observe(document.documentElement, { childList: true, subtree: true });
+function nrPoll() {
+  if (document.hidden || !authUser() || !(nrOn() || nrUsed())) return Promise.resolve();
+  return api('/api/near?unread=1').then(j => { if (j && j.ok) { const was = NEAR.unread; NEAR.unread = j.n || 0; nrPaint(); if (was !== NEAR.unread && window.__hDrawT) window.__hDrawT(); } }).catch(() => {});
+}
+setTimeout(nrPoll, 2500); setInterval(nrPoll, 25000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) nrPoll(); });
+
+// «Люди рядом» в каталоге («Другое»), в быстрых действиях и первой карточкой «Сегодня»
+SVC.push(['sec_other', [['radar', 's_near', 'go:h:near']]]);
+QA.splice(1, 0, ['radar', 's_near', 'go:h:near']);
+TDW['w:near'] = ['radar', 's_near']; TD_DEF.unshift('w:near');
+(function nrMigrate() {   // у тех, кто уже настроил главную, — добавить один раз
+  try {
+    if (localStorage.getItem('uzk-near-mig')) return; localStorage.setItem('uzk-near-mig', '1');
+    const q = JSON.parse(localStorage.getItem('uzk-qa') || 'null'); if (Array.isArray(q) && !q.includes('go:h:near')) { q.splice(Math.min(1, q.length), 0, 'go:h:near'); localStorage.setItem('uzk-qa', JSON.stringify(q)); }
+    const d = JSON.parse(localStorage.getItem('uzk-td') || 'null'); if (Array.isArray(d) && !d.includes('w:near')) { d.unshift('w:near'); localStorage.setItem('uzk-td', JSON.stringify(d)); }
+  } catch (e) {}
+})();
+function wgExtra(card) {
+  const n = NEAR.list ? NEAR.list.length : 0;
+  return { 'w:near': () => card('radar', lt('s_near'), NEAR.unread ? `<span class="nr-big">${NEAR.unread}</span>` : n ? String(n) : '📡', NEAR.unread ? t('nr_unread', { n: NEAR.unread }) : n ? t('nr_near_s') : t('nr_find'), 'go:h:near') };
+}
+
+// ---- экран: радар + список, и вкладка «Чаты» ----
+function nrRadar(list) {
+  const max = Math.max(1000, ...(list || []).map(p => p.dist || 0));
+  const dots = (list || []).slice(0, 24).map(p => {
+    let h = 0; for (const ch of String(p.id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const ang = (h % 360), r = 14 + 32 * Math.sqrt((p.dist || 100) / max), x = 50 + r * Math.cos(ang * Math.PI / 180), y = 50 + r * Math.sin(ang * Math.PI / 180);
+    return `<button class="nr-dot" style="left:${x}%;top:${y}%;animation-delay:${((ang + 90) % 360) / 360 * 4 - 4}s" data-act="nrmsg:${p.id}">${nrAv(p, 36)}</button>`;
+  }).join('');
+  const me = authUser();
+  return `<div class="nr-radar"><div class="nr-ring r1"></div><div class="nr-ring r2"></div><div class="nr-ring r3"></div><div class="nr-sweep"></div>${dots}<span class="nr-me">${me && avaGet() ? `<img src="${avaGet()}" alt="">` : ico('user', 20, '#fff', 2)}</span></div>`;
+}
+const nrItem = p => `<div class="nr-item">${nrAv(p)}<span class="nr-it"><b>${esc(p.name)}</b><i>${esc(nrDist(p.dist))}</i></span><button class="nr-write" data-act="nrmsg:${p.id}">${esc(t('nr_write'))}</button></div>`;
+const nrChatItem = c => `<button class="nr-item nr-chat" data-act="go:h:dm?${c.id}">${nrAv(c.who)}<span class="nr-it"><b>${esc(c.who.name)}</b><i>${esc([nrDist(c.who.dist), c.last].filter(Boolean).join(' · '))}</i></span>${c.unread ? `<em class="nr-un">${c.unread}</em>` : ''}</button>`;
+HS.near = (p) => {
+  const tab = p === 'chats' || (p !== 'near' && NEAR.unread > 0) ? 'chats' : 'near';
+  const tabs = `<div class="nr-tabs"><button class="${tab === 'near' ? 'on' : ''}" data-act="nrtab:near">${esc(t('nr_tab_near'))}</button><button class="${tab === 'chats' ? 'on' : ''}" data-act="nrtab:chats" data-nbadge>${esc(t('nr_tab_chats'))}</button></div>`;
+  if (!authUser()) return page(lt('s_near'), `${nrRadar([])}<div class="so-card"><p>${esc(t('nr_login'))}</p></div><button class="h-btn h-tgbtn" data-act="tglogin">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>${fkBtn()}`);
+  if (tab === 'chats') return page(lt('s_near'), `${tabs}<div id="nrChats"><div class="hv-sk"></div><div class="hv-sk"></div></div>`);
+  if (!nrOn()) return page(lt('s_near'), `${tabs}${nrRadar([])}<div class="nr-intro"><b>${esc(t('nr_intro_t'))}</b><p>${esc(t('nr_intro'))}</p></div>
+    <button class="h-btn h-primary nr-on" data-act="nrstart">${ico('radar', 20, '#fff', 2)}<span>${esc(t('nr_on'))}</span></button><div class="h-muted small nr-note">${esc(t('nr_safe'))}</div>`);
+  return page(lt('s_near'), `${tabs}<div id="nrR">${nrRadar(NEAR.list || [])}</div><div class="nr-st" id="nrSt">${esc(NEAR.list ? (NEAR.list.length ? t('nr_found', { n: NEAR.list.length, r: 10 }) : t('nr_none')) : t('nr_search'))}</div>
+    <div id="nrL">${(NEAR.list || []).map(nrItem).join('')}</div><button class="nr-hide" data-act="nrhide">${esc(t('nr_hide'))}</button><div class="h-muted small nr-note">${esc(t('nr_safe'))}</div>`);
+};
+function nrLocate() {
+  return new Promise((ok, no) => { if (!navigator.geolocation) return no(new Error('geo')); navigator.geolocation.getCurrentPosition(p => ok([p.coords.latitude, p.coords.longitude]), no, { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 }); })
+    .then(([lat, lon]) => api('/api/near', { action: 'locate', lat, lon }))
+    .then(j => { if (!j || !j.ok) throw new Error((j && j.error) || 'server'); NEAR.list = j.list || []; NEAR.at = Date.now(); return NEAR.list; });
+}
+HS.near.mount = (el, p) => {
+  const ch = el.querySelector('#nrChats');
+  if (ch) { api('/api/near?chats=1').then(j => { if (!j || !j.ok) return; NEAR.chats = j.list; NEAR.unread = j.n || 0; nrPaint(); if (document.body.contains(ch)) ch.innerHTML = j.list.length ? j.list.map(nrChatItem).join('') : `<div class="so-card"><p>${esc(t('nr_chats_none'))}</p></div>`; }).catch(() => {}); return; }
+  if (!el.querySelector('#nrR')) return;
+  const R = el.querySelector('#nrR'), L = el.querySelector('#nrL'), S = el.querySelector('#nrSt');
+  const draw = () => { if (!document.body.contains(R)) return; R.innerHTML = nrRadar(NEAR.list); L.innerHTML = NEAR.list.map(nrItem).join(''); S.textContent = NEAR.list.length ? t('nr_found', { n: NEAR.list.length, r: 10 }) : t('nr_none'); };
+  const tick = () => { if (!document.body.contains(R)) return clearInterval(iv); if (!document.hidden) nrLocate().then(draw).catch(e => { S.textContent = e && e.code ? t('nr_geo') : t('po_err'); }); };
+  const iv = setInterval(tick, 45000); tick();
+};
+async function nrStart() {
+  if (!authUser()) return tgLogin();
+  try { localStorage.setItem('uzk-near', '1'); localStorage.setItem('uzk-near-used', '1'); } catch (e) {}
+  NEAR.list = null; render('h:near', 'near');
+}
+Object.assign(XACT, {
+  nrstart: nrStart,
+  nrtab: k => render('h:near', k),
+  nrhide: () => { try { localStorage.removeItem('uzk-near'); } catch (e) {} NEAR.list = null; api('/api/near', { action: 'hide' }).catch(() => {}); toast(t('nr_hidden')); render('h:near', 'near'); },
+  nrmsg: id => api('/api/near', { action: 'open', to: +id }).then(j => { if (j && j.ok) go('h:dm', String(j.thread)); else toast(t(j && j.error === 'not_near' ? 'nr_notnear' : j && j.error === 'blocked' ? 'nr_isblocked' : 'po_err')); }).catch(() => toast(t('po_err'))),
+});
+
+// ---- личный чат ----
+AI_HIDE.add('h:dm');
+HS.dm = (p) => `${lvHdr(t('nr_tab_chats'), true)}<div class="dm-top" id="dmTop"><span class="nr-av" style="width:44px;height:44px"></span><span class="nr-it"><b>…</b><i></i></span><button class="dm-more" data-act="dmmenu" aria-label="menu">${ico('more', 22, '#374151', 2)}</button></div>
+  <div class="dm-list vs" id="dmL"><div class="hv-sk"></div></div>
+  <div class="dm-bar"><button class="dm-clip" id="dmPh" aria-label="${esc(t('nr_photo'))}">${ico('clip', 22, '#6B7280', 2)}</button><textarea id="dmIn" rows="1" maxlength="1000" placeholder="${esc(t('nr_ph'))}"></textarea><button class="dm-send" id="dmGo" aria-label="send">➤</button></div>`;
+HS.dm.mount = (el, p) => {
+  const id = +p, L = el.querySelector('#dmL'), top = el.querySelector('#dmTop'), inp = el.querySelector('#dmIn'), go2 = el.querySelector('#dmGo'), ph = el.querySelector('#dmPh');
+  const s = { last: 0, list: [], who: null, blocked: false };
+  window.__dm = s; s.id = id;
+  const fmt = ts => new Date(ts).toLocaleTimeString(LANG === 'en' ? 'en-GB' : 'ru-RU', { hour: '2-digit', minute: '2-digit' });
+  const paint = () => {
+    if (!document.body.contains(L)) return;
+    const atEnd = L.scrollHeight - L.scrollTop - L.clientHeight < 80;
+    L.innerHTML = s.list.length ? s.list.map(m => `<div class="dm-m ${m.mine ? 'me' : ''}">${m.photo ? `<img class="dm-img" src="${esc(m.photo)}" alt="" data-act="dmimg:${m.id}">` : ''}${m.text ? `<span>${esc(m.text)}</span>` : ''}<em>${fmt(m.at)}</em></div>`).join('')
+      : `<div class="dm-empty">${esc(s.blocked ? t('nr_isblocked') : t('nr_first'))}</div>`;
+    if (atEnd || !s.painted) L.scrollTop = L.scrollHeight; s.painted = 1;
+    L.querySelectorAll('img.dm-img').forEach(i => i.addEventListener('load', () => { if (atEnd || s.painted === 1) L.scrollTop = L.scrollHeight; }, { once: true }));
+  };
+  const pull = () => api(`/api/near?thread=${id}&after=${s.last}`).then(j => {
+    if (!j || !j.ok) return;
+    if (j.who) { s.who = j.who; top.innerHTML = `${nrAv(j.who, 44)}<span class="nr-it"><b>${esc(j.who.name)}</b><i>${esc(nrDist(j.who.dist))}</i></span><button class="dm-more" data-act="dmmenu" aria-label="menu">${ico('more', 22, '#374151', 2)}</button>`; }
+    s.blocked = j.blocked; el.querySelector('.dm-bar').classList.toggle('off', !!j.blocked);
+    if (j.list.length) { s.list = s.list.concat(j.list).slice(-300); s.last = s.list[s.list.length - 1].id; }
+    paint(); nrPoll();
+  }).catch(() => {});
+  const iv = setInterval(() => { if (!document.body.contains(L)) return clearInterval(iv); if (!document.hidden) pull(); }, 4000);
+  pull();
+  const send = body => { go2.disabled = true; return api('/api/near', Object.assign({ action: 'send', thread: id }, body)).then(j => { go2.disabled = false; if (j && j.ok) return pull(); toast(t(j && j._status === 429 ? 'nr_limit' : j && j.error === 'blocked' ? 'nr_isblocked' : 'nr_err')); }).catch(() => { go2.disabled = false; toast(t('nr_err')); }); };
+  go2.addEventListener('click', e => { e.preventDefault(); const v = inp.value.trim(); if (!v) return; inp.value = ''; inp.style.height = 'auto'; send({ text: v }); });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !/Android|iPhone|iPad/.test(navigator.userAgent)) { e.preventDefault(); go2.click(); } });
+  inp.addEventListener('input', () => { inp.style.height = 'auto'; inp.style.height = Math.min(120, inp.scrollHeight) + 'px'; });
+  ph.addEventListener('click', e => {
+    e.preventDefault();
+    const f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*'; f.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0'; document.body.appendChild(f);
+    f.addEventListener('change', () => { const file = f.files && f.files[0]; f.remove(); if (file) dmShrink(file).then(d => send({ photo: d, text: inp.value.trim() })).then(() => { inp.value = ''; }).catch(() => toast(t('nr_err'))); });
+    f.click();
+  });
+};
+function dmShrink(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => { const k = Math.min(1, 1280 / Math.max(im.naturalWidth, im.naturalHeight)), w = Math.round(im.naturalWidth * k), h = Math.round(im.naturalHeight * k), c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.drawImage(im, 0, 0, w, h); URL.revokeObjectURL(url);
+      let q = .82, d = c.toDataURL('image/jpeg', q); while (d.length * .75 > 380 * 1024 && q > .4) { q -= .12; d = c.toDataURL('image/jpeg', q); } res(d); };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('img')); };
+    im.src = url;
+  });
+}
+Object.assign(XACT, {
+  dmmenu: () => { const s = window.__dm; if (!s || !s.who) return; const w = s.who;
+    sheet(w.name, '', (s.blocked ? [[t('nr_unblock'), () => api('/api/near', { action: 'unblock', user: w.id }).then(() => render(current, currentP))]] : [[t('nr_block'), () => api('/api/near', { action: 'block', user: w.id }).then(() => { toast(t('nr_blocked')); render(current, currentP); })],
+      [t('nr_report'), () => api('/api/near', { action: 'report', user: w.id, thread: s.id }).then(() => { toast(t('nr_reported')); render(current, currentP); })]]).concat([[t('cancel'), null]])); },
+  dmimg: mid => { const m = (window.__dm && window.__dm.list || []).find(x => String(x.id) === String(mid)); if (m && m.photo) bsheet(`<img class="dm-full" src="${esc(m.photo)}" alt="">`, 'bs-caf'); },
+});

@@ -24,6 +24,7 @@ export async function onRequestPost({ request, env }) {
     try { await del('DELETE FROM avatars WHERE user_id = ?1'); } catch {}
     try { await del('DELETE FROM payme_cards WHERE user_id = ?1'); } catch {}
     try { await del('DELETE FROM passkeys WHERE user_id = ?1'); } catch {}
+    try { await del('DELETE FROM near_loc WHERE user_id = ?1'); await del('DELETE FROM dm_msgs WHERE sender = ?1'); await del('DELETE FROM dm_threads WHERE a = ?1 OR b = ?1'); await del('DELETE FROM dm_blocks WHERE user_id = ?1 OR blocked = ?1'); } catch {}
     await del('DELETE FROM users WHERE id = ?1');
     return json({ ok: true, deleted: true });
   }

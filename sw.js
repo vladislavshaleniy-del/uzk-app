@@ -1,4 +1,4 @@
-const CACHE = 'uzk-myuzcity-2511k';
+const CACHE = 'uzk-myuzcity-2511l';
 const FILES = ["./", "index.html", "flows.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "inter-sub.woff", "privacy.html", "img/r-1-5149.webp", "img/en/r-1-5149.webp", "img/uz/r-1-5149.webp", "img/zh/r-1-5149.webp", "img/f-1-5240.webp", "img/en/f-1-5240.webp", "img/uz/f-1-5240.webp", "img/zh/f-1-5240.webp", "img/f-1-5248.webp", "img/en/f-1-5248.webp", "img/uz/f-1-5248.webp", "img/zh/f-1-5248.webp"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
