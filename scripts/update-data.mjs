@@ -194,6 +194,31 @@ function base(e) {
   const w = t.website || t['contact:website']; if (w) p.w = w;
   return p;
 }
+// гостиницы: Telegram/WhatsApp из тегов или с сайта гостиницы, фото — картинка-обложка сайта (og:image)
+const hoTg = v => { const m = String(v).trim().match(/^(?:https?:\/\/)?(?:t(?:elegram)?\.me\/)?@?([A-Za-z][A-Za-z0-9_]{3,31})\/?$/); return m && !/^(share|joinchat|addstickers|proxy|s|c|iv)$/i.test(m[1]) ? m[1] : ''; };
+const hoWa = v => { const d = String(v).replace(/\D/g, ''); return d.length >= 11 && d.length <= 15 ? d : ''; };
+async function hoEnrich(list, prev) {
+  const old = new Map((prev || []).map(p => [p.id, p]));
+  for (const p of list) { const o = old.get(p.id); if (o) for (const k of ['og', 'tg', 'wa', 'ig', 'ph']) if (o[k] && !p[k]) p[k] = o[k]; }
+  const todo = list.filter(p => p.w && /^https?:\/\/|^www\./i.test(p.w)).slice(0, 220);
+  let i = 0, got = 0;
+  const one = async p => {
+    const url = /^https?:/i.test(p.w) ? p.w : 'https://' + p.w;
+    let html; try { html = await get(url, 9000); } catch { return; }
+    html = html.slice(0, 600000);
+    const meta = (prop) => { const m = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${prop}["'][^>]*content=["']([^"']+)["']`, 'i')) || html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]*(?:property|name)=["']${prop}["']`, 'i')); return m ? decode(m[1]).trim() : ''; };
+    let og = meta('og:image') || meta('twitter:image');
+    if (og) { try { og = new URL(og, url).href; } catch { og = ''; } }
+    if (og && /^https:\/\//.test(og) && !/\.svg(\?|$)|logo|favicon|icon/i.test(og)) { p.og = og; got++; }
+    if (!p.tg) { const m = html.match(/https?:\/\/(?:t|telegram)\.me\/([A-Za-z][A-Za-z0-9_]{3,31})(?=["'\/?#\s<])/); const tg = m && hoTg(m[1]); if (tg) p.tg = tg; }
+    if (!p.wa) { const m = html.match(/(?:wa\.me\/|api\.whatsapp\.com\/send\/?\?phone=|whatsapp:\/\/send\?phone=)\+?(\d{11,15})/); const wa = m && hoWa(m[1]); if (wa) p.wa = wa; }
+    if (!p.ig) { const m = html.match(/instagram\.com\/([A-Za-z0-9_.]{2,30})(?=["'\/?#\s<])/); if (m && !/^(p|reel|explore|accounts|stories)$/i.test(m[1])) p.ig = m[1]; }
+    if (!p.ph) { const m = html.match(/href=["']tel:([+\d][\d\s()-]{8,20})["']/); if (m) p.ph = m[1].trim(); }
+  };
+  const workers = Array.from({ length: 6 }, async () => { while (i < todo.length) { const p = todo[i++]; await one(p).catch(() => {}); } });
+  await Promise.all(workers);
+  console.log(`hotels: ${todo.length} sites checked, ${got} photos, tg ${list.filter(p => p.tg).length}, wa ${list.filter(p => p.wa).length}`);
+}
 const POI = {
   parking: {
     r: [12000, 6000],
@@ -297,6 +322,24 @@ const POI = {
       if (t.image && /^https:\/\/upload\.wikimedia\.org\//.test(t.image)) p.im = t.image;
       else if (t.wikimedia_commons && /^File:/.test(t.wikimedia_commons)) p.wc = t.wikimedia_commons;
       if (t.fee === 'no') p.f = 0; else if (yes(t.fee)) p.f = 1;
+      return p;
+    },
+  },
+  hotel: {
+    r: [16000, 9000],
+    q: b => `nwr["tourism"~"^(hotel|hostel|guest_house|apartment|motel)$"](${b});`,
+    map(e) {
+      const t = e.tags || {}; const p = base(e); if (!p || !p.n) return null;
+      p.a = t.tourism === 'motel' ? 'hotel' : t.tourism;
+      const st = parseInt(t.stars, 10); if (st > 0 && st <= 5) p.st = st;
+      const tg = hoTg(t['contact:telegram'] || t.telegram || ''); if (tg) p.tg = tg;
+      const wa = hoWa(t['contact:whatsapp'] || t.whatsapp || ''); if (wa) p.wa = wa;
+      const ig = (t['contact:instagram'] || t.instagram || '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/[/?].*$/, '').replace(/^@/, ''); if (ig) p.ig = ig;
+      const em = t.email || t['contact:email']; if (em) p.em = em.split(';')[0].trim();
+      const rm = parseInt(t.rooms, 10); if (rm > 0 && rm < 3000) p.rm = rm;
+      if (t.image && /^https:\/\/upload\.wikimedia\.org\//.test(t.image)) p.im = t.image;
+      else if (t.wikimedia_commons && /^File:/.test(t.wikimedia_commons)) p.wc = t.wikimedia_commons;
+      if (t.wikidata) p.wd = t.wikidata;
       return p;
     },
   },
@@ -468,6 +511,7 @@ async function cityData() {
         }
         const seen = new Set();
         const list = [...els.values()].map(e => P.map(e)).filter(Boolean).filter(p => { const k = (p.n || '').toLowerCase() + Math.round(p.la * 3000) + Math.round(p.lo * 3000); return !seen.has(k) && seen.add(k); });
+        if (kind === 'hotel') { const f = qdir + 'hotel/' + i + '.json'; await hoEnrich(list, existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : []); }
         if (list.length) { writeFileSync(qdir + kind + '/' + i + '.json', JSON.stringify(list)); qindex.n[kind][i] = list.length; }
         qindex.at[kind][i] = new Date().toISOString();
         writeFileSync(qmark, JSON.stringify(qindex));
@@ -477,6 +521,51 @@ async function cityData() {
     await new Promise(r => setTimeout(r, 1500));
   }
   writeFileSync(pmark, JSON.stringify(index)); writeFileSync(qmark, JSON.stringify(qindex));
+}
+
+// ---------------------------------------------------------------- vacancies: Oson Ish (job portal of the Ministry of Employment), by region, twice a day
+// index in JOB_REG = region index in the app (REGIONS): 0 Tashkent city, 1 Tashkent region, 2 Andijan, …
+const JOB_REG = ['toshkent', 'toshkent-viloyati', 'andijon', 'buxoro', 'jizzax', 'qashqadaryo', 'navoiy', 'namangan', 'samarqand', 'sirdaryo', 'surxondaryo', 'fargona', 'xorazm', 'qoraqalpogiston'];
+function nuxtData(html) {
+  const m = html.match(/<script[^>]+id="__NUXT_DATA__"[^>]*>([\s\S]*?)<\/script>/); if (!m) return null;
+  const A = JSON.parse(m[1]); const memo = new Map();
+  const R = i => {
+    if (typeof i !== 'number') return i; if (memo.has(i)) return memo.get(i);
+    const v = A[i]; let out;
+    if (Array.isArray(v)) {
+      if (typeof v[0] === 'string') out = /^(Shallow)?(Reactive|Ref)$/.test(v[0]) ? R(v[1]) : v[0] === 'Date' ? v[1] : null;
+      else { out = []; memo.set(i, out); for (const x of v) out.push(R(x)); }
+    } else if (v && typeof v === 'object') { out = {}; memo.set(i, out); for (const k in v) out[k] = R(v[k]); } else out = v;
+    memo.set(i, out); return out;
+  };
+  return R(0);
+}
+const cleanCo = s => String(s || '').replace(/MAS['’`ʻ‘]?ULIYATI CHEKLANGAN JAMIYATI?/i, 'MCHJ').replace(/AKSIYADORLIK JAMIYATI/i, 'AJ').replace(/XUSUSIY KORXONA(SI)?/i, 'XK').replace(/OILAVIY KORXONA(SI)?/i, 'OK').replace(/["“”«»]/g, '').replace(/\s+/g, ' ').trim();
+const jobDate = s => { const d = new Date(Date.now() + 5 * 3600e3); if (/^bugun|^сегодня|^today/i.test(s || '')) return d.toISOString().slice(0, 10); if (/^kecha|^вчера|^yesterday/i.test(s || '')) return new Date(d - 864e5).toISOString().slice(0, 10); const m = String(s || '').match(/^(\d{2})\.(\d{2})\.(\d{4})$/); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; };
+async function jobs() {
+  const dir = ROOT + 'data/jobs/'; mkdirSync(dir, { recursive: true });
+  const f = dir + 'index.json'; const prev = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null;
+  if (prev && !process.env.FORCE_JOBS && Date.now() - Date.parse(prev.at) < 11 * 3600e3) { console.log('jobs: fresh'); return; }
+  const index = { at: new Date().toISOString(), src: 'https://osonish.uz', r: {} };
+  for (let ri = 0; ri < JOB_REG.length; ri++) {
+    const slug = JOB_REG[ri], pages = ri === 0 ? 25 : ri === 1 ? 8 : 6; const items = []; let total = 0;
+    for (let pg = 1; pg <= pages; pg++) {
+      try {
+        const html = await get(`https://osonish.uz/vacancies/by-region/${slug}${pg > 1 ? '?page=' + pg : ''}`, 20000);
+        const root = nuxtData(html); const d = root && root.data && Object.values(root.data).find(x => x && Array.isArray(x.items));
+        if (!d) { console.log(`jobs ${slug} p${pg}: no data`); break; }
+        total = d.total || total;
+        for (const x of d.items) if (x && x.id && x.title) items.push({ id: x.id, t: String(x.title).trim(), c: cleanCo(x.company), s1: x.salary_min || 0, s2: x.salary_max || 0, ds: String(x.city_name || '').trim(), ad: String(x.address_text || '').trim().slice(0, 90), d: jobDate(x.posted_date), so: x.isSocialCategory ? 1 : 0 });
+        if (pg >= (d.lastPage || 1)) break;
+      } catch (e) { console.log(`jobs ${slug} p${pg}: ${e.message}`); break; }
+      await new Promise(r => setTimeout(r, 900));
+    }
+    const seen = new Set(); const list = items.filter(x => !seen.has(x.id) && seen.add(x.id));
+    if (list.length) { writeFileSync(dir + ri + '.json', JSON.stringify(list)); index.r[ri] = { n: list.length, total }; }
+    else if (prev && prev.r && prev.r[ri]) index.r[ri] = prev.r[ri];
+    console.log(`jobs ${slug}: ${list.length}/${total}`);
+  }
+  if (Object.keys(index.r).length) writeFileSync(f, JSON.stringify(index));
 }
 
 // official exchange rates of the Central Bank of Uzbekistan
@@ -492,6 +581,7 @@ async function rates() {
 
 await news();
 await rates();
+try { await jobs(); } catch (e) { console.log('jobs failed: ' + e.message); }
 await uzTransport();
 await transit();
 await cityData();
