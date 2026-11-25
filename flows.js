@@ -337,7 +337,7 @@ function runAction(a) {
     case 'langsheet': langSheet(); break;
     case 'login': render('h:loading'); setTimeout(doLogin, 600); break;
     case 'tglogin': tgLogin(); break;
-    case 'logout': sheet(t('logout_q'), '', [[t('logout'), () => { try { localStorage.removeItem('uzk-auth'); localStorage.removeItem('uzk-user'); localStorage.removeItem('uzk-session'); } catch (e) {} history.replaceState({ id: 'h:welcome', depth: 0 }, '', location.pathname); render('h:welcome'); }], [t('cancel'), null]]); break;
+    case 'logout': sheet(t('logout_q'), '', [[t('logout'), () => { try { localStorage.removeItem('uzk-auth'); localStorage.removeItem('uzk-user'); localStorage.removeItem('uzk-session'); localStorage.removeItem('uzk-ava'); } catch (e) {} history.replaceState({ id: 'h:welcome', depth: 0 }, '', location.pathname); render('h:welcome'); }], [t('cancel'), null]]); break;
     case 'toast': { const [k, m] = arg.split(':'); toast(t(k, { m })); break; }
     case 'call': sheet(t('call_q', { n: arg }), '', [[t('call'), () => { location.href = 'tel:' + arg; }], [t('cancel'), null]]); break;
     case 'cancelappt': sheet(t('cancel_q'), '', [[t('confirm'), () => toast(t('cancelled'))], [t('cancel'), null]]); break;
@@ -2004,7 +2004,7 @@ function tgSheet(n) {
 function tgDone(j) {
   clearInterval(TG_POLL);
   try { localStorage.setItem('uzk-session', j.token); localStorage.setItem('uzk-user', JSON.stringify(j.user)); sessionStorage.removeItem('uzk-tg-n'); } catch (e) {}
-  bsheetClose(true); toast(t('tg_ok', { n: userName() }));
+  bsheetClose(true); toast(t('tg_ok', { n: userName() })); setTimeout(() => { if (typeof avaRefresh === 'function') avaRefresh(); }, 600);
   let authed = false; try { authed = localStorage.getItem('uzk-auth') === '1'; } catch (e) {}
   if (!authed || current === 'h:welcome') doLogin(); else render(current, currentP);
 }
@@ -3312,7 +3312,10 @@ const LV = {
   tab_home: L4('Главная', 'Asosiy', 'Home', '首页'), tab_qr: L4('Scan QR', 'QR skaner', 'Scan QR', '扫码'), tab_all: L4('Все услуги', 'Barcha xizmatlar', 'All services', '全部服务'), tab_prof: L4('Профиль', 'Profil', 'Profile', '我的'),
   svc_t: L4('Все сервисы', 'Barcha xizmatlar', 'All services', '全部服务'), qa_t: L4('Быстрые действия', 'Tezkor amallar', 'Quick actions', '快捷操作'), news: L4('Новости', 'Yangiliklar', 'News', '新闻'), all: L4('Все', 'Barchasi', 'All', '全部'), ai: L4('AI Агент', 'AI Agent', 'AI Agent', 'AI 助手'),
   sec_driver: L4('Транспорт и дороги', 'Transport va yo‘llar', 'Transport and roads', '交通与道路'), sec_admin: L4('Госуслуги и платежи', 'Davlat xizmatlari va to‘lovlar', 'Public services and payments', '政务与缴费'), sec_city: L4('Махалля и город', 'Mahalla va shahar', 'Mahalla and city', '社区与城市'), sec_edu: L4('Здоровье и образование', 'Sog‘liq va ta’lim', 'Health and education', '健康与教育'), sec_tour: L4('Досуг и туризм', 'Dam olish va turizm', 'Leisure and tourism', '休闲旅游'),
-  td_t: L4('Сегодня', 'Bugun', 'Today', '今天'), qa_edit: L4('Изменить', 'O‘zgartirish', 'Edit', '编辑'), qa_add: L4('Добавить', 'Qo‘shish', 'Add', '添加'),
+  td_t: L4('Сегодня', 'Bugun', 'Today', '今天'), ava_t: L4('Фото профиля', 'Profil surati', 'Profile photo', '头像'), ava_gal: L4('Выбрать из галереи', 'Galereyadan tanlash', 'Choose from gallery', '从相册选择'),
+  ava_cam: L4('Сделать фото', 'Suratga olish', 'Take a photo', '拍照'), ava_tg: L4('Взять из Telegram', 'Telegramdan olish', 'Use my Telegram photo', '使用 Telegram 头像'), ava_del: L4('Удалить фото', 'Suratni o‘chirish', 'Remove photo', '删除头像'),
+  ava_ok: L4('Фото обновлено', 'Surat yangilandi', 'Photo updated', '头像已更新'), ava_err: L4('Не удалось сохранить фото — попробуйте ещё раз', 'Suratni saqlab bo‘lmadi — qayta urinib ko‘ring', 'Couldn’t save the photo — please try again', '无法保存头像，请重试'),
+  ava_tg_no: L4('В Telegram нет фото или оно скрыто настройками приватности', 'Telegramda surat yo‘q yoki maxfiylik sozlamalari bilan yashirilgan', 'No Telegram photo, or it is hidden by privacy settings', 'Telegram 中没有头像或已被隐私设置隐藏'), qa_edit: L4('Изменить', 'O‘zgartirish', 'Edit', '编辑'), qa_add: L4('Добавить', 'Qo‘shish', 'Add', '添加'),
   qa_pick_s: L4('Отметьте сервисы, которые нужны вам на главной', 'Bosh sahifada kerakli xizmatlarni belgilang', 'Tick the services you want on the home screen', '勾选您想放在首页的服务'),
   td_pick_s: L4('Выберите, что показывать в «Сегодня»', '«Bugun» bo‘limida nimani ko‘rsatishni tanlang', 'Choose what to show in “Today”', '选择在“今天”中显示的内容'),
   td_add_s: L4('выбрать сервис', 'xizmatni tanlash', 'choose a service', '选择服务'), td_wg: L4('Карточки', 'Kartochkalar', 'Cards', '卡片'), td_sv: L4('Сервисы', 'Xizmatlar', 'Services', '服务'),
@@ -3531,7 +3534,8 @@ HS.services = () => page(lt('svc_t'), SVC.map(([s, items]) => lvSec(lt(s)) + `<d
 HS.profile = () => {
   const u = authUser();
   const ini = u ? (userName().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '🙂') : '';
-  return `<header class="lv-hdr lv-prof">${u ? `<span class="lv-av">${esc(ini)}</span><div><b>${esc(userName())}</b><i>${esc(fmtPhone(u.phone))}${u.username ? ' · @' + esc(u.username) : ''}</i></div>` : `<button class="lv-av tg" data-act="tglogin">${TG_SVG.replace(/22/g, '30')}</button><div><b>${esc(lt('p_guest'))}</b><i>${esc(lt('p_guest_s'))}</i></div>`}</header>
+  const ph = u ? avaGet() : '';
+  return `<header class="lv-hdr lv-prof">${u ? `<button class="lv-av" data-act="avatar" aria-label="${esc(lt('ava_t'))}">${ph ? `<img src="${ph}" alt="">` : esc(ini)}<em class="lv-av-cam">${ico('camera', 14, '#fff', 2.2)}</em></button><div><b>${esc(userName())}</b><i>${esc(fmtPhone(u.phone))}${u.username ? ' · @' + esc(u.username) : ''}</i></div>` : `<button class="lv-av tg" data-act="tglogin">${TG_SVG.replace(/22/g, '30')}</button><div><b>${esc(lt('p_guest'))}</b><i>${esc(lt('p_guest_s'))}</i></div>`}</header>
     <main class="lv-body vs">
       <div class="flow lv-stats" id="pStats"></div>
       ${u ? '' : `<button class="h-btn h-tgbtn" data-act="tglogin" style="margin:0 0 16px">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`}
@@ -3539,6 +3543,39 @@ HS.profile = () => {
       <div class="lv-pad"></div></main>`;
 };
 HS.profile.mount = el => { const f = el.querySelector('#pStats'); f.classList.add('flow'); drawStats({ r: f }); };
+// ---- Фото профиля: своё (из галереи или камеры) или из Telegram; хранится в аккаунте, копия — на телефоне ----
+function avaGet() { try { return localStorage.getItem('uzk-ava') || ''; } catch (e) { return ''; } }
+function avaSet(d) { try { if (d) localStorage.setItem('uzk-ava', d); else localStorage.removeItem('uzk-ava'); } catch (e) {} }
+const avaRedraw = () => { if (current === 'h:profile' || current === '1:1332') render(current, currentP); };
+function avaRefresh() { if (!authUser()) return; api('/api/avatar').then(j => { if (j && j.ok) { const was = avaGet(); avaSet(j.photo || ''); if ((j.photo || '') !== was) avaRedraw(); } }).catch(() => {}); }
+function avaShrink(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => { const w = im.naturalWidth, h = im.naturalHeight, s = Math.min(w, h), N = 360, c = document.createElement('canvas'); c.width = c.height = N; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, N, N); x.drawImage(im, (w - s) / 2, (h - s) / 2, s, s, 0, 0, N, N); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .86)); };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('img')); };
+    im.src = url;
+  });
+}
+function avaPick(camera) {
+  const old = document.getElementById('avaIn'); if (old) old.remove();
+  const inp = document.createElement('input'); inp.id = 'avaIn'; inp.type = 'file'; inp.accept = 'image/*'; if (camera) inp.setAttribute('capture', 'user');
+  inp.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0'; document.body.appendChild(inp);
+  inp.addEventListener('change', () => {
+    const f = inp.files && inp.files[0]; if (!f) return;
+    avaShrink(f).then(d => { const was = avaGet(); avaSet(d); avaRedraw(); return api('/api/avatar', { photo: d }).then(j => { if (j && j.ok) toast(lt('ava_ok')); else { avaSet(was); avaRedraw(); toast(lt('ava_err')); } }); })
+      .catch(() => toast(lt('ava_err'))).finally(() => inp.remove());
+  });
+  inp.click();
+}
+XACT.avatar = () => {
+  const acts = [[lt('ava_gal'), () => avaPick(false)], [lt('ava_cam'), () => avaPick(true)],
+    [lt('ava_tg'), () => api('/api/avatar', { tg: 1 }).then(j => { if (j && j.ok && j.photo) { avaSet(j.photo); avaRedraw(); toast(lt('ava_ok')); } else toast(lt('ava_tg_no')); }).catch(() => toast(lt('ava_err')))]];
+  if (avaGet()) acts.push([lt('ava_del'), () => { avaSet(''); avaRedraw(); api('/api/avatar', { remove: 1 }).catch(() => {}); }]);
+  acts.push([t('cancel'), null]);
+  sheet(lt('ava_t'), '', acts);
+};
+ICP.camera = '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>';
+setTimeout(avaRefresh, 2500);
 XACT.wxsheet = () => wxSheet();
 XACT.appupdate = () => { if (window.__appReload) window.__appReload(); else location.reload(); };
 ICP.refresh = '<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>';

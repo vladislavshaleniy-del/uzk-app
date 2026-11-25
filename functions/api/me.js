@@ -21,6 +21,7 @@ export async function onRequestPost({ request, env }) {
     await del('DELETE FROM chat WHERE user_id = ?1'); await del('DELETE FROM report_ups WHERE user_id = ?1'); await del('UPDATE reports SET user_id = NULL WHERE user_id = ?1'); await del('UPDATE feedback SET user_id = NULL WHERE user_id = ?1');
     await del('DELETE FROM codes WHERE user_id = ?1'); await del('DELETE FROM logins WHERE user_id = ?1');
     if (u.tg_id) await env.DB.prepare('DELETE FROM trusted WHERE tg_id = ?1').bind(u.tg_id).run();
+    try { await del('DELETE FROM avatars WHERE user_id = ?1'); } catch {}
     await del('DELETE FROM users WHERE id = ?1');
     return json({ ok: true, deleted: true });
   }
