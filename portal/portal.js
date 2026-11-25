@@ -15,7 +15,11 @@
   // ---------------- texts ----------------
   const T = {
     ru: {
-      n_feat: 'Сервисы', n_map: 'Город на карте', n_ai: 'ИИ-ассистент', n_biz: 'Бизнесу', n_part: 'Партнёрам', cta_open: 'Открыть приложение',
+      n_feat: 'Сервисы', n_map: 'Город на карте', n_ai: 'ИИ-ассистент', n_biz: 'Бизнесу', n_part: 'Партнёрам', n_about: 'О проекте', menu: 'Меню', pulse_t: 'Ташкент сейчас',
+      ab_now: 'Работает уже сейчас', ab_t: 'О проекте MyUzCity',
+      ab_s: 'MyUzCity — цифровая платформа умного города для жителей и гостей Узбекистана. Мы собираем в одном приложении городские сервисы, открытые данные и прямую связь жителей с городом.',
+      ab_for: 'Открыты к сотрудничеству с хокимиятами, ведомствами, бизнесом и инвесторами: интеграции, пилоты в районах, размещение сервисов.',
+      ab_form: 'Оставить заявку', ab_tg: 'Telegram-бот MyUzCity', ab_f1: 'разделов сервисов', ab_f2: 'городов с данными', ab_f3v: '2 ч', ab_f3: 'обновление данных', ab_f4: 'языка: узбекский, русский, английский, китайский', cta_open: 'Открыть приложение',
       h_t1: 'Весь город', h_t2: 'в одном приложении', h_s: 'Транспорт, медицина, госуслуги, махалля и ИИ-помощник. Бесплатно, на трёх языках.', h_how: 'Как это работает',
       st1_t: 'Метро, автобусы, поезда и самолёты', st1_s: 'Станции и маршруты рядом с вами, расписание поездов и живое табло аэропортов Узбекистана.', f_metro: 'станций метро', f_bus: 'маршрутов автобусов', f_air: 'аэропортов на табло',
       st2_t: 'Аптеки и клиники, открытые сейчас', st2_s: 'Карта с часами работы, маршрут пешком или на такси и онлайн-запись к врачу через DMED.', f_med: 'аптек и клиник в Ташкенте', f_103: 'скорая в один тап',
@@ -46,7 +50,11 @@
       title: 'MyUzCity · Весь город в одном приложении',
     },
     uz: {
-      n_feat: 'Xizmatlar', n_map: 'Shahar xaritada', n_ai: 'AI-yordamchi', n_biz: 'Biznesga', n_part: 'Hamkorlarga', cta_open: 'Ilovani ochish',
+      n_feat: 'Xizmatlar', n_map: 'Shahar xaritada', n_ai: 'AI-yordamchi', n_biz: 'Biznesga', n_part: 'Hamkorlarga', n_about: 'Loyiha haqida', menu: 'Menyu', pulse_t: 'Toshkent hozir',
+      ab_now: 'Hozirdan ishlaydi', ab_t: 'MyUzCity loyihasi haqida',
+      ab_s: "MyUzCity — O'zbekiston aholisi va mehmonlari uchun aqlli shahar raqamli platformasi. Shahar xizmatlari, ochiq ma'lumotlar va aholining shahar bilan to'g'ridan-to'g'ri aloqasini bitta ilovada jamlaymiz.",
+      ab_for: "Hokimiyatlar, idoralar, biznes va investorlar bilan hamkorlikka ochiqmiz: integratsiyalar, tumanlarda pilot loyihalar, xizmatlarni joylashtirish.",
+      ab_form: 'Ariza qoldirish', ab_tg: 'MyUzCity Telegram-boti', ab_f1: "xizmat bo'limi", ab_f2: "ma'lumotli shahar", ab_f3v: '2 soat', ab_f3: "ma'lumotlar yangilanishi", ab_f4: "til: o'zbek, rus, ingliz, xitoy", cta_open: 'Ilovani ochish',
       h_t1: 'Butun shahar', h_t2: 'bitta ilovada', h_s: "Transport, tibbiyot, davlat xizmatlari, mahalla va AI-yordamchi. Bepul, uch tilda.", h_how: 'Qanday ishlaydi',
       st1_t: 'Metro, avtobus, poyezd va samolyot', st1_s: "Yaqin bekat va yo'nalishlar, poyezdlar jadvali va O'zbekiston aeroportlarining jonli tablosi.", f_metro: 'metro bekati', f_bus: "avtobus yo'nalishi", f_air: 'aeroport tablosi',
       st2_t: 'Hozir ochiq dorixona va klinikalar', st2_s: "Ish vaqti ko'rsatilgan xarita, piyoda yoki taksida yo'l va DMED orqali shifokorga onlayn yozilish.", f_med: 'Toshkentdagi dorixona va klinika', f_103: 'tez yordam bir bosishda',
@@ -77,7 +85,11 @@
       title: 'MyUzCity · Butun shahar bitta ilovada',
     },
     en: {
-      n_feat: 'Services', n_map: 'City map', n_ai: 'AI assistant', n_biz: 'Business', n_part: 'Partners', cta_open: 'Open the app',
+      n_feat: 'Services', n_map: 'City map', n_ai: 'AI assistant', n_biz: 'Business', n_part: 'Partners', n_about: 'About', menu: 'Menu', pulse_t: 'Tashkent now',
+      ab_now: 'Live today', ab_t: 'About MyUzCity',
+      ab_s: 'MyUzCity is a smart-city digital platform for residents and visitors of Uzbekistan. We bring city services, open data and a direct line between residents and the city into one app.',
+      ab_for: 'We are open to working with khokimiyats, government agencies, businesses and investors: integrations, district pilots and service placement.',
+      ab_form: 'Send a request', ab_tg: 'MyUzCity Telegram bot', ab_f1: 'service sections', ab_f2: 'cities with data', ab_f3v: '2 h', ab_f3: 'data refresh', ab_f4: 'languages: Uzbek, Russian, English, Chinese', cta_open: 'Open the app',
       h_t1: 'Your whole city', h_t2: 'in one app', h_s: 'Transport, healthcare, public services, mahalla and an AI assistant. Free, in three languages.', h_how: 'See how it works',
       st1_t: 'Metro, buses, trains and flights', st1_s: 'Stops and routes near you, train timetables and live departure boards of Uzbekistan’s airports.', f_metro: 'metro stations', f_bus: 'bus routes', f_air: 'airport boards',
       st2_t: 'Pharmacies and clinics open now', st2_s: 'A map with opening hours, walking or taxi routes and online doctor booking via DMED.', f_med: 'pharmacies and clinics in Tashkent', f_103: 'ambulance in one tap',
@@ -236,7 +248,7 @@
     getJ(DATA + 'data/rates.json').then(j => (D.fx = j)),
   ]).then(() => { D.wxDone = true; paintChips(); paintWidgets(); });
   getJ(DATA + 'data/news.json').then(j => { D.news = j || { cities: {}, all: [] }; paintWidgets(); });
-  getJ(`${API}/api/flights?ap=TAS&dir=dep`).then(j => { D.fl = j; paintWidgets(); });
+  getJ(`${API}/api/flights?ap=TAS&dir=dep`).then(j => { D.fl = j; paintWidgets(); paintPulse(); });
   Promise.all([getJ(DATA + 'data/poi/index.json'), getJ(DATA + 'data/transit/0.json'), getJ(DATA + 'data/places/index.json')]).then(([ix, tr, pl]) => { D.poi = ix; D.transit = tr; D.places = pl; paintCounts(); });
   getJ(`${API}/api/polls?scope=city`).then(j => {
     if (!j || !j.ok || !j.polls) return; const votes = j.polls.reduce((a, p) => a + p.total, 0);
@@ -250,7 +262,51 @@
     if (a && a.us_aqi != null) { const v = Math.round(a.us_aqi), lv = aqLvl(v), e = $('#cAq'); e.hidden = false; e.innerHTML = `<span class="dot" style="background:${AQC[lv]}"></span><div>${esc(t('w_air'))}<b>AQI ${v}</b></div>`; }
     const u = D.fx && D.fx.list && D.fx.list.find(x => x.c === 'USD'); if (u) { const e = $('#cFx'); e.hidden = false; e.innerHTML = `<span class="e">${ic('currency-dollar')}</span><div>USD<b>${fmt(u.r)}</b></div>`; }
     const e4 = $('#cPr'); e4.hidden = false; e4.innerHTML = `<span class="e">${ic('mosque')}</span><div>${esc(t('pr')[nx])}<b>${hm(P[nx])}</b></div>`;
+    paintPulse();
   }
+
+  // «Ташкент сейчас»: бегущая строка под первым экраном — погода, воздух, следующий намаз, курсы,
+  // ближайший вылет и круглосуточные аптеки (всё из тех же живых данных, что и остальной сайт)
+  const PL = {
+    ru: { air: 'Воздух', wait: (h, m) => `через ${h ? h + ' ч ' : ''}${m} мин`, p247: 'аптек работают круглосуточно', dep: 'ближайший вылет' },
+    uz: { air: 'Havo', wait: (h, m) => `${h ? h + ' soat ' : ''}${m} daqiqadan so'ng`, p247: 'dorixona kecha-kunduz ishlaydi', dep: 'eng yaqin reys' },
+    en: { air: 'Air', wait: (h, m) => `in ${h ? h + ' h ' : ''}${m} min`, p247: 'pharmacies open 24/7', dep: 'next departure' },
+  };
+  function paintPulse() {
+    const box = $('#pulse'), tr = $('#pulseTr'); if (!box || !tr) return;
+    const w = PL[L] || PL.ru, it = [];
+    const c = D.wx && D.wx.current; if (c) it.push(`${WMO(c.weather_code)} ${c.temperature_2m > 0 ? '+' : ''}${Math.round(c.temperature_2m)}°C`);
+    const a = D.aq && D.aq.current; if (a && a.us_aqi != null) { const v = Math.round(a.us_aqi); it.push(`<i class="pdot" style="background:${AQC[aqLvl(v)]}"></i>${esc(w.air)} AQI ${v}`); }
+    const P = prayTimes(TAS[0], TAS[1]), n = new Date(Date.now() + 5 * 3600e3), now = n.getUTCHours() * 60 + n.getUTCMinutes();
+    let nx = P.findIndex(m => m > now); const left = nx < 0 ? P[0] + 1440 - now : P[nx] - now; if (nx < 0) nx = 0;
+    it.push(`${ic('mosque')}${esc(t('pr')[nx])} ${hm(P[nx])} · ${esc(w.wait(Math.floor(left / 60), left % 60))}`);
+    const fx = D.fx && D.fx.list; if (fx) ['USD', 'EUR', 'RUB'].forEach(cd => { const r = fx.find(x => x.c === cd); if (r) it.push(`${cd} <b>${fmt(r.r)}</b>`); });
+    const mm = x => +String(x).slice(0, 2) * 60 + +String(x).slice(3, 5);
+    const fl = ((D.fl && D.fl.rows) || []).find(r => (r.d || 0) === 0 && !/^(dp|ld|cx)$/.test(r.st || '') && mm(r.e || r.t) >= now);
+    if (fl) it.push(`${ic('airplane-tilt')}${esc(w.dep)} ${esc(fl.e || fl.t)} · ${esc(fl.c)}`);
+    const dz = window.MZdots; if (dz && dz.n && dz.n.med247) it.push(`${ic('first-aid-kit')}${fmt(dz.n.med247)} ${esc(w.p247)}`);
+    if (!it.length) return;
+    const row = it.map(x => `<span>${x}</span>`).join('');
+    const gap = '<span aria-hidden="true" class="pulse-gap"></span>';
+    tr.innerHTML = row + gap + row.replace(/<span>/g, '<span aria-hidden="true">') + gap; // два одинаковых круга — бесшовная прокрутка
+    box.hidden = false;
+  }
+  document.addEventListener('mz:dots', paintPulse);
+  setInterval(paintPulse, 60e3);
+
+  // меню для телефона: те же разделы, что в шапке, и выбор языка
+  (() => {
+    const b = $('#burger'), head = b && b.closest('header'); if (!b || !head) return;
+    const m = document.createElement('div'); m.className = 'mnav'; m.id = 'mnav'; m.hidden = true; head.appendChild(m);
+    const fill = () => { m.innerHTML = `<nav>${$$('.links a').map(a => a.outerHTML).join('')}</nav>`
+      + `<div class="mnav-l">${['ru', 'uz', 'en'].map(l => `<a href="${esc(CLEAN ? url(route(), l) : '?lang=' + l)}" hreflang="${l}"${l === L ? ' aria-current="true"' : ''}>${l === 'ru' ? 'Русский' : l === 'uz' ? "O'zbekcha" : 'English'}</a>`).join('')}</div>`
+      + `<a class="btn btn-acc btn-lg" href="${esc(APP + '?lang=' + L)}">${esc(t('cta_open'))}</a>`; };
+    const set = open => { if (open) fill(); m.hidden = !open; b.setAttribute('aria-expanded', String(open)); document.documentElement.classList.toggle('mnav-on', open); };
+    b.addEventListener('click', () => set(m.hidden));
+    m.addEventListener('click', e => { if (e.target.closest('a')) set(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !m.hidden) { set(false); b.focus(); } });
+    addEventListener('resize', () => { if (innerWidth > 960 && !m.hidden) set(false); });
+  })();
 
   // animated counters
   const counted = new WeakSet();
@@ -293,7 +349,7 @@
     const w = addMsg('a', ''); w.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
     const d = new Date(Date.now() + 5 * 3600e3);
     fetch(`${API}/api/assistant`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: msgs.slice(-8), lang: L, name: '—', city: L === 'en' ? 'Tashkent' : L === 'uz' ? 'Toshkent' : 'Ташкент', date: d.toISOString().slice(0, 16).replace('T', ' '), ctx: { cityIdx: 0 } }) })
-      .then(r => r.json()).then(j => { const raw = (j && j.reply) || ''; const tags = [...raw.matchAll(/\[\[\s*(?:go\s*:\s*)?([a-z_]+)\s*\]\]/gi)].map(m => m[1]); const a = raw.replace(/\s*\[\[[^\]]*\]\]/g, '').replace(/\*\*/g, '').trim(); if (!a) throw 0; msgs.push({ role: 'assistant', content: a }); w.textContent = a; document.dispatchEvent(new CustomEvent('mz:reply', { detail: { text: a, tags, el: w } })); })
+      .then(r => r.json()).then(j => { const raw = (j && j.reply) || ''; const tags = [...raw.matchAll(/\[\[\s*(?:go\s*:\s*)?([a-z_]+)\s*\]\]/gi)].map(m => m[1]); const a = raw.replace(/\s*\[\[[^\]]*\]\]/g, '').replace(/\*\*/g, '').trim(); if (!a) throw 0; msgs.push({ role: 'assistant', content: a }); w.textContent = a; document.dispatchEvent(new CustomEvent('mz:reply', { detail: { text: a, q, tags, el: w } })); })
       .catch(() => { w.textContent = t('ai_err'); msgs.pop(); });
   }
   $('#aiSug').addEventListener('click', e => { const b = e.target.closest('button'); if (b) ask(b.textContent); });

@@ -28,6 +28,9 @@ jobs:
       - run: node scripts/update-data.mjs
         timeout-minutes: 16
         continue-on-error: true
+      - name: Points for the live map on myuzcity.uz
+        run: node scripts/build-dots.mjs
+        continue-on-error: true
       - name: Commit data
         if: always()
         run: |

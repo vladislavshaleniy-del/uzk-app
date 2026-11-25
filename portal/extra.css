@@ -1,0 +1,85 @@
+/* MyUzCity portal: доработки 25.11 — заголовок на телефоне, подпись кнопки ИИ, меню для телефона,
+   строка «Ташкент сейчас», живая карта за первым экраном, блок «О проекте», «Рядом с вами» в чате. */
+
+/* заголовок первого экрана помещается на узком телефоне */
+@media (max-width: 560px) { .hero h1 { font-size: clamp(30px, 10vw, 44px) !important; max-width: none !important; } }
+
+/* кнопка ИИ: подпись видна всегда на компьютере, на телефоне — первые секунды */
+.dock-bub { opacity: 1 !important; transform: none !important; }
+@media (max-width: 960px) {
+  .dock-bub { display: block !important; right: 56px !important; padding: 6px 10px !important; font-size: 12px !important; animation: bubOut .5s var(--ease) forwards 7s !important; }
+}
+
+/* меню для телефона */
+.burger { display: none; }
+@media (max-width: 960px) {
+  .burger { display: grid; place-content: center; gap: 4px; width: 44px; height: 44px; flex: 0 0 44px; padding: 0; border-radius: 14px; border: 1px solid rgba(244, 241, 232, .16); background: rgba(16, 50, 27, .55); cursor: pointer; }
+  .burger i { display: block; width: 18px; height: 2px; border-radius: 2px; background: #F4F1E8; transition: transform .25s var(--ease), opacity .2s; }
+  .burger[aria-expanded="true"] i:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .burger[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
+  .burger[aria-expanded="true"] i:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+  .burger:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+  .mnav { position: absolute; top: calc(100% + 10px); left: 0; right: 0; z-index: 60; padding: 8px 16px 16px; border-radius: 24px; background: rgba(11, 36, 19, .97); border: 1px solid rgba(244, 241, 232, .12); box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .75); max-height: calc(100svh - 100px); overflow: auto; animation: mnavIn .22s var(--ease); }
+  .mnav nav a { display: block; padding: 15px 4px; font: 700 18px/1.2 Manrope, system-ui, sans-serif; color: #F4F1E8; text-decoration: none; border-bottom: 1px solid rgba(244, 241, 232, .08); }
+  .mnav-l { display: flex; gap: 8px; margin: 14px 0; }
+  .mnav-l a { flex: 1; text-align: center; padding: 11px 6px; border-radius: 12px; border: 1px solid rgba(244, 241, 232, .14); color: #F4F1E8; text-decoration: none; font: 700 14px Manrope, system-ui, sans-serif; }
+  .mnav-l a[aria-current] { background: var(--acc); border-color: transparent; color: #10361A; }
+  .mnav .btn { display: flex; width: 100%; justify-content: center; }
+  html.mnav-on { overflow: hidden; }
+}
+@keyframes mnavIn { from { opacity: 0; transform: translateY(-8px); } }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* «Ташкент сейчас» */
+.pulse { margin-top: 28px; display: flex; width: 100%; min-width: 0; overflow: hidden; box-sizing: border-box; align-items: center; gap: 14px; max-width: 580px; padding: 5px 6px 5px 16px; border-radius: 999px; border: 1px solid rgba(244, 241, 232, .14); background: rgba(10, 34, 18, .5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.pulse-h { display: flex; align-items: center; gap: 8px; white-space: nowrap; font: 800 11px/1 Manrope, system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--acc); }
+.pulse-h i { width: 8px; height: 8px; border-radius: 50%; background: #3BD17F; animation: pulseDot 2s infinite; }
+.pulse-in { flex: 1; min-width: 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
+.pulse-tr { display: inline-flex; align-items: center; gap: 26px; white-space: nowrap; padding: 8px 0; font: 600 14px/1 Manrope, system-ui, sans-serif; color: #F4F1E8; animation: pulseMove 42s linear infinite; }
+.pulse-tr span { display: inline-flex; align-items: center; gap: 7px; }
+.pulse-tr svg { width: 16px; height: 16px; color: var(--acc); fill: currentColor; }
+.pulse-tr b { font-weight: 800; }
+.pulse-gap { width: 0; }
+.pdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.pulse:hover .pulse-tr { animation-play-state: paused; }
+@keyframes pulseMove { to { transform: translateX(-50%); } }
+@keyframes pulseDot { 0% { box-shadow: 0 0 0 0 rgba(59, 209, 127, .6); } 70% { box-shadow: 0 0 0 8px rgba(59, 209, 127, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 209, 127, 0); } }
+@media (max-width: 560px) { .pulse { flex-direction: column; align-items: flex-start; gap: 4px; border-radius: 18px; padding: 10px 0 4px 14px; } .pulse-in { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .pulse-tr { animation: none; flex-wrap: wrap; white-space: normal; } .pulse-tr [aria-hidden="true"] { display: none; } .pulse-h i { animation: none; } }
+
+/* живая карта Ташкента за первым экраном и историей */
+.dots-wrap { position: sticky; top: 0; height: 100vh; height: 100svh; margin-bottom: -100vh; margin-bottom: -100svh; z-index: -1; pointer-events: none; }
+.city-dots { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.4s var(--ease); }
+.city-dots.on { opacity: 1; }
+.blk-hero.dots-on .hero-bg { opacity: .14 !important; transition: opacity 1.4s; }
+.dots-cap { position: absolute; left: max(28px, calc((100% - var(--max)) / 2 + 28px)); bottom: 24px; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; max-width: 520px; font: 700 13px/1.3 Manrope, system-ui, sans-serif; color: rgba(244, 241, 232, .88); }
+.dots-cap span { display: inline-flex; align-items: center; gap: 7px; }
+.dots-cap i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+.dots-cap em { font-style: normal; font-weight: 600; opacity: .62; }
+@media (max-width: 960px) { .dots-cap { display: none !important; } .city-dots.on { opacity: .5; } }
+.story-l, .story-l > *, .hero { min-width: 0; }
+
+/* О проекте */
+.about { max-width: var(--max); margin: 0 auto; padding: clamp(64px, 7vw, 104px) 28px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 56px; align-items: center; }
+.about .eyebrow { display: inline-block; margin-bottom: 16px; padding: 6px 12px; border-radius: 999px; background: rgba(31, 138, 85, .1); color: #1F8A55; font: 800 12px/1 Manrope, system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.about h2 { font-size: clamp(30px, 3.6vw, 48px); line-height: 1.08; }
+.about-l > p { margin-top: 18px; color: var(--mut); font-size: 17px; line-height: 1.65; max-width: 60ch; }
+.about-l > p.about-lead { font-size: 19px; color: var(--tx); }
+.about .cta-row { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; }
+.about .btn-ghost { color: var(--tx) !important; border-color: var(--line) !important; background: transparent !important; }
+.about .btn-ghost svg { width: 20px; height: 20px; fill: currentColor; }
+.about-f { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.about-f li { display: grid; gap: 8px; align-content: start; padding: 22px 20px; border-radius: 22px; background: #fff; border: 1px solid var(--line); box-shadow: 0 18px 40px -30px rgba(12, 36, 22, .45); }
+.about-f b { font: 800 clamp(30px, 3vw, 42px)/1 Unbounded, system-ui, sans-serif; letter-spacing: -.03em; color: #1F8A55; }
+.about-f span { color: var(--mut); font-weight: 600; font-size: 14px; line-height: 1.4; }
+@media (max-width: 960px) { .about { grid-template-columns: 1fr; gap: 32px; padding: 56px 20px; } }
+
+/* «Рядом с вами» под ответом ИИ */
+.msg.near b { display: block; }
+.msg.near ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.msg.near li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
+.msg.near li span { display: grid; gap: 2px; min-width: 0; }
+.msg.near li span b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg.near li small { opacity: .72; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg.near li a { flex: 0 0 auto; color: var(--acc); font-weight: 700; font-size: 13px; text-decoration: none; }
+.msg.near p { margin: 6px 0 0; }

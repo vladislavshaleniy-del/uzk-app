@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="/portal/luxe.css?v=14">
 <link rel="stylesheet" href="/portal/bands.css?v=3">
 <link rel="stylesheet" href="/portal/seo.css?v=1">
+<link rel="stylesheet" href="/portal/extra.css?v=1">
 </head>
 <body>
 <div class="pearl" aria-hidden="true"></div>
@@ -34,8 +35,10 @@
     <a href="#ai" data-i="n_ai">ИИ-помощник</a>
     <a href="?s=business" data-sv="business" data-i="n_biz">Бизнесу</a>
     <a href="#partners" data-i="n_part">Партнёрам</a>
+    <a href="#about" data-i="n_about">О проекте</a>
   </nav>
   <div class="nav-r">
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><i></i><i></i><i></i><span class="sr" data-i="menu">Меню</span></button>
     <div class="langs" role="group" aria-label="Language"><button data-lang="ru">RU</button><button data-lang="uz">UZ</button><button data-lang="en">EN</button></div>
     <a class="btn btn-acc open-app" href="/" data-i="cta_open">Открыть приложение</a><a class="btn btn-acc nav-inst install-app" href="/"><svg><use href="/portal/assets/icons.svg#i-device-mobile"/></svg><span data-i="g_inst_s">Установить</span></a>
   </div>
@@ -44,6 +47,7 @@
 <main id="top">
 <!-- ============ HERO + STORY: the phone stays pinned and shows the real app ============ -->
 <div class="blk blk-hero"><div class="hero-bg" aria-hidden="true"></div>
+<div class="dots-wrap" aria-hidden="true"><canvas class="city-dots" id="cityDots"></canvas><p class="dots-cap" id="dotsCap" hidden></p></div>
 <section class="story" id="story">
   <div class="story-l">
     <div class="hero step on" data-go="1:1909" style="--g:#F2B45A">
@@ -55,6 +59,7 @@
         <a class="btn btn-acc btn-lg open-app" href="/" data-i="cta_open">Открыть приложение</a>
         <a class="btn btn-ghost btn-lg" href="#s-transport" data-i="h_how">Как это работает</a>
       </div>
+      <div class="pulse rise" id="pulse" hidden><b class="pulse-h"><i></i><span data-i="pulse_t">Ташкент сейчас</span></b><div class="pulse-in"><div class="pulse-tr" id="pulseTr"></div></div></div>
     </div>
     <article class="step" id="s-transport" data-go="h:transport" style="--g:#3B82F6">
       <span class="ic"><svg><use href="/portal/assets/icons.svg#i-bus"/></svg></span>
@@ -76,29 +81,11 @@
       <p data-i="st3_s">Фото и точка на карте. Сообщение видят соседи и ответственные службы, статус приходит вам в Telegram.</p>
       <a class="go-app" data-sv="mahalla" href="?s=mahalla" data-i="go_open">Открыть раздел</a>
     </article>
-    <article class="step" data-go="1:996" style="--g:#14B8A6">
-      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-users-three"/></svg></span>
-      <h2 data-i="st4_t">Махалля онлайн</h2>
-      <p data-i="st4_s">Чат соседей, опросы махалли с честным подсчётом голосов и мечети рядом со временем намаза.</p>
-      <a class="go-app" data-sv="mahalla" href="?s=mahalla" data-i="go_open">Открыть раздел</a>
-    </article>
-    <article class="step" data-go="1:4475" style="--g:#EF4444">
-      <span class="ic red"><svg><use href="/portal/assets/icons.svg#i-siren"/></svg></span>
-      <h2 data-i="st5_t">Тревожная кнопка</h2>
-      <p data-i="st5_s">Одно нажатие, и близкие получают вашу геолокацию в Telegram. Плюс экстренные службы 101, 102, 103, 104.</p>
-      <a class="go-app" data-sv="safety" href="?s=safety" data-i="go_open">Открыть раздел</a>
-    </article>
     <article class="step" data-go="1:19" style="--g:#A78BFA">
       <span class="ic"><svg><use href="/portal/assets/icons.svg#i-identification-card"/></svg></span>
       <h2 data-i="st6_t">Документы под контролем</h2>
       <p data-i="st6_s">Сроки паспорта, прав, страховки и техосмотра. Бот напомнит за 30, 7 и 1 день.</p>
       <a class="go-app" data-sv="gov" href="?s=gov" data-i="go_open">Открыть раздел</a>
-    </article>
-    <article class="step" data-go="1:5149" style="--g:#FB923C">
-      <span class="ic"><svg><use href="/portal/assets/icons.svg#i-storefront"/></svg></span>
-      <h2 data-i="st7_t">Маркетплейс соседей</h2>
-      <p data-i="st7_s">Продайте ненужное или отдайте даром людям из вашего города. Связь через Telegram.</p>
-      <a class="go-app" data-sv="market" href="?s=market" data-i="go_open">Открыть раздел</a>
     </article>
   </div>
   <div class="story-r">
@@ -212,6 +199,22 @@
 </section></div>
 
 <!-- ============ PARTNERS ============ -->
+<div class="blk blk-light"><section class="about" id="about" aria-labelledby="abH">
+  <div class="about-l">
+    <span class="eyebrow" data-i="ab_now">Работает уже сейчас</span>
+    <h2 id="abH" data-i="ab_t">О проекте MyUzCity</h2>
+    <p class="about-lead" data-i="ab_s">MyUzCity — цифровая платформа умного города для жителей и гостей Узбекистана. Мы собираем в одном приложении городские сервисы, открытые данные и прямую связь жителей с городом.</p>
+    <p data-i="ab_for">Открыты к сотрудничеству с хокимиятами, ведомствами, бизнесом и инвесторами: интеграции, пилоты в районах, размещение сервисов.</p>
+    <div class="cta-row"><a class="btn btn-acc" href="#partners" data-i="ab_form">Оставить заявку</a><a class="btn btn-ghost" href="https://t.me/MyUzCity_bot" target="_blank" rel="noopener"><svg><use href="/portal/assets/icons.svg#i-telegram-logo"/></svg><span data-i="ab_tg">Telegram-бот MyUzCity</span></a></div>
+  </div>
+  <ul class="about-f">
+    <li><b>12</b><span data-i="ab_f1">разделов сервисов</span></li>
+    <li><b>8</b><span data-i="ab_f2">городов с данными</span></li>
+    <li><b data-i="ab_f3v">2 ч</b><span data-i="ab_f3">обновление данных</span></li>
+    <li><b>4</b><span data-i="ab_f4">языка: узбекский, русский, английский, китайский</span></li>
+  </ul>
+</section></div>
+
 <div class="blk blk-pearl"><section class="partners" id="partners">
   <div class="pt-l reveal">
     <h2 data-i="pt_t">Для города, бизнеса и инвесторов</h2>
@@ -251,7 +254,8 @@
 </footer>
 
 <script src="/portal/assets/qrcode.js" defer></script>
-<script src="/portal/portal.js?v=9" defer></script>
-<script src="/portal/pages.js?v=19" defer></script>
+<script src="/portal/portal.js?v=10" defer></script>
+<script src="/portal/pages.js?v=20" defer></script>
+<script src="/portal/citymap.js?v=1" defer></script>
 </body>
 </html>

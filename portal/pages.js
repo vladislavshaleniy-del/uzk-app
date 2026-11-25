@@ -369,14 +369,60 @@
       const svs = [...new Set((tags || []).map(k => GO2SV[k]).filter(Boolean))].slice(0, 2);
       if (svs.length && el) el.insertAdjacentHTML('beforeend', `<span class="msg-go">${svs.map(k => `<a href="${MZ.url(k)}" data-sv="${k}">${ic(SV[k].ic)}${esc(pick(SV[k].t))} →</a>`).join('')}</span>`); });
 
+    // «Рядом с вами»: если спросили, где ближайшая аптека, клиника, мечеть, метро, парковка, зарядка, кафе или школа,
+    // под ответом ИИ появляются три ближайших места из данных приложения с расстоянием и маршрутом (Яндекс Карты)
+    const NEAR_Q = /рядом|ближ|около|возле|поблизост|где\s|yaqin|qayerda|atrofda|near|closest|where/i;
+    const NEAR = [
+      { re: /апте[кч]|лекарств|dorixona|pharm/i, k: 'med', f: x => x.a === 'pharmacy', o: { ru: 'Аптека', uz: 'Dorixona', en: 'Pharmacy' },  t: { ru: 'Ближайшие аптеки', uz: 'Eng yaqin dorixonalar', en: 'Nearest pharmacies' } },
+      { re: /клиник|больниц|поликлин|врач|стомат|shifoxona|poliklinika|klinika|shifokor|hospital|clinic|doctor|dentist/i, k: 'med', f: x => x.a !== 'pharmacy', o: { ru: 'Клиника', uz: 'Klinika', en: 'Clinic' },  t: { ru: 'Ближайшие клиники', uz: 'Eng yaqin klinikalar', en: 'Nearest clinics' } },
+      { re: /мечет|намаз|masjid|namoz|mosque|prayer/i, k: 'mosque', o: { ru: 'Мечеть', uz: 'Masjid', en: 'Mosque' },  t: { ru: 'Ближайшие мечети', uz: 'Eng yaqin masjidlar', en: 'Nearest mosques' } },
+      { re: /метро|metro|subway/i, k: 'metro', o: { ru: 'Станция метро', uz: 'Metro bekati', en: 'Metro station' },  t: { ru: 'Ближайшие станции метро', uz: 'Eng yaqin metro bekatlari', en: 'Nearest metro stations' } },
+      { re: /парков|стоянк|avtoturargoh|parkovka|parking/i, k: 'parking', o: { ru: 'Парковка', uz: 'Parkovka', en: 'Car park' },  t: { ru: 'Ближайшие парковки', uz: 'Eng yaqin parkovkalar', en: 'Nearest car parks' } },
+      { re: /заряд|электромоб|zaryad|charging|charger/i, k: 'ev', o: { ru: 'Зарядная станция', uz: 'Zaryadlash shoxobchasi', en: 'EV charger' },  t: { ru: 'Ближайшие электрозарядки', uz: 'Eng yaqin zaryadlash shoxobchalari', en: 'Nearest EV chargers' } },
+      { re: /кафе|ресторан|поесть|покушать|кофе|restoran|kafe|ovqat|cafe|restaurant|coffee|\beat\b/i, k: 'cafes', o: { ru: 'Кафе', uz: 'Kafe', en: 'Cafe' },  t: { ru: 'Кафе и рестораны рядом', uz: 'Yaqin kafe va restoranlar', en: 'Cafes and restaurants nearby' } },
+      { re: /школ|детсад|детск\S* сад|maktab|bog'?cha|school|kindergarten/i, k: 'edu', o: { ru: 'Школа или детсад', uz: "Maktab yoki bog'cha", en: 'School or kindergarten' },  t: { ru: 'Ближайшие школы и детсады', uz: "Eng yaqin maktab va bog'chalar", en: 'Nearest schools and kindergartens' } },
+    ];
+    const NW = {
+      ru: { route: 'Маршрут', m: 'м', km: 'км', h24: 'круглосуточно', geo: 'Разрешите доступ к местоположению — и я покажу ближайшие места.', far: 'Рядом с вами в наших данных ничего нет: подробнее всего пока Ташкент.', say: (t, n, d) => `${t}: ${n}, ${d}.` },
+      uz: { route: "Yo'nalish", m: 'm', km: 'km', h24: 'kecha-kunduz', geo: "Joylashuvga ruxsat bering — eng yaqin joylarni ko'rsataman.", far: "Yoningizda ma'lumotlarimizda hech narsa yo'q: hozircha eng to'liq — Toshkent.", say: (t, n, d) => `${t}: ${n}, ${d}.` },
+      en: { route: 'Route', m: 'm', km: 'km', h24: 'open 24/7', geo: 'Allow location access and I will show the nearest places.', far: 'Nothing near you in our data yet: Tashkent is covered best.', say: (t, n, d) => `${t}: ${n}, ${d}.` },
+    };
+    const nearData = {};
+    const nearLoad = k => nearData[k] || (nearData[k] = (k === 'cafes' ? getJ(DATA + 'data/places/0.json') : k === 'metro' ? getJ(DATA + 'data/transit/0.json').then(j => (j && j.metro && j.metro.st) || []) : getJ(DATA + `data/poi/${k}/0.json`)).then(j => j || []));
+    const dist = (a, b, c, d) => { const R = 6371e3, r = Math.PI / 180, x = (d - b) * r * Math.cos((a + c) / 2 * r), y = (c - a) * r; return Math.sqrt(x * x + y * y) * R; };
+    async function near(q, el) {
+      if (!q || !el || !NEAR_Q.test(q)) return;
+      const n = NEAR.find(x => x.re.test(q)); if (!n || !navigator.geolocation) return;
+      const w = NW[L()] || NW.ru, title = n.t[L()] || n.t.ru;
+      const box = document.createElement('div'); box.className = 'msg a near'; box.innerHTML = `<b>${esc(title)}</b><span class="typing"><i></i><i></i><i></i></span>`;
+      el.after(box); const log = $('#aiLog'); if (log) log.scrollTop = 1e6;
+      const pos = await new Promise(res => navigator.geolocation.getCurrentPosition(p => res(p.coords), () => res(null), { timeout: 12000, maximumAge: 300000 }));
+      if (!pos) { box.innerHTML = `<b>${esc(title)}</b><p>${esc(w.geo)}</p>`; return; }
+      const all247 = /24\s*\/\s*7|кругл|kecha-kunduz|24 soat|24 час|open now 24|24h/i.test(q);
+      let list = (await nearLoad(n.k)).filter(x => x && x.la && (!n.f || n.f(x)));
+      if (all247) { const only = list.filter(x => x.h === '24/7'); if (only.length) list = only; } // спросили круглосуточные — показываем только их
+      const top = list.map(x => ({ x, d: dist(pos.latitude, pos.longitude, x.la, x.lo) })).sort((a, b) => a.d - b.d).slice(0, 3);
+      if (!top.length || top[0].d > 30000) { box.innerHTML = `<b>${esc(title)}</b><p>${esc(w.far)}</p>`; return; }
+      const fd = d => d < 1000 ? `${Math.round(d / 10) * 10} ${w.m}` : `${(d / 1000).toFixed(1).replace('.', L() === 'en' ? '.' : ',')} ${w.km}`;
+      box.innerHTML = `<b>${esc(title)}</b><ol>${top.map(({ x, d }) => {
+        const nm = (L() !== 'ru' && x.n2) || x.n || x.n2 || n.o[L()] || n.o.ru, info = x.h === '24/7' ? w.h24 : (x.ad || x.h || '');
+        return `<li><span><b>${esc(nm)}</b><small>${esc(fd(d))}${info ? ' · ' + esc(info) : ''}</small></span><a href="https://yandex.uz/maps/?rtext=${pos.latitude},${pos.longitude}~${x.la},${x.lo}&rtt=pd" target="_blank" rel="noopener">${esc(w.route)} →</a></li>`;
+      }).join('')}</ol>`;
+      if (log) log.scrollTop = 1e6;
+      // голосом — после ответа ИИ, не перебивая его
+      const f = top[0]; if (VOICE && window.speechSynthesis) { const v = pickVoice(); if (v) { const u = new SpeechSynthesisUtterance(w.say(title, (L() !== 'ru' && f.x.n2) || f.x.n || '', fd(f.d))); u.voice = v; u.lang = v.lang; u.rate = 1.02; u.pitch = .82; speechSynthesis.speak(u); } }
+    }
+    document.addEventListener('mz:reply', e => { const { q, el } = e.detail || {}; near(q, el).catch(() => {}); });
+
     // big robot beside the chat (home section and the assistant page)
     function agentInit() { const box = $('#agent'); if (box) box.remove(); }
 
     // floating robot on every screen: opens the same chat beside it
+    const dockTxt = () => (L() === 'en' ? 'Ask AI' : L() === 'uz' ? "AI'dan so'rang" : 'Спросить ИИ');
     function dockInit() {
       if ($('#dock')) return;
       document.body.insertAdjacentHTML('beforeend', `<div class="dock" id="dock"><div class="dock-panel" id="dockPanel" hidden><button class="dock-x" aria-label="close">${ic('x')}</button><div class="dock-bot" hidden><div class="dock-name"><span class="dot"></span><b>${esc(s('ag_name'))}</b><i>${esc(s('ag_status'))}</i></div></div><div class="dock-chat" id="dockChat"></div></div>
-        <button class="dock-btn" id="dockBtn" aria-label="assistant"><span class="dock-bub">${esc(L() === 'en' ? 'Ask me anything' : L() === 'uz' ? "Menga savol bering" : 'Спросите меня')}</span><span class="dock-av">${ROBOT()}</span></button></div>`);
+        <button class="dock-btn" id="dockBtn" aria-label="${esc(dockTxt())}"><span class="dock-bub">${esc(dockTxt())}</span><span class="dock-av">${ROBOT()}</span></button></div>`);
       wireRobots($('#dock'));
       const btn = $('#dockBtn'), panel = $('#dockPanel'), host = $('#dockChat');
       let greeted = false;
@@ -390,7 +436,7 @@
       function fitVV() { const vv = window.visualViewport; const r = document.documentElement.style; if (!vv) return; r.setProperty('--vvh', vv.height + 'px'); r.setProperty('--vvt', vv.offsetTop + 'px'); }
       if (window.visualViewport) { visualViewport.addEventListener('resize', fitVV); visualViewport.addEventListener('scroll', fitVV); }
       addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) close(); });
-      document.addEventListener('mz:lang', () => { $('.dock-bub').textContent = L() === 'en' ? 'Ask me anything' : L() === 'uz' ? 'Menga savol bering' : 'Спросите меня'; $('.dock-name b').textContent = s('ag_name'); $('.dock-name i').textContent = s('ag_status'); });
+      document.addEventListener('mz:lang', () => { $('.dock-bub').textContent = dockTxt(); $('#dockBtn').setAttribute('aria-label', dockTxt()); $('.dock-name b').textContent = s('ag_name'); $('.dock-name i').textContent = s('ag_status'); });
       window.MZdock = { close, open };
     }
 

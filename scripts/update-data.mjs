@@ -65,13 +65,17 @@ async function ogImage(url) {
   } catch { return ''; }
 }
 
+// Аварии, гибель людей, криминал и суды на сайт и в приложение «умного города» не берём:
+// это лента о жизни города, а не криминальная хроника.
+export const GLOOM = /(погиб|гибел|смерт|скончал|умер(?:ла|ли)?\b|убий|убит|труп|тело\s|ДТП|авари|катастроф|столкнов|сбил[аио]?\b|задерж|арест|наркот|наркос|мошенн|краж|украл|похищ|изнасил|насили|суицид|самоубий|взрыв|теракт|стрельб|ножев|избил|ранен|пострадав|преступ|криминал|уголовн|приговор|осужд|колони|тюрьм|взятк|коррупц|онколог|тяжело заболел|halok|vafot|o'ldi|o‘ldi|avariya|YTH|hibs|giyohvand|firibgar|o'g'ri|jinoyat|qamoq|pora|killed|death|dead\b|crash|arrest|drug|murder|fraud|police)/i;
+
 async function news() {
   const all = [];
   for (const f of FEEDS) {
     try { const items = await readFeed(f); items.forEach(n => n.tashkentOnly = !!f.tashkentOnly); all.push(...items); console.log(`news ${f.id}: ${items.length}`); }
     catch (e) { console.log(`news ${f.id} failed: ${e.message}`); }
   }
-  const seen = new Set(); const items = all.filter(n => !seen.has(n.u) && seen.add(n.u)).sort((a, b) => b.d.localeCompare(a.d));
+  const seen = new Set(); const items = all.filter(n => !seen.has(n.u) && seen.add(n.u) && !GLOOM.test(n.t + ' ' + n.x)).sort((a, b) => b.d.localeCompare(a.d));
   const out = { updated: new Date().toISOString(), cities: {}, all: [] };
   const pick = new Set();
   CITIES.forEach((_, i) => {
