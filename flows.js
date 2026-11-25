@@ -202,14 +202,15 @@ HS.pay = (p) => {
   if (key === 'ipo') { const i = +extra || 0; c = { amount: IPO_PRICE[i] * 10 }; title = t('p_ipo'); to = IPO[i] + ' · 10'; c.ok = 'ok_ipo'; }
   if (key === 'donate') { const i = +extra || 0; c = { amount: 50000, chips: [10000, 50000, 100000], ok: 'ok_donate' }; title = t('p_donate'); to = ORGS[i]; }
   const amt = (window.__payAmt && window.__payAmt.key === p) ? window.__payAmt.v : c.amount;
-  const methods = [['uzcard', 'Uzcard •• 2847', IC.card], ['humo', 'Humo •• 5521', IC.card], ['payme', 'Payme', IC.wallet], ['click', 'Click', IC.wallet], ['points', t('points') + ' · ' + t('pointsBal', { n: '7 112' }), IC.star]];
-  const sel = window.__payMethod || (c.points ? 'points' : 'uzcard');
+  const my = cdCache(), mainC = my.find(x => x.main) || my[0];
+  const methods = my.map(x => ['card:' + x.id, cdName(x), IC.card]).concat(my.length ? [] : [['addcard', t('cd_pay_add'), IC.card]]).concat([['payme', 'Payme', IC.wallet], ['click', 'Click', IC.wallet], ['points', t('points') + ' · ' + t('pointsBal', { n: '7 112' }), IC.star]]);
+  const sel = window.__payMethod || (c.points ? 'points' : mainC ? 'card:' + mainC.id : 'payme');
   return `${hdr(title)}<div class="h-body">
     <div class="h-card"><div class="h-muted">${esc(t('recipient'))}</div><div class="h-strong">${esc(to)}</div>
       <div class="h-amount">${esc(money(amt))}</div><div class="h-muted small">${esc(t('commission'))}</div>
       ${c.chips ? `<div class="h-chips">${c.chips.map(v => `<button class="h-chip ${v === amt ? 'on' : ''}" data-act="amt:${p}:${v}">${esc(money(v))}</button>`).join('')}</div>` : ''}</div>
     <div class="h-sec">${esc(t('method'))}</div>
-    <div class="h-card np">${methods.map(([k, n, ic]) => `<button class="h-radio ${k === sel ? 'on' : ''}" data-act="method:${k}"><span class="h-ico light">${ic}</span><span class="h-rt"><b>${esc(n)}</b></span><span class="h-dot"></span></button>`).join('')}</div>
+    <div class="h-card np">${methods.map(([k, n, ic]) => `<button class="h-radio ${k === sel ? 'on' : ''}" data-act="${k === 'addcard' ? 'go:h:cards' : 'method:' + k}"><span class="h-ico light">${ic}</span><span class="h-rt"><b>${esc(n)}</b></span><span class="h-dot"></span></button>`).join('')}</div>
     ${btn(t('pay') + ' ' + money(amt), 'dopay:' + p + ':' + amt, 'primary')}${demoNote()}</div>`;
 };
 HS.paying = () => `<div class="h-body h-center h-full"><div class="h-spin"></div><div class="h-muted">${esc(t('paying'))}</div></div>`;
@@ -222,7 +223,7 @@ HS.paid = (p) => {
   const a = +amt || c.amount || 0; const cb = c.cb ? Math.round(a / 100) : 0;
   return `<div class="h-body h-center h-pt"><div class="h-okc">${IC.check}</div><div class="h-big">${esc(okT)}</div><div class="h-amount">${esc(money(a))}</div>
     ${cb ? `<div class="h-pill">+ ${esc(t('cashback', { n: cb.toLocaleString('ru-RU').replace(/ /g, ' ') }))}</div>` : ''}
-    <div class="h-card h-kv">${kv(t('recipient'), to)}${kv(t('date'), nowStr())}${kv(t('txn'), '№ ' + rnd(10))}${kv(t('method'), window.__payMethod === 'points' || c.points ? t('points') : (window.__payMethod || 'uzcard').replace(/^\w/, m => m.toUpperCase()))}</div>
+    <div class="h-card h-kv">${kv(t('recipient'), to)}${kv(t('date'), nowStr())}${kv(t('txn'), '№ ' + rnd(10))}${kv(t('method'), window.__payMethod === 'points' || c.points ? t('points') : payMethodName(window.__payMethod))}</div>
     <div class="h-muted small">${esc(t('receipt'))}</div>
     ${btn(t('done'), 'finish', 'primary')}${btn(t('share'), 'toast:shared', 'ghostd')}${demoNote()}</div>`;
 };
@@ -1509,12 +1510,13 @@ function poDist(p) { const l = caf().loc; return l ? cafDistRaw(l, [p.la, p.lo])
 function poFiltered(k) {
   const s = po(k), K = PO_K[k], list = PO_DATA[k][poCity(k)] || [], q = s.q.trim().toLowerCase();
   let r = list.filter(p => (s.cat === 'all' || K.has(p, s.cat)) && (!q || [K.name(p), p.n2, p.ad, p.op, p.sp].join(' ').toLowerCase().includes(q)));
-  const score = p => (p.n ? 3 : 0) + (p.ph ? 1 : 0) + (p.h ? 1 : 0) + (p.ad ? 1 : 0) + (p.hi ? 2 : 0) + (p.c ? Math.min(2, p.c / 100) : 0) + (p.em ? 2 : 0);
+  const score = p => (p.n ? 3 : 0) + (p.ph ? 1 : 0) + (p.h ? 1 : 0) + (p.ad ? 1 : 0) + (p.hi ? 2 : 0) + (p.c ? Math.min(2, p.c / 100) : 0) + (p.em && k !== 'hotel' ? 2 : 0) + (k === 'hotel' ? (p.og ? 3 : 0) + (p.st || 0) / 2 + (p.tg || p.wa ? 1 : 0) : 0);
   return caf().loc ? r.map(p => [poDist(p), p]).sort((a, b) => a[0] - b[0]).map(x => x[1]) : r.slice().sort((a, b) => score(b) - score(a));
 }
 function poItem(k, p) {
   const K = PO_K[k], d = fmtDist(poDist(p));
-  return `<button class="cf-item" data-act="poopen:${k}:${p.id}"><span class="cf-ic" style="background:${K.col(p)}">${poIc(K.ic(p), 18)}</span>
+  const th = k === 'hotel' ? hoPhoto(p) : '';
+  return `<button class="cf-item" data-act="poopen:${k}:${p.id}"><span class="cf-ic${th ? ' ho-th' : ''}" style="background:${K.col(p)}">${poIc(K.ic(p), 18)}${th ? `<img src="${esc(th)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">` : ''}</span>
     <span class="cf-it"><b>${esc(K.name(p))}</b><i>${esc(K.sub(p))}</i>${p.ad ? `<i>${esc(p.ad)}</i>` : ''}${p.h ? ohLabel(p) : ''}</span>${d ? `<span class="cf-dist">${esc(d)}</span>` : ''}</button>`;
 }
 function prayStrip(ci, cls = '') {
@@ -1612,12 +1614,13 @@ function poFind(k, id) { return (PO_DATA[k][poCity(k)] || []).find(x => x.id ===
 function poOpen(k, id) {
   const p = poFind(k, id); if (!p) return; const K = PO_K[k]; poSelect(k, p);
   const col = K.col(p), city = cityName(poCity(k)), st = p.h ? ohState(p.h) : null;
-  const photo = p.im || (p.wc ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(p.wc.replace(/^File:/, ''))}?width=900` : '');
+  const photo = k === 'hotel' ? '' : p.im || (p.wc ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(p.wc.replace(/^File:/, ''))}?width=900` : '');
+  const hph = k === 'hotel' ? hoPhoto(p) : '';
   const row = (a, v) => `<div class="cf-row"><span>${esc(a)}</span><div>${v}</div></div>`;
   const tel = p.ph ? p.ph.replace(/[^\d+]/g, '') : '';
-  const tags = typeof P2_PREFIX !== 'undefined' && P2_PREFIX[k] ? [K.sub(p).split(' · ')[0], p.f === 0 && k === 'ev' ? t('evc_free') : ''] : k === 'build' ? [t('bdk_' + p.s), p.k === 'o' ? t('bdk_o') : '', p.lv ? t('bd_lv_n', { n: p.lv }) : ''] : k === 'parking' ? [t('pkk_' + p.k), p.f === 1 ? t('pk_paid') : p.f === 0 ? t('pk_free') : '', p.cu ? t('pk_cust') : ''] : k === 'mosque' ? [t('mq_kind'), p.hi ? t('mq_hist') : ''] : [t('mdk_' + p.a), p.em ? t('md_em') : '', poH24(p) ? t('mdc_h24') : ''];
+  const tags = typeof P2_PREFIX !== 'undefined' && P2_PREFIX[k] ? [K.sub(p).split(' · ')[0], p.f === 0 && k === 'ev' ? t('evc_free') : '', k === 'hotel' && p.st ? '★'.repeat(p.st) : ''] : k === 'build' ? [t('bdk_' + p.s), p.k === 'o' ? t('bdk_o') : '', p.lv ? t('bd_lv_n', { n: p.lv }) : ''] : k === 'parking' ? [t('pkk_' + p.k), p.f === 1 ? t('pk_paid') : p.f === 0 ? t('pk_free') : '', p.cu ? t('pk_cust') : ''] : k === 'mosque' ? [t('mq_kind'), p.hi ? t('mq_hist') : ''] : [t('mdk_' + p.a), p.em ? t('md_em') : '', poH24(p) ? t('mdc_h24') : ''];
   const wp = p.wp ? p.wp.match(/^([a-z-]+):(.+)$/) : null;
-  bsheet(`<div class="cf-photo${photo ? '' : ' po-ph'}" style="${photo ? `background-image:url('${esc(photo)}')` : `background:linear-gradient(135deg,${col},${col}c4)`}">${photo ? '' : `<span class="cf-ph-ic">${poIc(K.ic(p), 46)}</span>`}</div>
+  bsheet(`<div class="cf-photo${photo ? '' : ' po-ph'}" style="${photo ? `background-image:url('${esc(photo)}')` : `background:linear-gradient(135deg,${col},${col}c4)`}">${photo ? '' : `<span class="cf-ph-ic">${poIc(K.ic(p), 46)}</span>`}${hph ? `<img class="ho-img" src="${esc(hph)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">` : ''}</div>
     <div class="cf-name">${esc(K.name(p))}</div>${p.n2 ? `<div class="cf-n2">${esc(p.n2)}</div>` : ''}
     <div class="cf-tags">${tags.filter(Boolean).map((x, i) => `<span${i ? '' : ` style="background:${col}1a;color:${col}"`}>${esc(x)}</span>`).join('')}</div>
     ${st ? `<div class="cf-open ${st.open ? 'on' : 'off'}">${esc(st.open ? (st.h24 ? t('caf_h24') : st.until != null ? t('caf_until', { t: hm(st.until) }) : t('caf_open')) : t('caf_closed'))}</div>` : ''}
@@ -1632,6 +1635,8 @@ function poOpen(k, id) {
       ${(k === 'ev' || k === 'edu') && p.op ? row(t('pk_op'), esc(p.op)) : ''}
       ${k === 'speedcam' && p.ms ? row(t('sc_ms'), esc(p.ms + ' км/ч')) : ''}
       ${k === 'sight' ? '<div id="sgW"></div>' : ''}
+      ${k === 'hotel' && p.rm ? row(t('ho_rooms'), esc(String(p.rm))) : ''}
+      ${k === 'hotel' && p.em ? row(t('ho_mail'), `<a href="mailto:${esc(p.em)}">${esc(p.em)}</a>`) : ''}
       ${k === 'build' && p.dv ? row(t('bd_dv'), esc(p.dv)) : ''}
       ${k === 'build' && p.lv ? row(t('bd_lv'), esc(String(p.lv))) : ''}
       ${k === 'build' && p.sd ? row(t('bd_sd'), esc(p.sd)) : ''}
@@ -1642,14 +1647,14 @@ function poOpen(k, id) {
       ${p.w ? row(t('caf_site'), `<a href="${esc(/^https?:/.test(p.w) ? p.w : 'https://' + p.w)}" target="_blank" rel="noopener">${esc(p.w.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a>`) : ''}
       ${wp && k !== 'sight' ? row('Wikipedia', `<a href="https://${esc(wp[1])}.wikipedia.org/wiki/${esc(encodeURIComponent(wp[2]))}" target="_blank" rel="noopener">${esc(t('mq_wiki'))}</a>`) : ''}
     </div>
-    ${tel ? `<a class="h-btn h-ghostd cf-callbtn" href="tel:${esc(tel)}">${esc(t('caf_call'))}</a>` : ''}
+    ${k === 'hotel' ? hoActs(p) : tel ? `<a class="h-btn h-ghostd cf-callbtn" href="tel:${esc(tel)}">${esc(t('caf_call'))}</a>` : ''}
     ${k === 'parking' ? `<button class="h-btn h-ghostd cf-rtbtn" data-act="pkpay">${esc(t('pk_pay'))}</button>` : ''}
     ${k === 'build' && p.n ? `<a class="h-btn h-ghostd cf-callbtn cf-rtbtn" href="https://www.olx.uz/list/q-${esc(encodeURIComponent(p.n.replace(/[«»"]/g, '')))}/" target="_blank" rel="noopener">${esc(t('bd_olx'))}</a>` : ''}
     <button class="h-btn h-primary cf-rtbtn" data-act="poroute:${k}:${p.id}">${esc(t(k === 'parking' ? 'route' : 'rt_t'))}</button>
     <div class="cf-sec">${esc(t('caf_route'))}</div><div class="cf-sub">${esc(t('caf_route_s'))}</div>
     <div class="cf-routes">${navLinks(p, null, 'car').map(([n, u, c, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span style="background:${c}">${l}</span>${esc(n)}</a>`).join('')}</div>
     ${k === 'sight' ? `<button class="h-btn h-ghostd cf-rtbtn" data-act="sgai:${p.id}">✨ ${esc(t('sg_ai'))}</button>` : ''}
-    ${k === 'build' || k === 'mosque' || k === 'sight' || k === 'gov' ? `<a class="cf-ya" href="https://yandex.uz/maps/?text=${esc(encodeURIComponent(K.name(p) + ' ' + CITIES[poCity(k)][0]))}&ll=${p.lo},${p.la}&z=16" target="_blank" rel="noopener">${esc(t('caf_photos'))} ›</a>` : ''}
+    ${k === 'build' || k === 'mosque' || k === 'sight' || k === 'gov' || k === 'hotel' ? `<a class="cf-ya" href="https://yandex.uz/maps/?text=${esc(encodeURIComponent(K.name(p) + ' ' + CITIES[poCity(k)][0]))}&ll=${p.lo},${p.la}&z=16" target="_blank" rel="noopener">${esc(t(k === 'hotel' ? 'ho_photos' : 'caf_photos'))} ›</a>` : ''}
     <div class="h-muted small cam-note">${esc(t(k === 'build' ? 'bd_note' : 'po_src'))}</div>`, 'bs-caf');
   if (k === 'sight' && p.wp) sgWiki(p).then(w => {
     const box = document.getElementById('sgW'); if (!w || !box) return;
@@ -3245,7 +3250,7 @@ WL_I.zh = WL_I.en; for (const l in WL_I) Object.assign(I[l] || (I[l] = {}), WL_I
 HS.welcome = () => `<div class="h-welcome">
   <div class="h-wtop"><img src="icon-192.png" alt="" class="h-wlogo"><div class="h-wname">MyUzCity</div><div class="h-wt">${esc(t('welcome_t'))}</div><div class="h-ws">${esc(t('welcome_s'))}</div></div>
   <div class="h-wlangs">${Object.keys(LANGS).map(l => `<button class="h-chip ${l === LANG ? 'on' : ''}" data-act="lang:${l}">${LANGS[l]}</button>`).join('')}</div>
-  <div class="h-wbtns"><button class="h-btn h-tgbtn" data-act="tglogin">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>${btn(t('wl_guest'), 'login', 'ghost')}</div>
+  <div class="h-wbtns"><button class="h-btn h-tgbtn" data-act="tglogin">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>${fkBtn()}${btn(t('wl_guest'), 'login', 'ghost')}</div>
   <div class="h-demo light">${esc(t('wl_note'))}</div></div>`;
 
 // ======================= Live interface: the design's picture screens rebuilt as real HTML =======================
@@ -3522,11 +3527,12 @@ ICP.chev = '<path d="m6 9 6 6 6-6"/>';
 
 // ---------- all services ----------
 const SVC = [
+  ['sec_tour', [['bed', 's_hotels', 'go:h:poi?hotel'], ['bag', 's_fairs', 'go:h:news?afisha'], ['food', 's_cafes', 'go:h:cafes'], ['map', 's_sights', 'go:h:poi?sight'], ['mosque', 's_mosques', 'go:1:3529'], ['card', 's_tickets', 'go:h:tickets'], ['video', 's_camsv', 'go:h:cams']]],
   ['sec_driver', [['bus', 's_transport', 'go:h:transport'], ['car', 's_parking', 'go:1:4858'], ['zap', 's_ev', 'go:h:poi?ev'], ['alert', 's_fines', 'go:1:2649'], ['road', 's_roads', 'go:h:reports?road'], ['video', 's_cams', 'go:h:poi?speedcam']]],
   ['sec_admin', [['gov', 's_gov', 'go:1:2573'], ['file', 's_docs', 'go:1:19'], ['home', 's_home', 'go:1:5285'], ['gift', 's_cash', 'go:1:448'], ['trend', 's_invest', 'go:1:140']]],
   ['sec_city', [['sos', 's_sos', 'go:1:4475', '#C81E1E', '#fff'], ['build', 's_mah', 'go:1:996'], ['msg', 's_appeal', 'go:h:reports?appeal'], ['trash', 's_clean', 'go:h:eco'], ['chart', 's_polls', 'go:h:polls?city'], ['heart', 's_vol', 'go:1:4356'], ['store', 's_market', 'go:1:5149']]],
   ['sec_edu', [['steth', 's_health', 'go:1:5032'], ['cap', 's_family', 'go:1:3042']]],
-  ['sec_tour', [['bag', 's_fairs', 'go:h:news?afisha'], ['food', 's_cafes', 'go:h:cafes'], ['map', 's_sights', 'go:h:poi?sight'], ['mosque', 's_mosques', 'go:1:3529'], ['card', 's_tickets', 'go:h:tickets'], ['video', 's_camsv', 'go:h:cams']]],
+  ['sec_social', [['briefcase', 's_jobs', 'go:h:jobs'], ['handshake', 's_unemp', 'go:h:social?unemp'], ['access', 's_disab', 'go:h:social?disab'], ['users', 's_famhelp', 'go:h:social?family']]],
 ];
 HS.services = () => page(lt('svc_t'), SVC.map(([s, items]) => lvSec(lt(s)) + `<div class="lv-grid">${items.map(([i, k, act, bg, col]) => lvTile(i, lt(k), act, { bg, col })).join('')}</div>`).join(''), { back: false });
 
@@ -3538,8 +3544,8 @@ HS.profile = () => {
   return `<header class="lv-hdr lv-prof">${u ? `<button class="lv-av" data-act="avatar" aria-label="${esc(lt('ava_t'))}">${ph ? `<img src="${ph}" alt="">` : esc(ini)}<em class="lv-av-cam">${ico('camera', 14, '#fff', 2.2)}</em></button><div><b>${esc(userName())}</b><i>${esc(fmtPhone(u.phone))}${u.username ? ' · @' + esc(u.username) : ''}</i></div>` : `<button class="lv-av tg" data-act="tglogin">${TG_SVG.replace(/22/g, '30')}</button><div><b>${esc(lt('p_guest'))}</b><i>${esc(lt('p_guest_s'))}</i></div>`}</header>
     <main class="lv-body vs">
       <div class="flow lv-stats" id="pStats"></div>
-      ${u ? '' : `<button class="h-btn h-tgbtn" data-act="tglogin" style="margin:0 0 16px">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`}
-      <div class="lv-card">${lvRow('file', lt('p_docs'), '', 'go:1:19')}${lvRow('list', lt('p_my'), '', 'go:h:myact')}${lvRow('help', lt('p_help'), '', 'go:1:1677')}${lvRow('sliders', lt('p_set'), '', 'go:1:1552')}${lvRow('lock', lt('p_priv'), '', 'privacy')}${u ? lvRow('logout', lt('p_out'), '', 'logout', { right: '' }) : ''}</div>
+      ${u ? '' : `<button class="h-btn h-tgbtn" data-act="tglogin" style="margin:0 0 ${fkBtn() ? 10 : 16}px">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>${fkBtn().replace('class="h-btn fk-btn"', 'class="h-btn fk-btn" style="margin:0 0 16px"')}`}
+      <div class="lv-card">${lvRow('file', lt('p_docs'), '', 'go:1:19')}${lvRow('card', lt('p_cards'), '', 'go:h:cards')}${lvRow('list', lt('p_my'), '', 'go:h:myact')}${lvRow('help', lt('p_help'), '', 'go:1:1677')}${lvRow('sliders', lt('p_set'), '', 'go:1:1552')}${lvRow('lock', lt('p_priv'), '', 'privacy')}${u ? lvRow('logout', lt('p_out'), '', 'logout', { right: '' }) : ''}</div>
       <div class="lv-pad"></div></main>`;
 };
 HS.profile.mount = el => { const f = el.querySelector('#pStats'); f.classList.add('flow'); drawStats({ r: f }); };
@@ -3580,7 +3586,7 @@ XACT.wxsheet = () => wxSheet();
 XACT.appupdate = () => { if (window.__appReload) window.__appReload(); else location.reload(); };
 ICP.refresh = '<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>';
 XACT.privacy = () => window.open('privacy.html?lang=' + LANG, '_blank', 'noopener');
-HS.settings = () => page(lt('p_set'), `${fl('settings')}<div class="lv-sec">${esc(lt('p_app'))}</div><div class="lv-card">${lvRow('bell', lt('p_notif'), '', 'go:h:notif')}${lvRow('globe', lt('p_lang'), ({ ru: 'Русский', uz: "O'zbekcha", en: 'English', zh: '中文' })[LANG], 'langsheet')}${lvRow('lock', lt('p_priv'), '', 'privacy')}${lvRow('refresh', lt('p_upd'), lt('p_upd_s'), 'appupdate')}</div>${authUser() ? `<div class="lv-card">${lvRow('trash', lt('p_del'), '', 'delacc', { bg: '#FDECEC', col: '#C81E1E', right: '' })}</div>` : ''}`);
+HS.settings = () => page(lt('p_set'), `${fl('settings')}<div class="lv-sec">${esc(lt('p_app'))}</div><div class="lv-card">${lvRow('bell', lt('p_notif'), '', 'go:h:notif')}${lvRow('globe', lt('p_lang'), ({ ru: 'Русский', uz: "O'zbekcha", en: 'English', zh: '中文' })[LANG], 'langsheet')}${lvRow('lock', lt('p_priv'), '', 'privacy')}${lvRow('refresh', lt('p_upd'), lt('p_upd_s'), 'appupdate')}${fkSupported() && authUser() ? lvRow('face', lt('p_face'), fkKey() ? t('fk_on') + (localStorage.getItem('uzk-lock') === '1' ? ' · 🔒' : '') : t('fk_off'), 'fkset') : ''}</div>${authUser() ? `<div class="lv-card">${lvRow('trash', lt('p_del'), '', 'delacc', { bg: '#FDECEC', col: '#C81E1E', right: '' })}</div>` : ''}`);
 HS.help = () => page(lt('p_help'), `<div class="lv-sec">${esc(lt('faq_t'))}</div><div class="lv-card">${t('faq_cats').split('|').map((c, i) => lvRow('help', c, '', 'go:h:faq?' + i)).join('')}</div>${fl('help')}`);
 
 // ---------- sections ----------
@@ -3868,3 +3874,365 @@ HS.services.mount = el => {
     body.querySelectorAll('.lv-grid').forEach(g => g.animate([{ opacity: .6 }, { opacity: 1 }], { duration: 300, easing: 'ease-out' }));
   }));
 };
+
+// ======================= Туризм: гостиницы · Социальная помощь: вакансии (Oson Ish), пособия, помощь =======================
+Object.assign(LV, {
+  sec_social: L4('Социальная помощь', 'Ijtimoiy yordam', 'Social support', '社会援助'),
+  s_hotels: L4('Гостиницы', 'Mehmonxonalar', 'Hotels', '酒店'),
+  s_jobs: L4('Вакансии рядом', 'Yaqindagi vakansiyalar', 'Jobs near you', '附近职位'),
+  s_unemp: L4('Пособие по безработице', 'Ishsizlik nafaqasi', 'Unemployment benefit', '失业救济'),
+  s_disab: L4('Помощь людям с инвалидностью', 'Nogironligi bor shaxslarga yordam', 'Disability support', '残障援助'),
+  s_famhelp: L4('Помощь малообеспеченным семьям', 'Kam ta’minlangan oilalarga yordam', 'Help for low-income families', '低收入家庭援助'),
+});
+Object.assign(ICP, {
+  bed: '<path d="M2 20V6M2 16h20v4M22 16v-3a3 3 0 0 0-3-3h-9v6"/><circle cx="6" cy="12" r="2"/>',
+  access: '<circle cx="12" cy="4" r="1.8"/><path d="M9 8.5h6M12 8.5V14h4.5l2 5"/><path d="M9.5 11.5a5.5 5.5 0 1 0 6 7"/>',
+});
+const WA_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3Z"/></svg>';
+const IG_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg>';
+
+const SO_I = {
+  ru: {
+    ho_t: 'Гостиницы', po_q_hotel: 'Название гостиницы или улица', hoc_hotel: 'Отели', hoc_hostel: 'Хостелы', hoc_guest_house: 'Гостевые дома', hoc_apartment: 'Апартаменты', hoc_st4: '4–5 звёзд', hoc_msg: 'Telegram / WhatsApp',
+    hok_hotel: 'Отель', hok_hostel: 'Хостел', hok_guest_house: 'Гостевой дом', hok_apartment: 'Апартаменты', ho_call: 'Позвонить', ho_rooms: 'Номеров', ho_mail: 'Почта',
+    ho_nophone: 'Телефона нет в открытых данных — посмотрите контакты на Яндекс Картах', ho_photos: 'Фото, цены и отзывы на Яндекс Картах',
+    jb_t: 'Вакансии', jb_all_d: 'Все районы', jb_q: 'Профессия или компания', jb_new: 'Новые', jb_pay: 'Высокая зарплата', jb_soc: 'Для соц. категорий', jb_n: 'Показано {n} из {t} вакансий региона',
+    jb_more: 'Показать ещё', jb_none: 'Ничего не нашлось — попробуйте другой район или запрос', jb_load: 'Загружаем вакансии…', jb_err: 'Не удалось загрузить вакансии. Проверьте интернет.',
+    jb_m: 'млн', jb_k: 'тыс', jb_sum: 'сум', jb_from: 'от', jb_neg: 'зарплата по договорённости', jb_soc_t: 'для соц. категорий', jb_today: 'сегодня', jb_yday: 'вчера', jb_reg_t: 'Регион',
+    jb_src: 'Источник — Oson Ish, портал вакансий Министерства занятости. Откликнуться можно на сайте после входа через OneID. Список обновляется дважды в день.', jb_site: 'Все вакансии на Oson Ish',
+    so_t: 'Социальная помощь', so_hot: 'Телефон доверия Министерства занятости', so_mygov: 'Подать заявление на my.gov.uz', so_jobs: 'Вакансии рядом', so_jobs_soc: 'Вакансии для соц. категорий', so_cgu: 'Центры госуслуг на карте',
+    so_unemp_s: 'Кому положено, сколько платят и как оформить', so_disab_s: 'Пенсии, пособия, работа и куда обращаться', so_family_s: 'Пособия на детей и материальная помощь', so_jobs_s: 'Свежие вакансии вашего региона с официального портала',
+    so_u1t: 'Кому положено', so_u1: 'Тем, чей трудовой договор прекращён, кто проработал не меньше 18 месяцев за последние 5 лет и обратился в течение полугода после увольнения.',
+    so_u2t: 'Сколько платят', so_u2: '3 месяца. В первый месяц — 75% среднемесячной зарплаты за последние полтора года, дальше — 50%, но не больше трёх минимальных размеров оплаты труда.',
+    so_u3t: 'Как оформить', so_u3: 'Подайте заявление на my.gov.uz или в местный орган по труду, встаньте на учёт как ищущий работу и в течение 10 дней получите предложение подходящей работы.',
+    so_u_note: 'Условия — по указу Президента от 4 августа 2025 года (действуют с 1 ноября 2025 года). Точные правила уточняйте на my.gov.uz.',
+    so_d1t: 'Пенсии и пособия', so_d1: 'Пенсии и пособия по инвалидности, социальные услуги и реабилитацию оформляет Национальное агентство социальной защиты.',
+    so_d2t: 'Куда обращаться', so_d2: 'Центры социальных услуг «Инсон», центры госуслуг или онлайн на my.gov.uz.',
+    so_d3t: 'Работа', so_d3: 'На портале Oson Ish есть вакансии для социальных категорий — в «Вакансиях» включите фильтр «Для соц. категорий».',
+    so_f1t: 'Что можно получить', so_f1: 'Пособие на детей и материальную помощь малообеспеченным семьям. Решение принимает «Единый реестр социальной защиты».',
+    so_f2t: 'Как подать', so_f2: 'В приложении Baraka или «Ijtimoiy Karta», на my.gov.uz, в центрах «Инсон», центрах госуслуг или через социального работника махалли.',
+    so_f3t: 'Когда', so_f3: 'Заявления принимают раз в месяц: поданные после 16-го числа рассматривают в следующем месяце.',
+  },
+  uz: {
+    ho_t: 'Mehmonxonalar', po_q_hotel: 'Mehmonxona nomi yoki ko‘cha', hoc_hotel: 'Mehmonxonalar', hoc_hostel: 'Hostellar', hoc_guest_house: 'Mehmon uylari', hoc_apartment: 'Apartamentlar', hoc_st4: '4–5 yulduz', hoc_msg: 'Telegram / WhatsApp',
+    hok_hotel: 'Mehmonxona', hok_hostel: 'Hostel', hok_guest_house: 'Mehmon uyi', hok_apartment: 'Apartament', ho_call: 'Qo‘ng‘iroq qilish', ho_rooms: 'Xonalar', ho_mail: 'Pochta',
+    ho_nophone: 'Ochiq ma’lumotlarda telefon yo‘q — kontaktlarni Yandex Xaritada ko‘ring', ho_photos: 'Yandex Xaritada rasmlar, narxlar va sharhlar',
+    jb_t: 'Vakansiyalar', jb_all_d: 'Barcha tumanlar', jb_q: 'Kasb yoki kompaniya', jb_new: 'Yangilar', jb_pay: 'Yuqori maosh', jb_soc: 'Ijtimoiy toifalar uchun', jb_n: 'Hududdagi {t} ta vakansiyadan {n} tasi',
+    jb_more: 'Yana ko‘rsatish', jb_none: 'Hech narsa topilmadi — boshqa tuman yoki so‘rovni sinab ko‘ring', jb_load: 'Vakansiyalar yuklanmoqda…', jb_err: 'Vakansiyalarni yuklab bo‘lmadi. Internetni tekshiring.',
+    jb_m: 'mln', jb_k: 'ming', jb_sum: 'so‘m', jb_from: 'dan', jb_neg: 'maosh kelishiladi', jb_soc_t: 'ijtimoiy toifalar uchun', jb_today: 'bugun', jb_yday: 'kecha', jb_reg_t: 'Hudud',
+    jb_src: 'Manba — Oson Ish, Bandlik vazirligining vakansiyalar portali. Saytda OneID orqali kirib ariza berish mumkin. Ro‘yxat kuniga ikki marta yangilanadi.', jb_site: 'Oson Ishdagi barcha vakansiyalar',
+    so_t: 'Ijtimoiy yordam', so_hot: 'Bandlik vazirligining ishonch telefoni', so_mygov: 'my.gov.uz orqali ariza berish', so_jobs: 'Yaqindagi vakansiyalar', so_jobs_soc: 'Ijtimoiy toifalar uchun vakansiyalar', so_cgu: 'Davlat xizmatlari markazlari xaritada',
+    so_unemp_s: 'Kimga beriladi, qancha va qanday rasmiylashtiriladi', so_disab_s: 'Pensiya, nafaqa, ish va qayerga murojaat qilish', so_family_s: 'Bolalar nafaqasi va moddiy yordam', so_jobs_s: 'Rasmiy portaldan hududingizdagi yangi vakansiyalar',
+    so_u1t: 'Kimga beriladi', so_u1: 'Mehnat shartnomasi bekor qilingan, oxirgi 5 yilda kamida 18 oy ishlagan va ishdan bo‘shaganidan keyin olti oy ichida murojaat qilganlarga.',
+    so_u2t: 'Qancha to‘lanadi', so_u2: '3 oy. Birinchi oyda — oxirgi bir yarim yildagi o‘rtacha oylik maoshning 75%, keyin — 50%, lekin uchta eng kam ish haqidan ko‘p emas.',
+    so_u3t: 'Qanday rasmiylashtiriladi', so_u3: 'my.gov.uz yoki mahalliy mehnat organiga ariza bering, ish qidiruvchi sifatida ro‘yxatdan o‘ting va 10 kun ichida mos ish taklifini oling.',
+    so_u_note: 'Shartlar — Prezidentning 2025-yil 4-avgustdagi farmoni bo‘yicha (2025-yil 1-noyabrdan amalda). Aniq qoidalarni my.gov.uz da tekshiring.',
+    so_d1t: 'Pensiya va nafaqalar', so_d1: 'Nogironlik pensiyasi va nafaqalari, ijtimoiy xizmatlar va reabilitatsiyani Ijtimoiy himoya milliy agentligi rasmiylashtiradi.',
+    so_d2t: 'Qayerga murojaat qilish', so_d2: '«Inson» ijtimoiy xizmatlar markazlari, davlat xizmatlari markazlari yoki onlayn my.gov.uz.',
+    so_d3t: 'Ish', so_d3: 'Oson Ish portalida ijtimoiy toifalar uchun vakansiyalar bor — «Vakansiyalar»da «Ijtimoiy toifalar uchun» filtrini yoqing.',
+    so_f1t: 'Nima olish mumkin', so_f1: 'Bolalar nafaqasi va kam ta’minlangan oilalarga moddiy yordam. Qarorni «Ijtimoiy himoya yagona reyestri» qabul qiladi.',
+    so_f2t: 'Qanday ariza berish', so_f2: 'Baraka yoki «Ijtimoiy Karta» ilovasida, my.gov.uz da, «Inson» markazlarida, davlat xizmatlari markazlarida yoki mahalla ijtimoiy xodimi orqali.',
+    so_f3t: 'Qachon', so_f3: 'Arizalar oyiga bir marta qabul qilinadi: oyning 16-sanasidan keyin berilganlari keyingi oyda ko‘riladi.',
+  },
+  en: {
+    ho_t: 'Hotels', po_q_hotel: 'Hotel name or street', hoc_hotel: 'Hotels', hoc_hostel: 'Hostels', hoc_guest_house: 'Guest houses', hoc_apartment: 'Apartments', hoc_st4: '4–5 stars', hoc_msg: 'Telegram / WhatsApp',
+    hok_hotel: 'Hotel', hok_hostel: 'Hostel', hok_guest_house: 'Guest house', hok_apartment: 'Apartments', ho_call: 'Call', ho_rooms: 'Rooms', ho_mail: 'Email',
+    ho_nophone: 'No phone in open data — see contacts on Yandex Maps', ho_photos: 'Photos, prices and reviews on Yandex Maps',
+    jb_t: 'Jobs', jb_all_d: 'All districts', jb_q: 'Job title or company', jb_new: 'Newest', jb_pay: 'Highest pay', jb_soc: 'For social categories', jb_n: 'Showing {n} of {t} jobs in the region',
+    jb_more: 'Show more', jb_none: 'Nothing found — try another district or search', jb_load: 'Loading jobs…', jb_err: 'Couldn’t load jobs. Check your connection.',
+    jb_m: 'M', jb_k: 'K', jb_sum: 'UZS', jb_from: 'from', jb_neg: 'salary negotiable', jb_soc_t: 'for social categories', jb_today: 'today', jb_yday: 'yesterday', jb_reg_t: 'Region',
+    jb_src: 'Source — Oson Ish, the job portal of the Ministry of Employment. Apply on the site after signing in with OneID. Updated twice a day.', jb_site: 'All jobs on Oson Ish',
+    so_t: 'Social support', so_hot: 'Ministry of Employment hotline', so_mygov: 'Apply on my.gov.uz', so_jobs: 'Jobs near you', so_jobs_soc: 'Jobs for social categories', so_cgu: 'Public service centres on the map',
+    so_unemp_s: 'Who qualifies, how much and how to apply', so_disab_s: 'Pensions, benefits, work and where to go', so_family_s: 'Child benefits and financial aid', so_jobs_s: 'Fresh jobs in your region from the official portal',
+    so_u1t: 'Who qualifies', so_u1: 'People whose employment contract has ended, who worked at least 18 months in the last 5 years and apply within six months of leaving.',
+    so_u2t: 'How much', so_u2: '3 months. 75% of the average monthly salary over the last 18 months in the first month, then 50%, capped at three minimum wages.',
+    so_u3t: 'How to apply', so_u3: 'Apply on my.gov.uz or at the local labour office, register as a job seeker and get a suitable job offer within 10 days.',
+    so_u_note: 'Rules per the Presidential decree of 4 August 2025 (in force since 1 November 2025). Check the exact rules on my.gov.uz.',
+    so_d1t: 'Pensions and benefits', so_d1: 'Disability pensions and benefits, social services and rehabilitation are handled by the National Agency for Social Protection.',
+    so_d2t: 'Where to go', so_d2: '“Inson” social service centres, public service centres, or online on my.gov.uz.',
+    so_d3t: 'Work', so_d3: 'Oson Ish lists jobs for social categories — turn on the “For social categories” filter in Jobs.',
+    so_f1t: 'What you can get', so_f1: 'Child benefits and financial aid for low-income families. Decisions are made through the Unified Social Protection Register.',
+    so_f2t: 'How to apply', so_f2: 'In the Baraka or “Ijtimoiy Karta” app, on my.gov.uz, at “Inson” centres, public service centres, or through the mahalla social worker.',
+    so_f3t: 'When', so_f3: 'Applications are taken once a month: those filed after the 16th are reviewed the following month.',
+  },
+};
+SO_I.zh = SO_I.en;
+for (const l in SO_I) Object.assign(I[l], SO_I[l]);
+
+// ---- гостиницы: отдельный вид на карте городских мест ----
+PO_SVG.hotel = '<path d="M2 20V6M2 16h20v4M22 16v-3a3 3 0 0 0-3-3h-9v6"/><circle cx="6" cy="12" r="2"/>';
+PO_DATA.hotel = {};
+const HO_COL = { hotel: '#0F766E', hostel: '#7C3AED', guest_house: '#B45309', apartment: '#2563EB' };
+PO_K.hotel = {
+  title: 'ho_t', cats: ['hotel', 'hostel', 'guest_house', 'apartment', 'st4', 'msg'], extraH: 0, foot: true,
+  has: (p, c) => c === 'st4' ? p.st >= 4 : c === 'msg' ? !!(p.tg || p.wa) : p.a === c,
+  col: p => HO_COL[p.a] || '#0F766E', ic: () => 'hotel', name: p => p.n,
+  sub: p => [t('hok_' + p.a), p.st ? '★'.repeat(p.st) : ''].filter(Boolean).join(' · '),
+};
+P2_PREFIX.hotel = 'hoc_'; P2_CHIPCOL.hotel = Object.assign({ st4: '#CA8A04', msg: '#229ED9' }, HO_COL);
+const hoPhoto = p => p.og || p.im || (p.wc ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(p.wc.replace(/^File:/, ''))}?width=900` : '');
+function hoActs(p) {
+  const tel = p.ph ? p.ph.replace(/[^\d+]/g, '') : '', b = [];
+  if (tel) b.push(`<a class="ho-btn ho-call" href="tel:${esc(tel)}">${ico('phone', 21, '#fff', 2)}<span><b>${esc(t('ho_call'))}</b><i>${esc(p.ph)}</i></span></a>`);
+  if (p.tg) b.push(`<a class="ho-btn ho-tg" href="https://t.me/${esc(encodeURIComponent(p.tg))}" target="_blank" rel="noopener">${TG_SVG}<span><b>Telegram</b><i>@${esc(p.tg)}</i></span></a>`);
+  if (p.wa) b.push(`<a class="ho-btn ho-wa" href="https://wa.me/${esc(p.wa)}" target="_blank" rel="noopener">${WA_SVG}<span><b>WhatsApp</b><i>+${esc(p.wa)}</i></span></a>`);
+  if (p.ig) b.push(`<a class="ho-btn ho-ig" href="https://instagram.com/${esc(encodeURIComponent(p.ig))}" target="_blank" rel="noopener">${IG_SVG}<span><b>Instagram</b><i>@${esc(p.ig)}</i></span></a>`);
+  return b.length ? `<div class="ho-acts">${b.join('')}</div>` : `<div class="ho-none">${esc(t('ho_nophone'))}</div>`;
+}
+
+// ---- вакансии с портала Oson Ish по регионам и районам ----
+const JB_REG = ['toshkent', 'toshkent-viloyati', 'andijon', 'buxoro', 'jizzax', 'qashqadaryo', 'navoiy', 'namangan', 'samarqand', 'sirdaryo', 'surxondaryo', 'fargona', 'xorazm', 'qoraqalpogiston'];
+let JB_IX = null; const JB_DATA = {};
+const jb = () => (window.__jb = window.__jb || { r: null, d: '', q: '', sort: 'new', soc: false, more: 0 });
+const jbIndex = () => JB_IX ? Promise.resolve(JB_IX) : fetch(DATA_BASE + 'data/jobs/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => (JB_IX = j));
+const jbLoad = ri => JB_DATA[ri] ? Promise.resolve(JB_DATA[ri]) : fetch(`${DATA_BASE}data/jobs/${ri}.json`, { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).then(l => (JB_DATA[ri] = l));
+const jbReg = () => { const s = jb(); if (s.r == null) s.r = (CITIES[cityIdx()] || [])[4] || 0; return s.r; };
+const jbMoney = v => v >= 1e6 ? `${String(Math.round(v / 1e5) / 10).replace('.', ',')} ${t('jb_m')}` : `${Math.round(v / 1e3)} ${t('jb_k')}`;
+function jbSalary(x) {
+  if (!x.s1 && !x.s2) return t('jb_neg');
+  if (x.s1 && x.s2 && x.s1 !== x.s2) return `${jbMoney(x.s1).replace(/ \S+$/, x.s1 >= 1e6 === x.s2 >= 1e6 ? '' : '$&')}–${jbMoney(x.s2)} ${t('jb_sum')}`;
+  return `${LANG === 'uz' ? '' : t('jb_from') + ' '}${jbMoney(x.s1 || x.s2)}${LANG === 'uz' ? ' ' + t('jb_from') : ''} ${t('jb_sum')}`;
+}
+function jbDate(d) {
+  if (!d) return ''; const today = new Date(Date.now() + 5 * 3600e3).toISOString().slice(0, 10), yd = new Date(Date.now() + 5 * 3600e3 - 864e5).toISOString().slice(0, 10);
+  return d === today ? t('jb_today') : d === yd ? t('jb_yday') : d.slice(8, 10) + '.' + d.slice(5, 7);
+}
+const jbDist = x => String(x.ds || '').replace(/\s+(tumani|shahri|shahar|туман[иа]?|район)$/i, '');
+function jbList() {
+  const s = jb(), list = JB_DATA[jbReg()] || [], q = s.q.trim().toLowerCase();
+  let r = list.filter(x => (!s.d || jbDist(x) === s.d) && (!s.soc || x.so) && (!q || (x.t + ' ' + x.c).toLowerCase().includes(q)));
+  r = r.slice().sort(s.sort === 'pay' ? (a, b) => (b.s2 || b.s1) - (a.s2 || a.s1) : (a, b) => (b.d || '').localeCompare(a.d || '') || b.id - a.id);
+  return r;
+}
+function jbItem(x) {
+  return `<a class="jb-card" href="https://osonish.uz/vacancies/${encodeURIComponent(x.id)}" target="_blank" rel="noopener">
+    <b>${esc(x.t)}</b><i>${esc(x.c)}</i><span class="jb-pay">${esc(jbSalary(x))}</span>
+    <span class="jb-meta">${esc([jbDist(x), jbDate(x.d)].filter(Boolean).join(' · '))}${x.so ? `<em>${esc(t('jb_soc_t'))}</em>` : ''}</span></a>`;
+}
+HS.jobs = (p) => {
+  if (p === 'soc') jb().soc = true;
+  const s = jb(), regs = REGIONS[LANG] || REGIONS.ru;
+  const chip = (act, on, label) => `<button class="jb-chip${on ? ' on' : ''}" data-act="${act}">${esc(label)}</button>`;
+  return page(t('jb_t'), `
+    <button class="jb-reg" data-act="jbreg"><span>${esc(t('jb_reg_t'))}</span><b>${esc(regs[jbReg()] || '')}</b>${IC.chev}</button>
+    <input class="h-search lv-search" id="jbQ" type="search" placeholder="${esc(t('jb_q'))}" value="${esc(s.q)}" autocomplete="off">
+    <div class="jb-chips">${chip('jbsort:new', s.sort === 'new', t('jb_new'))}${chip('jbsort:pay', s.sort === 'pay', t('jb_pay'))}${chip('jbsoc', s.soc, t('jb_soc'))}</div>
+    <div class="jb-chips jb-dist" id="jbD"></div>
+    <div id="jbN" class="jb-n"></div><div id="jbL"><div class="hv-sk"></div><div class="hv-sk"></div><div class="hv-sk"></div></div>
+    <a class="jb-site" href="https://osonish.uz/vacancies/by-region/${esc(JB_REG[jbReg()] || 'toshkent')}" target="_blank" rel="noopener">${esc(t('jb_site'))} ›</a>
+    <div class="h-muted small cam-note">${esc(t('jb_src'))}</div>`);
+};
+HS.jobs.mount = el => {
+  const s = jb(), L = el.querySelector('#jbL'), N = el.querySelector('#jbN'), D = el.querySelector('#jbD'), Q = el.querySelector('#jbQ');
+  const draw = () => {
+    const all = JB_DATA[jbReg()] || [], r = jbList(), show = r.slice(0, 30 + s.more * 30);
+    const cnt = {}; all.forEach(x => { const d = jbDist(x); if (d) cnt[d] = (cnt[d] || 0) + 1; });
+    const ds = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).slice(0, 16);
+    D.innerHTML = ds.length > 1 ? [`<button class="jb-chip${!s.d ? ' on' : ''}" data-act="jbd:">${esc(t('jb_all_d'))}</button>`].concat(ds.map(d => `<button class="jb-chip${s.d === d ? ' on' : ''}" data-act="jbd:${esc(d)}">${esc(d)} <small>${cnt[d]}</small></button>`)).join('') : '';
+    const tot = JB_IX && JB_IX.r && JB_IX.r[jbReg()] ? JB_IX.r[jbReg()].total : all.length;
+    N.textContent = all.length ? t('jb_n', { n: r.length, t: tot.toLocaleString('ru-RU') }) : '';
+    L.innerHTML = !all.length ? `<div class="cf-empty">${esc(t('jb_none'))}</div>` : show.length ? show.map(jbItem).join('') + (r.length > show.length ? `<button class="h-btn h-ghostd jb-more" data-act="jbmore">${esc(t('jb_more'))}</button>` : '') : `<div class="cf-empty">${esc(t('jb_none'))}</div>`;
+  };
+  window.__jbDraw = draw;
+  Q.addEventListener('input', () => { s.q = Q.value; s.more = 0; draw(); });
+  jbIndex().then(() => jbLoad(jbReg())).then(draw).catch(() => { L.innerHTML = `<div class="cf-empty">${esc(t('jb_err'))}</div>`; });
+};
+const jbRedraw = () => { if (window.__jbDraw && document.getElementById('jbL')) window.__jbDraw(); };
+Object.assign(XACT, {
+  jbsort: v => { jb().sort = v; jb().more = 0; render(current, currentP); },
+  jbsoc: () => { const s = jb(); s.soc = !s.soc; s.more = 0; render(current, currentP); },
+  jbd: d => { const s = jb(); s.d = d || ''; s.more = 0; jbRedraw(); },
+  jbmore: () => { jb().more++; jbRedraw(); },
+  jbreg: () => { const regs = REGIONS[LANG] || REGIONS.ru; sheet(t('jb_reg_t'), '', JB_REG.map((_, i) => [(i === jbReg() ? '✓ ' : '') + regs[i], () => { const s = jb(); s.r = i; s.d = ''; s.more = 0; render(current, currentP); }]).concat([[t('cancel'), null]])); },
+});
+
+// ---- социальная помощь: справка по пособиям и помощи со ссылками на госуслуги ----
+const SO_TOP = {
+  unemp: { ic: 'handshake', t: 's_unemp', p: [['so_u1t', 'so_u1'], ['so_u2t', 'so_u2'], ['so_u3t', 'so_u3']], note: 'so_u_note', a: [['so_mygov', 'https://my.gov.uz/'], ['so_jobs', 'go:h:jobs']] },
+  disab: { ic: 'access', t: 's_disab', p: [['so_d1t', 'so_d1'], ['so_d2t', 'so_d2'], ['so_d3t', 'so_d3']], a: [['so_mygov', 'https://my.gov.uz/'], ['so_jobs_soc', 'go:h:jobs?soc'], ['so_cgu', 'go:h:poi?gov']] },
+  family: { ic: 'users', t: 's_famhelp', p: [['so_f1t', 'so_f1'], ['so_f2t', 'so_f2'], ['so_f3t', 'so_f3']], a: [['so_mygov', 'https://my.gov.uz/'], ['so_cgu', 'go:h:poi?gov']] },
+};
+const soBtn = ([k, u], i) => /^https?:/.test(u) ? `<a class="h-btn ${i ? 'h-ghostd' : 'h-primary'} so-btn" href="${esc(u)}" target="_blank" rel="noopener">${esc(t(k))}</a>` : `<button class="h-btn ${i ? 'h-ghostd' : 'h-primary'} so-btn" data-act="${esc(u)}">${esc(t(k))}</button>`;
+const soHot = () => `<a class="so-hot" href="tel:+998712000600">${ico('phone', 20, '#1F5A33', 2)}<span><b>+998 71 200-06-00</b><i>${esc(t('so_hot'))}</i></span></a>`;
+HS.social = (p) => {
+  const T = SO_TOP[p];
+  if (T) return page(lt(T.t), T.p.map(([a, b]) => `<div class="so-card"><b>${esc(t(a))}</b><p>${esc(t(b))}</p></div>`).join('')
+    + (T.note ? `<div class="h-muted small so-note">${esc(t(T.note))}</div>` : '') + T.a.map(soBtn).join('') + soHot());
+  const row = (ic, title, sub, act) => `<button class="so-row" data-act="${act}"><span class="so-ri">${ico(ic, 24, GOLD, 1.8)}</span><span><b>${esc(title)}</b><i>${esc(sub)}</i></span>${IC.chev}</button>`;
+  return page(t('so_t'), row('briefcase', lt('s_jobs'), t('so_jobs_s'), 'go:h:jobs') + row('handshake', lt('s_unemp'), t('so_unemp_s'), 'go:h:social?unemp')
+    + row('access', lt('s_disab'), t('so_disab_s'), 'go:h:social?disab') + row('users', lt('s_famhelp'), t('so_family_s'), 'go:h:social?family') + soHot());
+};
+
+// ======================= «Мои карты»: привязка Uzcard/Humo через Payme =======================
+// Номер карты уходит прямо в Payme (cards.create → SMS-код → cards.verify); на наш сервер — только токен.
+Object.assign(LV, { p_cards: L4('Мои карты', 'Kartalarim', 'My cards', '我的银行卡') });
+const CD_I = {
+  ru: { cd_t: 'Мои карты', cd_add: 'Привязать карту', cd_none: 'Карт пока нет. Привяжите Uzcard или Humo — с неё можно будет оплачивать парковку и коммунальные услуги.', cd_off: 'Привязка карт заработает, когда подключим платёжную систему Payme. Всё уже готово — осталось подключение.',
+    cd_num: 'Номер карты', cd_exp: 'Срок (ММ/ГГ)', cd_next: 'Получить SMS-код', cd_code: 'Код из SMS', cd_sent: 'Код отправлен на {p}', cd_link: 'Привязать', cd_ok: 'Карта привязана', cd_main: 'Основная', cd_mk: 'Сделать основной', cd_rm: 'Удалить карту',
+    cd_err: 'Не удалось привязать карту: {e}', cd_bad: 'Проверьте номер и срок карты', cd_safe: 'Номер карты передаётся напрямую в Payme и не хранится в MyUzCity — у нас только защищённый токен.', cd_test: 'Тестовый режим Payme', cd_pay_add: 'Привязать карту', cd_login: 'Войдите через Telegram, чтобы привязать карту', cd_busy: 'Подождите…' },
+  uz: { cd_t: 'Kartalarim', cd_add: 'Karta bog‘lash', cd_none: 'Hozircha kartalar yo‘q. Uzcard yoki Humo kartasini bog‘lang — u orqali parkovka va kommunal xizmatlar uchun to‘lash mumkin bo‘ladi.', cd_off: 'Kartalarni bog‘lash Payme to‘lov tizimi ulanganidan keyin ishlaydi. Hammasi tayyor — faqat ulanish qoldi.',
+    cd_num: 'Karta raqami', cd_exp: 'Muddati (OO/YY)', cd_next: 'SMS-kod olish', cd_code: 'SMS-kod', cd_sent: 'Kod {p} raqamiga yuborildi', cd_link: 'Bog‘lash', cd_ok: 'Karta bog‘landi', cd_main: 'Asosiy', cd_mk: 'Asosiy qilish', cd_rm: 'Kartani o‘chirish',
+    cd_err: 'Kartani bog‘lab bo‘lmadi: {e}', cd_bad: 'Karta raqami va muddatini tekshiring', cd_safe: 'Karta raqami to‘g‘ridan-to‘g‘ri Payme’ga yuboriladi va MyUzCity’da saqlanmaydi — bizda faqat himoyalangan token.', cd_test: 'Payme test rejimi', cd_pay_add: 'Karta bog‘lash', cd_login: 'Karta bog‘lash uchun Telegram orqali kiring', cd_busy: 'Kuting…' },
+  en: { cd_t: 'My cards', cd_add: 'Link a card', cd_none: 'No cards yet. Link an Uzcard or Humo card to pay for parking and utilities.', cd_off: 'Card linking will work once the Payme payment system is connected. Everything is ready — only the connection is left.',
+    cd_num: 'Card number', cd_exp: 'Expiry (MM/YY)', cd_next: 'Get SMS code', cd_code: 'SMS code', cd_sent: 'Code sent to {p}', cd_link: 'Link card', cd_ok: 'Card linked', cd_main: 'Main', cd_mk: 'Make main', cd_rm: 'Remove card',
+    cd_err: 'Couldn’t link the card: {e}', cd_bad: 'Check the card number and expiry', cd_safe: 'The card number goes straight to Payme and is never stored by MyUzCity — we keep only a protected token.', cd_test: 'Payme test mode', cd_pay_add: 'Link a card', cd_login: 'Sign in with Telegram to link a card', cd_busy: 'Please wait…' },
+};
+CD_I.zh = CD_I.en;
+for (const l in CD_I) Object.assign(I[l], CD_I[l]);
+let CD_CFG = null;
+function cdCache() { try { return JSON.parse(localStorage.getItem('uzk-cards') || '[]') || []; } catch (e) { return []; } }
+function cdSave(l) { try { localStorage.setItem('uzk-cards', JSON.stringify(l || [])); } catch (e) {} }
+const cdBrand = m => /^(8600|5614|6262)/.test(m) ? 'Uzcard' : /^9860/.test(m) ? 'Humo' : /^4/.test(m) ? 'Visa' : /^5/.test(m) ? 'Mastercard' : '';
+const cdName = x => `${cdBrand(x.mask) || t('p_cards')} •• ${String(x.mask || '').slice(-4)}`;
+function payMethodName(m) { if (m && m.startsWith('card:')) { const x = cdCache().find(c => 'card:' + c.id === m); return x ? cdName(x) : 'Uzcard'; } return (m || 'payme').replace(/^\w/, c => c.toUpperCase()); }
+const cdLoad = () => api('/api/cards').then(j => { if (j && j.ok) { CD_CFG = j; cdSave(j.cards || []); } return j; });
+const cdApi = () => window.__PAYME_API || (CD_CFG && CD_CFG.test ? 'https://checkout.test.paycom.uz/api' : 'https://checkout.paycom.uz/api');
+async function payme(method, params) {
+  const r = await fetch(cdApi(), { method: 'POST', headers: { 'content-type': 'application/json', 'x-auth': CD_CFG.merchant }, body: JSON.stringify({ id: Date.now(), method, params }) });
+  const j = await r.json();
+  if (j.error) { const m = j.error.message; throw new Error(typeof m === 'object' ? (m[LANG] || m.ru || m.en || '') : (m || 'error')); }
+  return j.result;
+}
+function cdVisual(x) {
+  const b = cdBrand(x.mask), exp = String(x.exp || ''), m = String(x.mask || '');
+  return `<button class="cd-card ${b === 'Humo' ? 'humo' : b === 'Uzcard' ? 'uzcard' : ''}" data-act="cdopen:${x.id}"><span class="cd-b">${esc(b || t('p_cards'))}</span>${x.main ? `<span class="cd-main">${esc(t('cd_main'))}</span>` : ''}
+    <b>${esc(m.slice(0, 4))} •••• •••• ${esc(m.slice(-4))}</b><i>${esc(exp.length === 4 ? exp.slice(0, 2) + '/' + exp.slice(2) : '')}</i></button>`;
+}
+HS.cards = () => page(t('cd_t'), `<div id="cdL"><div class="hv-sk"></div></div>
+  <button class="h-btn h-primary cd-add" data-act="cdadd" id="cdAdd">${ico('plus', 20, '#fff', 2.2)}<span>${esc(t('cd_add'))}</span></button>
+  <div id="cdNote" class="h-muted small cd-note">${esc(t('cd_safe'))}</div>`);
+HS.cards.mount = el => {
+  const L = el.querySelector('#cdL'), A = el.querySelector('#cdAdd');
+  const draw = () => {
+    if (!document.body.contains(L)) return;
+    if (!authUser()) { L.innerHTML = `<div class="so-card"><p>${esc(t('cd_login'))}</p></div><button class="h-btn h-tgbtn" data-act="tglogin">${TG_SVG}<span>${esc(t('tg_login'))}</span></button>`; A.hidden = true; return; }
+    const cards = (CD_CFG && CD_CFG.cards) || cdCache();
+    L.innerHTML = (CD_CFG && !CD_CFG.enabled ? `<div class="cd-off">${esc(t('cd_off'))}</div>` : '') + (CD_CFG && CD_CFG.test ? `<div class="cd-test">${esc(t('cd_test'))}</div>` : '')
+      + (cards.length ? cards.map(cdVisual).join('') : `<div class="so-card"><p>${esc(t('cd_none'))}</p></div>`);
+    A.hidden = false; A.classList.toggle('off', !(CD_CFG && CD_CFG.enabled));
+  };
+  window.__cdDraw = draw; draw();
+  if (authUser()) cdLoad().then(draw).catch(draw);
+};
+function cdAddSheet() {
+  if (!CD_CFG || !CD_CFG.enabled) return toast(t('cd_off'));
+  const w = bsheet(`<div class="pk-h"><b>${esc(t('cd_add'))}</b><span>${esc(t('cd_safe'))}</span></div>
+    <label class="tg-lbl" for="cdN">${esc(t('cd_num'))}</label><div class="tg-code"><input id="cdN" inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="8600 0000 0000 0000"></div>
+    <label class="tg-lbl" for="cdE">${esc(t('cd_exp'))}</label><div class="tg-code"><input id="cdE" inputmode="numeric" autocomplete="cc-exp" maxlength="5" placeholder="MM/YY"></div>
+    <div id="cdStep2" hidden><label class="tg-lbl" for="cdC" id="cdSent">${esc(t('cd_code'))}</label><div class="tg-code"><input id="cdC" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••"></div></div>
+    <button class="h-btn h-primary cd-go" id="cdGo">${esc(t('cd_next'))}</button><div class="tg-err" id="cdErr"></div>`, 'bs-caf bs-tg');
+  const $ = id => w.querySelector('#' + id), N = $('cdN'), E = $('cdE'), C = $('cdC'), go = $('cdGo'), err = $('cdErr');
+  let token = null;
+  N.addEventListener('input', () => { const d = N.value.replace(/\D/g, '').slice(0, 16); N.value = d.replace(/(\d{4})(?=\d)/g, '$1 '); });
+  E.addEventListener('input', () => { const d = E.value.replace(/\D/g, '').slice(0, 4); E.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d; });
+  const busy = on => { go.disabled = on; go.textContent = on ? t('cd_busy') : t(token ? 'cd_link' : 'cd_next'); };
+  go.addEventListener('click', async e => {
+    e.preventDefault(); err.textContent = '';
+    try {
+      if (!token) {
+        const num = N.value.replace(/\D/g, ''), ex = E.value.replace(/\D/g, '');
+        if (num.length !== 16 || ex.length !== 4 || +ex.slice(0, 2) < 1 || +ex.slice(0, 2) > 12) { err.textContent = t('cd_bad'); return; }
+        busy(true);
+        const r = await payme('cards.create', { card: { number: num, expire: ex }, save: true });
+        token = r.card.token;
+        const v = await payme('cards.get_verify_code', { token });
+        $('cdSent').textContent = t('cd_sent', { p: v && v.phone ? v.phone : '' });
+        $('cdStep2').hidden = false; N.disabled = E.disabled = true; busy(false); setTimeout(() => C.focus(), 50);
+      } else {
+        const code = C.value.replace(/\D/g, ''); if (code.length < 4) { C.focus(); return; }
+        busy(true);
+        await payme('cards.verify', { token, code });
+        const j = await api('/api/cards', { token });
+        if (!j || !j.ok) throw new Error(j && j.error ? j.error : 'server');
+        CD_CFG.cards = j.cards; cdSave(j.cards); bsheetClose(true); toast(t('cd_ok')); if (window.__cdDraw) window.__cdDraw();
+      }
+    } catch (x) { busy(false); err.textContent = t('cd_err', { e: x.message || '' }); }
+  });
+  setTimeout(() => N.focus(), 300);
+}
+XACT.cdadd = () => { if (!authUser()) return tgLogin(); if (CD_CFG) cdAddSheet(); else cdLoad().then(cdAddSheet).catch(() => toast(t('cd_off'))); };
+XACT.cdopen = id => {
+  const x = ((CD_CFG && CD_CFG.cards) || cdCache()).find(c => String(c.id) === String(id)); if (!x) return;
+  const upd = body => api('/api/cards', body).then(j => { if (j && j.ok) { CD_CFG = Object.assign(CD_CFG || {}, { cards: j.cards }); cdSave(j.cards); if (window.__cdDraw) window.__cdDraw(); } });
+  sheet(cdName(x), '', (x.main ? [] : [[t('cd_mk'), () => upd({ main: x.id })]]).concat([[t('cd_rm'), () => upd({ remove: x.id })], [t('cancel'), null]]));
+};
+setTimeout(() => { if (authUser()) cdLoad().catch(() => {}); }, 3500);
+
+// ======================= Вход по Face ID / отпечатку (passkeys) =======================
+// Лицо или палец проверяет сам телефон; на сервер уходит открытый ключ и подпись — без биометрии.
+Object.assign(LV, { p_face: L4('Вход по Face ID', 'Face ID orqali kirish', 'Face ID sign-in', '面容 ID 登录') });
+Object.assign(ICP, { face: '<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9v1M15 9v1M12 9v4h-1M9 16c1.7 1.3 4.3 1.3 6 0"/>' });
+const FK_I = {
+  ru: { fk_t: 'Вход по Face ID или отпечатку', fk_on: 'Включён на этом телефоне', fk_off: 'Выключен', fk_enable: 'Включить вход по Face ID', fk_ok: 'Готово — теперь можно входить по Face ID или отпечатку', fk_err: 'Не получилось: {e}', fk_login: 'Войти по Face ID',
+    fk_rm: 'Отключить вход по Face ID', fk_no: 'Этот телефон не поддерживает вход по Face ID в браузере', fk_need: 'Сначала войдите через Telegram — потом включите Face ID в настройках', fk_lock_on: 'Спрашивать Face ID при открытии', fk_lock_off: 'Не спрашивать Face ID при открытии',
+    fk_unlock: 'Разблокировать', fk_locked: 'MyUzCity заблокирован', fk_locked_s: 'Подтвердите, что это вы, — Face ID или отпечатком', fk_other: 'Выйти и войти через Telegram', fk_lock_ok: 'При открытии приложение спросит Face ID', fk_s: 'Лицо и отпечаток проверяет телефон — к нам они не попадают.' },
+  uz: { fk_t: 'Face ID yoki barmoq izi orqali kirish', fk_on: 'Shu telefonda yoqilgan', fk_off: 'O‘chirilgan', fk_enable: 'Face ID orqali kirishni yoqish', fk_ok: 'Tayyor — endi Face ID yoki barmoq izi bilan kirish mumkin', fk_err: 'Bo‘lmadi: {e}', fk_login: 'Face ID orqali kirish',
+    fk_rm: 'Face ID orqali kirishni o‘chirish', fk_no: 'Bu telefon brauzerda Face ID orqali kirishni qo‘llamaydi', fk_need: 'Avval Telegram orqali kiring — keyin sozlamalarda Face ID ni yoqing', fk_lock_on: 'Ochilganda Face ID so‘ralsin', fk_lock_off: 'Ochilganda Face ID so‘ralmasin',
+    fk_unlock: 'Qulfdan chiqarish', fk_locked: 'MyUzCity qulflangan', fk_locked_s: 'Bu siz ekanligingizni Face ID yoki barmoq izi bilan tasdiqlang', fk_other: 'Chiqish va Telegram orqali kirish', fk_lock_ok: 'Ilova ochilganda Face ID so‘raladi', fk_s: 'Yuz va barmoq izini telefon tekshiradi — ular bizga yuborilmaydi.' },
+  en: { fk_t: 'Sign in with Face ID or fingerprint', fk_on: 'On for this phone', fk_off: 'Off', fk_enable: 'Turn on Face ID sign-in', fk_ok: 'Done — you can now sign in with Face ID or fingerprint', fk_err: 'Didn’t work: {e}', fk_login: 'Sign in with Face ID',
+    fk_rm: 'Turn off Face ID sign-in', fk_no: 'This phone doesn’t support Face ID sign-in in the browser', fk_need: 'Sign in with Telegram first, then turn on Face ID in Settings', fk_lock_on: 'Ask for Face ID when opening', fk_lock_off: 'Don’t ask for Face ID when opening',
+    fk_unlock: 'Unlock', fk_locked: 'MyUzCity is locked', fk_locked_s: 'Confirm it’s you with Face ID or fingerprint', fk_other: 'Sign out and use Telegram', fk_lock_ok: 'The app will ask for Face ID when opened', fk_s: 'Your phone checks your face or fingerprint — they never reach us.' },
+};
+FK_I.zh = FK_I.en;
+for (const l in FK_I) Object.assign(I[l], FK_I[l]);
+const fkEmbed = () => { try { return new URLSearchParams(location.search).get('embed') === '1' || window.top !== window; } catch (e) { return true; } };
+const fkSupported = () => !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create) && !fkEmbed();
+const fkKey = () => { try { return localStorage.getItem('uzk-pk') || ''; } catch (e) { return ''; } };
+const fkB = s => Uint8Array.from(atob(String(s).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((String(s).length + 3) % 4)), c => c.charCodeAt(0)).buffer;
+const fkS = buf => { const a = new Uint8Array(buf); let s = ''; for (let i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const fkBtn = () => fkSupported() && fkKey() ? `<button class="h-btn fk-btn" data-act="fklogin">${ico('face', 22, '#fff', 1.9)}<span>${esc(t('fk_login'))}</span></button>` : '';
+async function fkRegister() {
+  if (!fkSupported()) return toast(t('fk_no'));
+  if (!authUser()) return toast(t('fk_need'));
+  try {
+    const o = await api('/api/passkey', { action: 'reg-options' }); if (!o || !o.ok) throw new Error((o && o.error) || 'server');
+    const cred = await navigator.credentials.create({ publicKey: { challenge: fkB(o.challenge), rp: o.rp, user: { id: fkB(o.user.id), name: o.user.name, displayName: o.user.displayName },
+      pubKeyCredParams: o.pubKeyCredParams, timeout: o.timeout, attestation: 'none', authenticatorSelection: o.authenticatorSelection, excludeCredentials: (o.exclude || []).map(id => ({ type: 'public-key', id: fkB(id) })) } });
+    const r = cred.response, pk = r.getPublicKey ? r.getPublicKey() : null; if (!pk) throw new Error(t('fk_no'));
+    const dev = (navigator.userAgent.match(/iPhone|iPad|Android|Macintosh|Windows/) || [''])[0];
+    const j = await api('/api/passkey', { action: 'register', id: cred.id, clientDataJSON: fkS(r.clientDataJSON), publicKey: fkS(pk), alg: r.getPublicKeyAlgorithm(), name: dev });
+    if (!j || !j.ok) throw new Error((j && j.error) || 'server');
+    try { localStorage.setItem('uzk-pk', cred.id); } catch (e) {}
+    toast(t('fk_ok')); render(current, currentP);
+  } catch (e) { if (e && (e.name === 'NotAllowedError' || e.name === 'AbortError')) return; toast(t('fk_err', { e: (e && (e.message || e.name)) || '' })); }
+}
+async function fkAssert() {
+  const o = await api('/api/passkey', { action: 'login-options' }); if (!o || !o.ok) throw new Error((o && o.error) || 'server');
+  const k = fkKey();
+  const a = await navigator.credentials.get({ publicKey: { challenge: fkB(o.challenge), rpId: o.rpId, timeout: o.timeout, userVerification: 'required', allowCredentials: k ? [{ type: 'public-key', id: fkB(k) }] : [] } });
+  const r = a.response;
+  const j = await api('/api/passkey', { action: 'login', id: a.id, clientDataJSON: fkS(r.clientDataJSON), authenticatorData: fkS(r.authenticatorData), signature: fkS(r.signature) });
+  if (!j || !j.ok) throw new Error((j && j.error) || 'server');
+  return j;
+}
+async function fkLogin() {
+  if (!fkSupported()) return toast(t('fk_no'));
+  try { const j = await fkAssert(); tgDone(j); }
+  catch (e) { if (e && (e.name === 'NotAllowedError' || e.name === 'AbortError')) return; toast(t('fk_err', { e: (e && (e.message || e.name)) || '' })); }
+}
+function fkSettings() {
+  if (!fkSupported()) return toast(t('fk_no'));
+  if (!authUser()) return toast(t('fk_need'));
+  const on = !!fkKey(), lock = localStorage.getItem('uzk-lock') === '1';
+  const acts = on ? [[t(lock ? 'fk_lock_off' : 'fk_lock_on'), () => { try { if (lock) localStorage.removeItem('uzk-lock'); else { localStorage.setItem('uzk-lock', '1'); toast(t('fk_lock_ok')); } } catch (e) {} render(current, currentP); }],
+    [t('fk_rm'), () => { const id = fkKey(); try { localStorage.removeItem('uzk-pk'); localStorage.removeItem('uzk-lock'); } catch (e) {} api('/api/passkey', { action: 'remove', id }).catch(() => {}); render(current, currentP); }]]
+    : [[t('fk_enable'), fkRegister]];
+  sheet(t('fk_t'), t('fk_s'), acts.concat([[t('cancel'), null]]));
+}
+// блокировка при открытии: если включена — после запуска и после 1 минуты в фоне просим Face ID
+let FK_HID = 0;
+function fkLockShow() {
+  if (document.getElementById('fkLock') || !fkSupported() || !fkKey() || !authUser() || localStorage.getItem('uzk-lock') !== '1') return;
+  const w = document.createElement('div'); w.id = 'fkLock'; w.className = 'fk-lock';
+  w.innerHTML = `<div class="fk-box"><div class="fk-ic">${ico('face', 46, '#E7B15B', 1.6)}</div><b>${esc(t('fk_locked'))}</b><i>${esc(t('fk_locked_s'))}</i>
+    <button class="h-btn fk-btn" id="fkU">${ico('face', 22, '#fff', 1.9)}<span>${esc(t('fk_unlock'))}</span></button><button class="fk-other" id="fkO">${esc(t('fk_other'))}</button><div class="tg-err" id="fkE"></div></div>`;
+  document.body.appendChild(w);
+  w.querySelector('#fkU').addEventListener('click', async () => {
+    try { const j = await fkAssert(); const u = authUser(); if (u && j.user && String(j.user.id) !== String(u.id)) throw new Error('user'); try { localStorage.setItem('uzk-session', j.token); localStorage.setItem('uzk-user', JSON.stringify(j.user)); } catch (e) {} w.remove(); }
+    catch (e) { if (e && (e.name === 'NotAllowedError' || e.name === 'AbortError')) return; w.querySelector('#fkE').textContent = t('fk_err', { e: (e && (e.message || e.name)) || '' }); }
+  });
+  w.querySelector('#fkO').addEventListener('click', () => { try { ['uzk-session', 'uzk-user', 'uzk-ava', 'uzk-lock'].forEach(k => localStorage.removeItem(k)); } catch (e) {} w.remove(); render(current, currentP); tgLogin(); });
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) FK_HID = Date.now(); else if (FK_HID && Date.now() - FK_HID > 60e3) fkLockShow(); });
+setTimeout(fkLockShow, 50);
+Object.assign(XACT, { fklogin: fkLogin, fkset: fkSettings });
