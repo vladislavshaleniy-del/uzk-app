@@ -39,5 +39,9 @@ jobs:
           git add data
           if git diff --cached --quiet; then echo "no changes"; exit 0; fi
           git commit -m "data: обновление новостей и заведений"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          # GitHub sometimes refuses a push for a moment (e.g. "fatal error in commit_refs_rules"): try again
+          for i in 1 2 3 4; do
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
+            echo "push failed, retry $i"; sleep $((i * 20))
+          done
+          exit 1

@@ -8,6 +8,10 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
+// the workflow step is stopped after 16 minutes: new OpenStreetMap requests are not started after 12, so the run always ends normally
+// (busy public Overpass servers used to keep one request waiting for up to 8 minutes and push the run past the limit)
+const DEADLINE = Date.now() + 12 * 60e3;
+const timeLeft = () => DEADLINE - Date.now();
 const UA = 'Mozilla/5.0 (compatible; DigitalUzbekistanBot/1.0; +https://vladislavshaleniy-del.github.io/uzk-app/)';
 
 const flows = readFileSync(ROOT + 'flows.js', 'utf8');
@@ -169,7 +173,8 @@ function place(e, ci) {
 }
 async function overpass(q) {
   for (const base of OVERPASS) {
-    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 120e3);
+    if (timeLeft() < 20e3) throw new Error('time budget used');
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), Math.min(90e3, timeLeft()));
     try {
       const r = await fetch(base, { method: 'POST', signal: ctl.signal, headers: { 'user-agent': 'MyUzCity-data/1.0 (+https://github.com/vladislavshaleniy-del/uzk-app)', accept: '*/*', 'content-type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q) });
       if (r.ok) return await r.json();
@@ -490,7 +495,7 @@ async function cityData() {
   }
   const t0 = Date.now();
   for (const [kind, i] of jobs) {
-    if (Date.now() - t0 > 11 * 60e3) { console.log('city data: time budget used, the rest next run'); break; }
+    if (Date.now() - t0 > 11 * 60e3 || timeLeft() < 60e3) { console.log('city data: time budget used, the rest next run'); break; }
     const [, , , , , lat, lon] = CITIES[i];
     try {
       if (kind === 'places') {
