@@ -3532,7 +3532,7 @@ const SVC = [
   ['sec_driver', [['bus', 's_transport', 'go:h:transport'], ['car', 's_parking', 'go:1:4858'], ['zap', 's_ev', 'go:h:poi?ev'], ['alert', 's_fines', 'go:1:2649'], ['road', 's_roads', 'go:h:reports?road'], ['video', 's_cams', 'go:h:poi?speedcam']]],
   ['sec_admin', [['gov', 's_gov', 'go:1:2573'], ['file', 's_docs', 'go:1:19'], ['home', 's_home', 'go:1:5285'], ['gift', 's_cash', 'go:1:448'], ['trend', 's_invest', 'go:1:140']]],
   ['sec_city', [['sos', 's_sos', 'go:1:4475', '#C81E1E', '#fff'], ['build', 's_mah', 'go:1:996'], ['msg', 's_appeal', 'go:h:reports?appeal'], ['trash', 's_clean', 'go:h:eco'], ['chart', 's_polls', 'go:h:polls?city'], ['heart', 's_vol', 'go:1:4356'], ['store', 's_market', 'go:1:5149']]],
-  ['sec_edu', [['steth', 's_health', 'go:1:5032'], ['cap', 's_family', 'go:1:3042']]],
+  ['sec_edu', [['steth', 's_health', 'go:1:5032'], ['plus', 's_doconline', 'doconline:', '#126C60', '#fff'], ['cap', 's_family', 'go:1:3042']]],
   ['sec_social', [['briefcase', 's_jobs', 'go:h:jobs'], ['handshake', 's_unemp', 'go:h:social?unemp'], ['access', 's_disab', 'go:h:social?disab'], ['users', 's_famhelp', 'go:h:social?family']]],
 ];
 HS.services = () => page(lt('svc_t'), SVC.map(([s, items]) => lvSec(lt(s)) + `<div class="lv-grid">${items.map(([i, k, act, bg, col]) => lvTile(i, lt(k), act, { bg, col })).join('')}</div>`).join(''), { back: false });
@@ -3593,7 +3593,32 @@ HS.help = () => page(lt('p_help'), `<div class="lv-sec">${esc(lt('faq_t'))}</div
 // ---------- sections ----------
 HS.docs = () => page(lt('s_docs'), fl('docs'));
 HS.family = () => page(lt('s_family'), `<div class="lv-card">${lvRow('book', t('dy_t'), 'emaktab.uz', 'diary', { bg: DK, col: GOLD })}${lvRow('cap', t('kg_t'), 'my.gov.uz', 'kinder', { bg: DK, col: GOLD })}</div>${fl('family')}`);
-HS.health = () => page(lt('s_health'), `<div class="lv-card">${lvRow('steth', t('dm_t'), 'DMED · my.gov.uz', 'dmed:dm', { bg: '#FDF2E3', col: '#B7791F' })}${lvRow('file', t('mb_t'), 'DMED', 'dmed:mb', { bg: '#FDF2E3', col: '#B7791F' })}</div>${fl('docsAppts')}${fl('health')}`);
+// ---------- Doctor Online (doctor-online.uz): medical app opened inside MyUzCity ----------
+Object.assign(LV, {
+  s_doconline: L4('Doctor Online', 'Doctor Online', 'Doctor Online', 'Doctor Online'),
+  do_s: L4('Врачи, онлайн-консультации и ИИ-помощник', 'Shifokorlar, onlayn konsultatsiya va AI yordamchi', 'Doctors, online consultations and an AI assistant', '医生、在线问诊和AI助手'),
+  do_open: L4('Открыть', 'Ochish', 'Open', '打开'),
+  do_back: L4('Назад в MyUzCity', 'MyUzCity’ga qaytish', 'Back to MyUzCity', '返回 MyUzCity'),
+});
+const DOCONLINE = 'https://app.doctor-online.uz';
+const doCard = () => `<button class="do-card" data-act="doconline:"><img src="img/doctor-online.png" alt="" width="52" height="52"><span class="do-ct"><b>${esc(lt('s_doconline'))}</b><i>${esc(lt('do_s'))}</i></span><span class="do-go">${esc(lt('do_open'))}${IC.chev}</span></button>`;
+XACT.doconline = () => {
+  const l = LANG === 'uz' ? 'uz' : LANG === 'ru' ? 'ru' : 'en';
+  const url = DOCONLINE + (l === 'en' ? '' : '/' + l) + '/health?from=myuzcity';
+  const old = document.getElementById('doOv'); if (old) old.remove();
+  const ov = document.createElement('div'); ov.id = 'doOv'; ov.className = 'do-ov';
+  ov.innerHTML = `<div class="do-bar"><button type="button" class="do-back" aria-label="${esc(lt('do_back'))}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>MyUzCity</button><b>Doctor Online</b><span></span></div><iframe src="${url}" title="Doctor Online" allow="camera; microphone; geolocation; clipboard-write; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  document.body.appendChild(ov);
+  document.documentElement.classList.add('do-open');
+  // the phone's Back gesture closes Doctor Online and returns to the Health screen
+  const tok = Date.now(), st = Object.assign({}, history.state || {}, { doOv: tok });
+  if (history.state && history.state.doOv) history.replaceState(st, '', location.href); else history.pushState(st, '', location.href);
+  const close = () => { ov.remove(); document.documentElement.classList.remove('do-open'); removeEventListener('popstate', onPop); };
+  const onPop = e => { if (!(e.state && e.state.doOv === tok)) close(); };
+  addEventListener('popstate', onPop);
+  ov.querySelector('.do-back').onclick = () => { close(); if (history.state && history.state.doOv) history.back(); };
+};
+HS.health = () => page(lt('s_health'), `${doCard()}<div class="lv-card">${lvRow('steth', t('dm_t'), 'DMED · my.gov.uz', 'dmed:dm', { bg: '#FDF2E3', col: '#B7791F' })}${lvRow('file', t('mb_t'), 'DMED', 'dmed:mb', { bg: '#FDF2E3', col: '#B7791F' })}</div>${fl('docsAppts')}${fl('health')}`);
 HS.mahalla = () => page(lt('s_mah'), `${fl('mahTop')}${fl('mahMosques')}`);
 HS.parking = () => page(lt('s_parking'), `<div class="lv-card lv-qr"><div class="lv-qrh"><div><i>${esc(lt('pk_fast'))}</i><b>${esc(lt('pk_qrs'))}</b></div><span class="lv-ri" style="background:#EEF0F2;color:#143C20">${ico('qr', 24)}</span></div>${btn(lt('pk_scan'), 'go:h:qr', 'primary')}</div>${fl('cars')}${fl('parkingMap')}`);
 HS.gov = () => page(lt('s_gov'), `<div class="lv-sec">${esc(lt('gov_cats'))}</div><div class="lv-card">${[['file', 'gov_c1'], ['briefcase', 'gov_c2'], ['users', 'gov_c3'], ['gov', 'gov_c4']].map(([i, k]) => lvLink(i, lt(k), 'my.gov.uz', MYGOV(LANG), { bg: DK, col: GOLD })).join('')}</div>${btn(lt('gov_q'), 'cgu', 'primary')}${fl('gov')}`);
